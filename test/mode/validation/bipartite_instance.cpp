@@ -8,7 +8,7 @@
 #include <vector> // std::vector
 #include <ranges> // std::ranges
 
-#include <algorithm> //用于 std::max
+#include <algorithm> // std::max
 #include <iostream> // std::cout, std::boolalpha, std::endl
 
 
@@ -170,7 +170,7 @@ int main()
 
 	bool adventurer_team_A_clears_dungeon_X =
 		rangewise<all_of, zip_pair_truncation>
-		::between(dungeon_monster_pairs, adventurer_team_A) // complie time and runtime
+		::between(dungeon_monster_pairs, adventurer_team_A) // testing complie time container and runtime container
 		.satisfies([] (auto&& monsters, auto&& adventurer) { return adventurer_beats_monsters(adventurer, monsters); });
 
 	std::cout << "adventurer team A clears dungeon X: " << adventurer_team_A_clears_dungeon_X << std::endl;
@@ -180,7 +180,7 @@ int main()
 	bool adventurer_team_A_clears_dungeon_Y =
 		rangewise<all_of, zip_pair_padding>
 		::with_padding(combat_attribute{}, monster_pair_4)
-		.between(adventurer_team_A, dungeon_monster_pairs) // runtime and complie time
+		.between(adventurer_team_A, dungeon_monster_pairs) // testing runtime container and complie time container
 		.satisfies(adventurer_beats_monsters);
 
 	std::cout << "adventurer team A clears dungeon Y: " << adventurer_team_A_clears_dungeon_Y << std::endl;
