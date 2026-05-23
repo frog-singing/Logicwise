@@ -31,16 +31,16 @@ Or:
 Orthogonally compose your logic:
 
 <table>
-<tr>
-<td align="center">
-<strong style="font-size: 1.5em;">
-Quantifier × Arrangement × Range × Predicate
-</strong>
-</td>
-</tr>
+	<tr>
+	    <td style="padding: 14px 28px;" align="center">
+			<strong style="font-size: 1.5em">
+				Quantifier × Arrangement × Range × Predicate
+			</strong>
+		</td>
+	</tr>
 </table>
 
-Validate as you declare. Let the code speak for itself.
+*Validate as you declare. Let the code speak for itself.*
 
 </div>
 

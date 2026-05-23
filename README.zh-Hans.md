@@ -31,16 +31,16 @@ rangewise<all_of, cartesian_pair>
 以正交方式构造你的逻辑：
 
 <table>
-<tr>
-<td align="center">
-<strong style="font-size: 1.5em;">
-量词 × 组织 × 范围 × 谓词
-</strong>
-</td>
-</tr>
+	<tr>
+	    <td style="padding: 14px 28px;" align="center">
+			<strong style="font-size: 1.5em">
+				量词 × 组织 × 范围 × 谓词
+			</strong>
+		</td>
+	</tr>
 </table>
 
-声明式验证，让代码说人话。
+*声明式验证，让代码说人话。*
 
 </div>
 
