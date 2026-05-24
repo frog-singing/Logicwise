@@ -3,14 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include "template_validation_loop.h"
-
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
-#include <logicwise/index/index_sequencer.h>
 #include <logicwise/detail/vector_like_container_trait.h>
+#include "validation_loop.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke
 #include <utility> //用于 std::forward
@@ -60,13 +58,12 @@ namespace logicwise::detail
             typename ValidatorType>
         static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
         {
-            LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				{ TypeList::size },
-				(
-                    validator_ref.template operator() < typename TypeList::template element<Index> > ()
-				)
-			);
+            constexpr typename Arrangement::extent_type extent{ TypeList::size };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+                    validator.template operator() < typename TypeList::template element<Index> > ();
+				});
         }
 
         template<typename Quantifier, typename Arrangement, typename ValueList,
@@ -97,43 +94,24 @@ namespace logicwise::detail
             typename ValidatorType>
         static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
         {
-            LOGICWISE_TEMPLATE_VALIDATION_LOOP
-            (
-                { ValueList::size },
-                (
-                    validator_ref.template operator() < ValueList::template element<Index> > ()
-                )
-            );
+            constexpr typename Arrangement::extent_type extent{ ValueList::size };
+
+            return template_validation_loop<Quantifier, Arrangement, extent>
+                ([&] <auto Index> { return
+                    validator.template operator() < ValueList::template element<Index> > ();
+                });
         }
 
         template<typename Quantifier, typename Arrangement,
             typename ContainerType, typename ValidatorType>
         static constexpr bool validate_container(const ContainerType& container, ValidatorType&& validator)
         {
-            using extent_type = typename Arrangement::extent_type;
-            using index_traverser_type = typename Arrangement::fast_index_traverser;
+            typename Arrangement::extent_type extent{ std::ranges::size(container) };
 
-            typename Quantifier::solver quantifier_solver{};
-
-            extent_type extent{ std::ranges::size(container) };
-            index_traverser_type index_traverser{ extent };
-
-            //遍历入口处将 validator 固定为左值引用，避免不必要的复制
-            auto& validator_ref = validator;
-
-            while (!quantifier_solver.solved() && !index_traverser.done())
-            {
-                auto i = index_traverser.state();
-
-                quantifier_solver.step
-                (
-                    std::invoke(validator_ref, container[i])
-                );
-
-                index_traverser.step();
-            }
-
-            return quantifier_solver.result();
+			return instance_validation_loop<Quantifier, Arrangement>(extent,
+				[&] (auto index) { return
+                    std::invoke(validator, container[index]);
+				});
         }
 
     };

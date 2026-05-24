@@ -3,14 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include "template_validation_loop.h"
-
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
-#include <logicwise/index/index_sequencer.h>
 #include <logicwise/detail/vector_like_container_trait.h>
+#include "validation_loop.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke
 #include <utility> //用于 std::forward
@@ -62,17 +60,15 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
 		{
-			LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				//宏函数中需要用 () 包裹初始化列表内部逗号
-				({ TypeListA::size, TypeListB::size }),
-				(
-					validator_ref.template operator() <
+			constexpr typename Arrangement::extent_type extent{ TypeListA::size, TypeListB::size };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+					validator.template operator() <
 						typename TypeListA::template element<Index[0]>,
 						typename TypeListB::template element<Index[1]>
-					> ()
-				)
-			);
+					> ();
+				});
 		}
 
 		template<typename Quantifier, typename Arrangement, typename ValueListA, typename ValueListB,
@@ -105,17 +101,15 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
 		{
-			LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				//宏函数中需要用 () 包裹初始化列表内部逗号
-				({ ValueListA::size, ValueListB::size }),
-				(
-					validator_ref.template operator() <
+			constexpr typename Arrangement::extent_type extent{ ValueListA::size, ValueListB::size };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+					validator.template operator() <
 						ValueListA::template element<Index[0]>,
 						ValueListB::template element<Index[1]>
-					> ()
-				)
-			);
+					> ();
+				});
 		}
 
 		template<typename Quantifier, typename Arrangement, typename TypeList, typename ValueList,
@@ -148,17 +142,15 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_type_list_and_value_list_with_invocable(ValidatorType&& validator)
 		{
-			LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				//宏函数中需要用 () 包裹初始化列表内部逗号
-				({ TypeList::size, ValueList::size }),
-				(
-					validator_ref.template operator() <
+			constexpr typename Arrangement::extent_type extent{ TypeList::size, ValueList::size };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+					validator.template operator() <
 						typename TypeList::template element<Index[0]>,
 						ValueList::template element<Index[1]>
-					> ()
-				)
-			);
+					> ();
+				});
 		}
 
 		template<typename Quantifier, typename Arrangement, typename ValueList, typename TypeList,
@@ -191,17 +183,15 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_value_list_and_type_list_with_invocable(ValidatorType&& validator)
 		{
-			LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				//宏函数中需要用 () 包裹初始化列表内部逗号
-				({ ValueList::size, TypeList::size }),
-				(
-					validator_ref.template operator() <
+			constexpr typename Arrangement::extent_type extent{ ValueList::size, TypeList::size };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+					validator.template operator() <
 						ValueList::template element<Index[0]>,
 						typename TypeList::template element<Index[1]>
-					> ()
-				)
-			);
+					> ();
+				});
 		}
 
 		//--------------------------------------------------------------------------------
@@ -211,30 +201,13 @@ namespace logicwise::detail
 		static constexpr bool validate_container(
 			const ContainerTypeA& containerA, const ContainerTypeB& containerB, ValidatorType&& validator)
 		{
-			using extent_type = typename Arrangement::extent_type;
-			using index_traverser_type = typename Arrangement::fast_index_traverser;
+			typename Arrangement::extent_type extent
+			{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
-			typename Quantifier::solver quantifier_solver{};
-
-			extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
-			index_traverser_type index_traverser{ extent };
-
-			//遍历入口处将 validator 固定为左值引用，避免不必要的复制
-			auto& validator_ref = validator;
-
-			while (!quantifier_solver.solved() && !index_traverser.done())
-			{
-				auto [i, j] = index_traverser.state();
-
-				quantifier_solver.step
-				(
-					std::invoke(validator_ref, containerA[i], containerB[j])
-				);
-
-				index_traverser.step();
-			}
-
-			return quantifier_solver.result();
+			return instance_validation_loop<Quantifier, Arrangement>(extent,
+				[&] (auto index) { return
+					std::invoke(validator, containerA[index[0]], containerB[index[1]]);
+				});
 		}
 
 		//--------------------------------------------------------------------------------
@@ -244,16 +217,15 @@ namespace logicwise::detail
 		static constexpr bool validate_type_list_and_container(
 			const ContainerType& container, ValidatorType&& validator)
 		{
-			LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				//宏函数中需要用 () 包裹初始化列表内部逗号
-				({ TypeList::size, static_container_size<ContainerType> }),
-				(
-					validator_ref.template operator()
+			constexpr typename Arrangement::extent_type extent
+			{ TypeList::size, static_container_size<ContainerType> };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+					validator.template operator()
 					< typename TypeList::template element<Index[0]> >
-					(container[Index[1]])
-				)
-			);
+					(container[Index[1]]);
+				});
 		}
 
 		template<typename Quantifier, typename Arrangement, typename ValueList,
@@ -261,16 +233,15 @@ namespace logicwise::detail
 		static constexpr bool validate_value_list_and_container(
 			const ContainerType& container, ValidatorType&& validator)
 		{
-			LOGICWISE_TEMPLATE_VALIDATION_LOOP
-			(
-				//宏函数中需要用 () 包裹初始化列表内部逗号
-				({ ValueList::size, static_container_size<ContainerType> }),
-				(
-					validator_ref.template operator()
+			constexpr typename Arrangement::extent_type extent
+			{ ValueList::size, static_container_size<ContainerType> };
+
+			return template_validation_loop<Quantifier, Arrangement, extent>
+				([&] <auto Index> { return
+					validator.template operator()
 					< ValueList::template element<Index[0]> >
-					(container[Index[1]])
-				)
-			);
+					(container[Index[1]]);
+				});
 		}
 
 	};
