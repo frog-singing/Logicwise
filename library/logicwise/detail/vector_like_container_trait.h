@@ -4,7 +4,7 @@
 
 #pragma once
 #include <logicwise/external_detail/vector_like.h>
-#include <type_traits> //用于 std::is_lvalue_reference_v, std::remove_cvref_t, std::remove_cv_t,
+#include <type_traits> //用于 std::is_lvalue_reference_v, std::remove_cvref_t (C++20), std::remove_cv_t,
 //std::conditional_t, std::is_array_v, std::remove_reference_t, std::remove_extent_t, std::extent_v
 #include <ranges> //用于 std::ranges，C++20标准
 #include <cstddef> //用于 std::size_t

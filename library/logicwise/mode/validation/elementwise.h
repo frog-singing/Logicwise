@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include "template_validation_loop.h"
+
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/external_detail/exosuit.h>
@@ -58,29 +60,13 @@ namespace logicwise::detail
             typename ValidatorType>
         static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
         {
-            using extent_type = typename Arrangement::extent_type;
-            using index_traverser_type = typename Arrangement::fast_index_traverser;
-
-            constexpr extent_type extent{ TypeList::size };
-
-            using index_sequence =
-                typename index_sequencer<Arrangement, index_traverser_type, extent>::index_sequence;
-
-            typename Quantifier::solver quantifier_solver{};
-
-            //遍历入口处将validator固定为左值引用，避免不必要的复制
-            auto& validator_ref = validator;
-
-            index_sequence::invoke([&] <auto... Index> {
-                (..., (
-                    quantifier_solver.solved() ? void() : quantifier_solver.step
-                    (
-                        validator_ref.template operator() < typename TypeList::template element<Index> > ()
-                    )
-                ));
-            });
-
-            return quantifier_solver.result();
+            LOGICWISE_TEMPLATE_VALIDATION_LOOP
+			(
+				{ TypeList::size },
+				(
+                    validator_ref.template operator() < typename TypeList::template element<Index> > ()
+				)
+			);
         }
 
         template<typename Quantifier, typename Arrangement, typename ValueList,
@@ -111,29 +97,13 @@ namespace logicwise::detail
             typename ValidatorType>
         static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
         {
-            using extent_type = typename Arrangement::extent_type;
-            using index_traverser_type = typename Arrangement::fast_index_traverser;
-
-            constexpr extent_type extent{ ValueList::size };
-
-            using index_sequence =
-                typename index_sequencer<Arrangement, index_traverser_type, extent>::index_sequence;
-
-            typename Quantifier::solver quantifier_solver{};
-
-            //遍历入口处将 validator 固定为左值引用，避免不必要的复制
-            auto& validator_ref = validator;
-
-            index_sequence::invoke([&] <auto... Index> {
-                (..., (
-                    quantifier_solver.solved() ? void() : quantifier_solver.step
-                    (
-                        validator_ref.template operator() < ValueList::template element<Index> > ()
-                    )
-                ));
-            });
-
-            return quantifier_solver.result();
+            LOGICWISE_TEMPLATE_VALIDATION_LOOP
+            (
+                { ValueList::size },
+                (
+                    validator_ref.template operator() < ValueList::template element<Index> > ()
+                )
+            );
         }
 
         template<typename Quantifier, typename Arrangement,

@@ -6,7 +6,7 @@
 #include <logicwise/external_detail/exosuit.h>
 #include <concepts> //用于  std::same_as, std::convertible_to，C++20标准
 #include <cstddef> //用于 std::size_t
-#include <type_traits> //用于 std::remove_cvref_t
+#include <type_traits> //用于 std::remove_cvref_t (C++20)
 #include <tuple> //用于 std::tuple_size, std::tuple_size_v
 
 

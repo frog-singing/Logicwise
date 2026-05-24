@@ -11,7 +11,7 @@
 #include "tag.h"
 #include <logicwise/detail/identity_guard.h>
 #include <concepts> //用于 std::derived_from，C++20标准
-#include <type_traits> //用于 std::remove_cvref_t
+#include <type_traits> //用于 std::remove_cvref_t (C++20)
 
 
 //包装器::相容类 wrapper::tolerance class================================================================================

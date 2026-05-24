@@ -31,7 +31,7 @@ namespace logicwise::detail
 
 			while (!index_traverser.done())
 			{
-				//[[assume(i < index_count)]]; //C++23标准
+				[[assume(i < index_count)]]; //C++23标准
 
 				index_array[i] = index_traverser.state();
 				++i;

@@ -4,7 +4,7 @@
 
 #pragma once
 #include <concepts> //用于 std::integral，C++20标准
-#include <utility> //用于 std::cmp_greater（C++20标准）, std::cmp_less（C++20标准）
+#include <utility> //用于 std::cmp_greater (C++20), std::cmp_less (C++20)
 #include <limits> //用于 std::numeric_limits
 #include <cassert> //用于 assert
 

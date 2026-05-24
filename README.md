@@ -8,6 +8,8 @@ English | [简体中文](README.zh-Hans.md)
 
 </div>
 
+<!-------------------------------------------------------------------------------->
+
 ## 🔍 Grammar Overview
 
 ```cpp
@@ -44,6 +46,8 @@ Orthogonally compose your logic:
 
 </div>
 
+<!-------------------------------------------------------------------------------->
+
 ## 📝 Vocabulary List
 
 ### [9+ Quantifiers](library/logicwise/mode.h)
@@ -73,15 +77,15 @@ Orthogonally compose your logic:
 
 #### Elementwise
 
-| Arrangement	| Meaning			|
-| ---			| ---				|
-| element		| Single elements	|
+| Arrangement	| Meaning				|
+| ---			| ---					|
+| element		| Individual elements	|
 
 #### Pairwise
 
 | Arrangement				| Meaning								|
 | ---						| ---									|
-| permutation_pair			| Full permutation pairs				|
+| permutation_pair			| Permutations of any 2 elements		|
 | combination_pair			| Order-preserving combination pairs	|
 | linear_adjacent_pair		| One-way linear adjacent pairs			|
 | circular_adjacent_pair	| One-way circular adjacent pairs		|
@@ -96,6 +100,8 @@ Orthogonally compose your logic:
 
 Both quantifier and arrangement are extensible!
 
+<!-------------------------------------------------------------------------------->
+
 ## 📦 Container Adaptation
 
 | Container				| Requirements	| Examples	| Eounterexamples	|
@@ -105,7 +111,9 @@ Both quantifier and arrangement are extensible!
 | Vector-like Container	|	| std\::vector\<int>{1, 2, 3, 4} <br> int[4]{1, 2, 3, 4} <br> std::span\{ my_array } |		|
 | Tuple-like Container	|	| container\::to_variant_array( <br> &nbsp;&nbsp;&nbsp;&nbsp;std::make_tuple(true, 2, 3.0, '4') <br> ) |		|
 
-注：在二部的元容器和实体容器场景中，需要获取实体容器的静态大小，即对实体容器的要求从类向量容器升级为类数组容器
+注：在二部的元容器和实体容器场景中，需要获取实体容器的静态大小，即对实体容器的要求从类向量容器提升为类数组容器
+
+<!-------------------------------------------------------------------------------->
 
 ## 🎭 Logic Theater
 
@@ -116,19 +124,41 @@ Both quantifier and arrangement are extensible!
 Don't panic! You’ve probably used quantifiers a thousand times in your code without even knowing their formal name.  
 Let's get reacquainted with them and see how they act in some fundamental scenarios.
 
-### [Chapter I: Elementwise](test/mode/validation/elementwise.cpp)
+### Chapter I: Elementwise
 
-### [Chapter II: Pairwise](test/mode/validation/pairwise.cpp)
+#### [Placeholder](test/mode/validation/elementwise.cpp)
+
+sample text
+
+### Chapter II: Pairwise
+
+#### [Placeholder](test/mode/validation/pairwise.cpp)
+
+sample text
 
 ### Chapter III: Bipartite
 
 #### [Section 1: Meta](test/mode/validation/bipartite_meta.cpp)
 
+sample text
+
 #### [Section 2: Instance](test/mode/validation/bipartite_instance.cpp)
+
+sample text
 
 #### [Section 3: Meta Meets Instance](test/mode/validation/bipartite_meta_and_instance.cpp)
 
+sample text
+
+<!-------------------------------------------------------------------------------->
+
 ## 🤔 Design Philosophy
+
+<!-------------------------------------------------------------------------------->
+
+## 🏭 Logic Factory
+
+<!-------------------------------------------------------------------------------->
 
 ## 🌀 Logic Limbo
 
@@ -154,11 +184,24 @@ Let's get reacquainted with them and see how they act in some fundamental scenar
 
 #### [Non-traversable Extent](test/degeneracy/non_traversable_extent.cpp)
 
+<!-------------------------------------------------------------------------------->
+
 ## 🎬 Behind the Scenes
+
+<!-------------------------------------------------------------------------------->
 
 ## 🔌 Integration
 
+<!-------------------------------------------------------------------------------->
+
 ## 📜 License
+
+```text
+MIT License
+Copyright © 2026 Frog Singing (@frog-singing)
+```
+
+<!-------------------------------------------------------------------------------->
 
 ## 💡 Hello Logic!
 
