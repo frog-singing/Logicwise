@@ -8,6 +8,7 @@
 #include <cstddef> //用于 std::size_t
 #include <type_traits> //用于 std::remove_cvref_t (C++20)
 #include <tuple> //用于 std::tuple_size, std::tuple_size_v
+#include <span> //用于 std::dynamic_extent
 
 
 //逻辑维度::细节
@@ -32,17 +33,21 @@ namespace logicwise::detail
 
 		using RawType = std::remove_cvref_t<ContainerType>;
 
-		if constexpr		( requires{	{ RawType::size					} -> std::convertible_to<std::size_t>;	  }	)
-							{ return	  RawType::size;															}
+		if constexpr		( requires{	{ RawType::size						} -> std::convertible_to<std::size_t>;	}	)
+							{ return	  RawType::size;																}
 
-		else if constexpr	( requires{	{ RawType::size()				} -> std::convertible_to<std::size_t>;	  }	)
-							{ return	  RawType::size();															}
+		else if constexpr	( requires{	{ RawType::size()					} -> std::convertible_to<std::size_t>;	}	)
+							{ return	  RawType::size();																}
+		//tuple-like
+		else if constexpr	( requires{	{ std::tuple_size<RawType>::value	} -> std::convertible_to<std::size_t>;	}	)
+							{ return	  std::tuple_size_v<RawType>;													}
+		//span
+		else if constexpr	( requires{	{ RawType::extent					} -> std::convertible_to<std::size_t>;	}
+							  &&		  RawType::extent != std::dynamic_extent									  	)
+							{ return	  RawType::extent;																}
 
-		else if constexpr	( requires{	{ std::tuple_size_v<RawType>	} -> std::convertible_to<std::size_t>;	  }	)
-							{ return	  std::tuple_size_v<RawType>;												}
-
-		else if constexpr	( requires{	{ RawType{}.size()				} -> std::convertible_to<std::size_t>;	  }	)
-							{ return	  RawType{}.size();															}
+		else if constexpr	( requires{	{ RawType{}.size()					} -> std::convertible_to<std::size_t>;	}	)
+							{ return	  RawType{}.size();																}
 
 		else
 		{
