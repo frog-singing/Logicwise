@@ -13,7 +13,7 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织::二部 arrangement::bipartite================================================================================
+	//排布::二部 arrangement::bipartite================================================================================
 
 	//笛卡尔积对
 	struct cartesian_pair : bipartite_arrangement_tag

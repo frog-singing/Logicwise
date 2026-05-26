@@ -13,7 +13,7 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织::逐三元组 arrangement::tripletwise================================================================================
+	//排布::逐三元组 arrangement::tripletwise================================================================================
 
 	//全排列三元组
 	struct permutation_triplet : multipartite_arrangement_tag

@@ -14,7 +14,7 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织::二部 arrangement::bipartite================================================================================
+	//排布::二部 arrangement::bipartite================================================================================
 
 	//填充对齐对
 	struct zip_pair_padding : bipartite_arrangement_tag, arrangement_with_padding_tag

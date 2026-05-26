@@ -9,9 +9,9 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织 arrangement================================================================================
+	//排布 arrangement================================================================================
 
-	//组织标签
+	//排布标签
 	struct arrangement_tag {};
 	struct elementwise_arrangement_tag	: arrangement_tag {};
 	struct pairwise_arrangement_tag		: arrangement_tag {};
@@ -19,7 +19,7 @@ namespace logicwise::detail
 	struct bipartite_arrangement_tag	: arrangement_tag {};
 	struct multipartite_arrangement_tag	: arrangement_tag {};
 
-	//组织约束
+	//排布约束
 	template<typename TargetArrangement>
 	concept Arrangement = std::derived_from<TargetArrangement, arrangement_tag>;
 
@@ -38,10 +38,10 @@ namespace logicwise::detail
 	template<typename Arrangement>
 	concept MultipartiteArrangement	= std::derived_from<Arrangement, multipartite_arrangement_tag>;
 
-	//带填充组织标签
+	//带填充排布标签
 	struct arrangement_with_padding_tag {};
 
-	//带填充组织约束，用于在具体组织分支中特化
+	//带填充排布约束，用于在具体排布分支中特化
 	template<typename ValidArrangement>
 	concept ArrangementWithPadding = std::derived_from<ValidArrangement, arrangement_with_padding_tag>;
 

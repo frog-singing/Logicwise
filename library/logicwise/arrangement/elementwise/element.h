@@ -13,7 +13,7 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织::逐元素 arrangement::elementwise================================================================================
+	//排布::逐元素 arrangement::elementwise================================================================================
 
 	//单个元素
 	struct element : elementwise_arrangement_tag

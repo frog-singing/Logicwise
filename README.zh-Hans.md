@@ -36,7 +36,7 @@ rangewise<all_of, cartesian_pair>
 	<tr>
 	    <td style="padding: 14px 28px;" align="center">
 			<strong style="font-size: 1.5em">
-				量词 × 组织 × 范围 × 谓词
+				量词 × 排布 × 范围 × 谓词
 			</strong>
 		</td>
 	</tr>
@@ -73,17 +73,17 @@ rangewise<all_of, cartesian_pair>
 
 [【序章偷跑】想不想看看你能用这些量词做点什么？](test/mode/validation/quantifier.cpp)
 
-### [8+ 种组织](library/logicwise/arrangement.h)
+### [8+ 种排布](library/logicwise/arrangement.h)
 
 #### 逐元素
 
-| 组织		| 含义		|
+| 排布		| 含义		|
 | ---		| ---		|
 | element	| 单个元素	|
 
 #### 逐对
 
-| 组织						| 含义			|
+| 排布						| 含义			|
 | ---						| ---			|
 | permutation_pair			| 全排列对		|
 | combination_pair			| 保序组合对		|
@@ -92,13 +92,13 @@ rangewise<all_of, cartesian_pair>
 
 #### 二部
 
-| 组织					| 含义		|
+| 排布					| 含义		|
 | ---					| ---		|
 | cartesian_pair		| 笛卡尔积对	|
 | zip_pair_truncation	| 截断对齐对	|
 | zip_pair_padding		| 填充对齐对	|
 
-量词和组织都支持扩展！
+量词和排布都支持扩展！
 
 <!-------------------------------------------------------------------------------->
 
@@ -111,7 +111,7 @@ rangewise<all_of, cartesian_pair>
 | **类向量容器**	| 内存连续， <br> 均摊 O(1) 时间获取大小， <br> 支持下标访问 | 1. `std::vector<int>{ 1, 2, 3, 4 }` <br> 2. `std::array{ 1, 2, 3, 4 }` <br> 3. `int my_array[4]{ 1, 2, 3, 4 };` <br> 4. `std::span{ my_array }` | `std::list<int>{ 1, 2, 3, 4 }` <br> <br> _* 内存不连续_ |
 | **类元组容器**	| 不直接支持类元组容器； <br> 提供了 `to_variant_array` <br> 方法来转换， <br> 并需要配合 `std::visit` 访问	| `container::to_variant_array(` <br> &nbsp;&nbsp;&nbsp;&nbsp;`std::make_tuple(true, 2, 3.0, '4')` <br> `)` | 1. `std::make_tuple(1, 2, 3, 4)` <br> 2. `wrapper::value_list` <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<1, 2, 3, 4>{}` <br> <br> _* 不支持直接传入类元组容器_ |
 
-*注：在二部组织的元容器和实例容器场景中，需要获取实例容器的静态大小，因此对实例容器的要求从类向量容器提升为*___类数组容器___*。*
+*注：在二部排布的元容器和实例容器场景中，需要获取实例容器的静态大小，因此对实例容器的要求从类向量容器提升为*___类数组容器___*。*
 
 <!-------------------------------------------------------------------------------->
 
@@ -178,7 +178,7 @@ relation
 
 ## 🌀 逻辑边境
 
-### 组织行为
+### 排布行为
 
 验证 1D 到 2D 拓扑空间的索引生成纯度与对齐安全性
 

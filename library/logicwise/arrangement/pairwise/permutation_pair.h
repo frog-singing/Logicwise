@@ -13,7 +13,7 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织::逐对 arrangement::pairwise================================================================================
+	//排布::逐对 arrangement::pairwise================================================================================
 
 	//全排列对
 	struct permutation_pair : pairwise_arrangement_tag

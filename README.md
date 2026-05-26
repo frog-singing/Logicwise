@@ -121,7 +121,7 @@ Thus, the requirement for the instance container is elevated from a Vector-like 
 
 Logic does not emerge from the void; it resides within our daily experiences and practical needs.  
 The following test cases, structured as a series of "plays", will guide you through those overlooked corners —
-embarking on a logical journey from the trivial to the abstract, and ultimately returns to the everyday.
+embarking on a logical journey from the trivial to the abstract, and ultimately returning to the everyday.
 
 > **Take your seats — the curtain is about to rise!**
 

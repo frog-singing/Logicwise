@@ -22,7 +22,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//组织::多部 arrangement::multipartite================================================================================
+	//排布::多部 arrangement::multipartite================================================================================
 
 	//截断对齐多元组
 	struct zip_tuple_truncation : multipartite_arrangement_tag

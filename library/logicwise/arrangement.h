@@ -10,21 +10,21 @@
 #include "arrangement/multipartite.h"
 
 
-//逻辑维度::组织
+//逻辑维度::排布
 namespace logicwise::arrangement
 {
-	//组织::逐元素 arrangement::elementwise================================================================================
+	//排布::逐元素 arrangement::elementwise================================================================================
 
 	using detail::element; //单个元素
 
-	//组织::逐对 arrangement::pairwise================================================================================
+	//排布::逐对 arrangement::pairwise================================================================================
 
 	using detail::permutation_pair; //全排列对
 	using detail::combination_pair; //保序组合对
 	using detail::linear_adjacent_pair; //单向线性相邻对
 	using detail::circular_adjacent_pair; //单向环状相邻对
 
-	//组织::逐三元组 arrangement::tripletwise================================================================================
+	//排布::逐三元组 arrangement::tripletwise================================================================================
 
 	//[未实现] [unimplemented]
 
@@ -33,13 +33,13 @@ namespace logicwise::arrangement
 	using detail::linear_adjacent_triplet; //单向线性相邻三元组
 	using detail::circular_adjacent_triplet; //单向环状相邻三元组
 
-	//组织::二部 arrangement::bipartite================================================================================
+	//排布::二部 arrangement::bipartite================================================================================
 
 	using detail::cartesian_pair; //笛卡尔积对
 	using detail::zip_pair_truncation; //截断对齐对
 	using detail::zip_pair_padding; //填充对齐对
 
-	//组织::多部 arrangement::multipartite================================================================================
+	//排布::多部 arrangement::multipartite================================================================================
 
 	//[未实现] [unimplemented]
 
