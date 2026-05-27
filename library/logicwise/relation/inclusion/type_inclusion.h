@@ -96,14 +96,14 @@ namespace logicwise::detail::typewise
     template<typename A, typename B, auto SameAs = default_equivalence_relation>
     concept SameRangeAs = SubRangeOf<A, B, SameAs> && SubRangeOf<B, A, SameAs>;
 
-    //相同集合，外延等价
+    //相同集合，外延等价 extensional equivalence
     template<typename A, typename B, auto SameAs = default_equivalence_relation>
     concept SameSetAs =
         (as_type_list<A>::size == as_type_list<B>::size) &&
         Set<A, SameAs> && Set<B, SameAs> &&
         SubRangeOf<A, B, SameAs>;
 
-    //相同等价关系集合，内涵等价
+    //相同等价关系集合，内涵等价 intensional equivalence
     template<typename A, typename B>
     concept SameSetoidAs = ProvenSet<A> && ProvenSet<B> &&
         (as_type_list<A>::size == as_type_list<B>::size) &&

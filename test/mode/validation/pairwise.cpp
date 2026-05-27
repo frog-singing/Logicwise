@@ -213,7 +213,7 @@ int main()
 		"value wrapper: scattered season instances"
 	);
 
-	// compile time vector-like container --------------------------------------------------------------------------------
+	// compile-time vector-like container --------------------------------------------------------------------------------
 
 	static constexpr seasonal_plan<spring{ 2026 }> my_plan_pool_for_spring_2026[4]
 	{
@@ -233,7 +233,7 @@ int main()
 		rangewise<none_of, combination_pair>
 		::in(std::move(my_plan_pool_for_spring_2026))
 		.satisfies([] (auto&& p1, auto&& p2) { return p1.plan == p2.plan; }),
-		"compile time container: distinct plan choices"
+		"compile-time container: distinct plan choices"
 	);
 
 	static_assert(
@@ -242,7 +242,7 @@ int main()
 		.satisfies([] (auto&& v1, auto&& v2) {
 			return std::visit([] (auto&& p1, auto&& p2) { return p1.plan == p2.plan; }, v1, v2);
 		}),
-		"compile time container: discontinuous seasonal plans"
+		"compile-time container: discontinuous seasonal plans"
 	);
 
 	// runtime vector-like container --------------------------------------------------------------------------------

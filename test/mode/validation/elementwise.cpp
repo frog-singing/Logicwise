@@ -28,7 +28,7 @@ namespace logicwise::test
 	// type wrapper --------------------------------------------------------------------------------
 
 	using my_integral_pool = type_list<int, long, unsigned int, char>;
-	// try to add more integral types, such as bool, short, long long, etc.
+	// try to add more integrals, such as bool, short, long long, etc.
 
 	template<typename T>
 	concept MyIntegral =
@@ -164,7 +164,7 @@ int main()
 		"value wrapper: trait with operator bool"
 	);
 
-	// compile time vector-like container --------------------------------------------------------------------------------
+	// compile-time vector-like container --------------------------------------------------------------------------------
 
 	static constexpr std::array<int, 4> compile_time_array{ 1, 2, 3, 4 };
 
@@ -172,7 +172,7 @@ int main()
 		rangewise<all_of, element>
 		::in(compile_time_array)
 		.satisfies([] (MyIntegral auto v) { return v > 0; }),
-		"compile time array"
+		"compile-time array"
 	);
 
 	constexpr int compile_time_raw_array[4][1]{ {1}, {2}, {3}, {4} };
@@ -181,7 +181,7 @@ int main()
 		rangewise<all_of, element>
 		::in(compile_time_raw_array)
 		.satisfies([] (auto&& v) { return v[0] > 0; }),
-		"compile time raw array"
+		"compile-time raw array"
 	);
 
 	// runtime vector-like container --------------------------------------------------------------------------------

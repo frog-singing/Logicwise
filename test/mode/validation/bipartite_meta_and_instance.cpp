@@ -79,13 +79,13 @@ int main()
 
 	using namespace logicwise::test;
 
-	// type wrapper and compile time array-like container --------------------------------------------------------------------------------
+	// type wrapper and compile-time array-like container --------------------------------------------------------------------------------
 
 	static_assert(
 		rangewise<none_of, cartesian_pair>
 		::between<Tom::preferred_fruit_list>(Tom::disliked_color_array)
 		.satisfies([] <typename FruitType>(auto&& color) { return FruitType::color == color; }),
-		"type wrapper and compile time container: Tom's preferred fruits and disliked colors"
+		"type wrapper and compile-time container: Tom's preferred fruits and disliked colors"
 	);
 
 	static constexpr auto fruit_tuple = std::make_tuple(
@@ -106,10 +106,10 @@ int main()
 				return fruit.size != size::small && std::same_as<FruitType, decltype(fruit)>;
 			}, variant);
 		}),
-		"type wrapper and compile time container: fruits for Tom"
+		"type wrapper and compile-time container: fruits for Tom"
 	);
 
-	// value wrapper and compile time array-like container --------------------------------------------------------------------------------
+	// value wrapper and compile-time array-like container --------------------------------------------------------------------------------
 
 	using fruit_list = value_list<
 		apple{ size::medium },
@@ -121,14 +121,14 @@ int main()
 		rangewise<none_of, cartesian_pair>
 		::between<fruit_list>(Tom::disliked_color_array)
 		.satisfies([] <auto Fruit>(auto&& color) { return Fruit.color == color || Fruit.size == size::small; }),
-		"value wrapper and compile time container: fruits Tom won't dislike"
+		"value wrapper and compile-time container: fruits Tom won't dislike"
 	);
 
 	static_assert(
 		rangewise<all_of, zip_pair_truncation>
 		::between<fruit_list>(std::array{ color::red, color::green, color::blue })
 		.satisfies([] <auto Fruit>(auto&& color) { return Fruit.color == color; }),
-		"value wrapper and compile time container: an RGB fruit sequence"
+		"value wrapper and compile-time container: an RGB fruit sequence"
 	);
 
 	// type wrapper and runtime array-like container --------------------------------------------------------------------------------

@@ -131,7 +131,7 @@ int main()
 
 
 	static constexpr std::size_t M{ 3 };
-	// try to replace M with other non-negative numbers
+	// try to replace M with other non-negative integers
 
 	// detail::IndexTrait1D::index_sequence<0, 1, 2, ..., M - 1>
 	using natural_numbers = detail::index_sequencer<

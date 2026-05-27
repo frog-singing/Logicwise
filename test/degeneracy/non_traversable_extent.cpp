@@ -21,7 +21,7 @@ int main()
 
 	//--------------------------------------------------------------------------------
 
-	static constexpr std::size_t N{ 3 };
+	static constexpr std::size_t N{ 42 };
 
 	using quantifier_list = type_list<
 		always_true, always_false,

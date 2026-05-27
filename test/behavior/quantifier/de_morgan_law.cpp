@@ -20,34 +20,34 @@ namespace logicwise::test
 	//--------------------------------------------------------------------------------
 
 	inline constexpr auto logical_conjunction = [] <valuewise::List PredicateList> { return
-		[] <typename VariableList> { return
+		[] <typename Variable> { return
 			rangewise<all_of, element> // all_of: ∀
 			::template in<PredicateList>()
-			.satisfies([] <auto Predicate> { return Predicate.template operator() < VariableList > (); });
+			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
 
 	inline constexpr auto logical_disjunction = [] <valuewise::List PredicateList> { return
-		[] <typename VariableList> { return
+		[] <typename Variable> { return
 			rangewise<any_of, element> // any_of: ∃
 			::template in<PredicateList>()
-			.satisfies([] <auto Predicate> { return Predicate.template operator() < VariableList > (); });
+			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
 
 	inline constexpr auto logical_conjunction_of_negation = [] <valuewise::List PredicateList> { return
-		[] <typename VariableList> { return
+		[] <typename Variable> { return
 			rangewise<none_of, element> // none_of: ∀¬
 			::template in<PredicateList>()
-			.satisfies([] <auto Predicate> { return Predicate.template operator() < VariableList > (); });
+			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
 
 	inline constexpr auto logical_disjunction_of_negation = [] <valuewise::List PredicateList> { return
-		[] <typename VariableList> { return
+		[] <typename Variable> { return
 			rangewise<not_every, element> // not_every: ∃¬
 			::template in<PredicateList>()
-			.satisfies([] <auto Predicate> { return Predicate.template operator() < VariableList > (); });
+			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
 
@@ -66,7 +66,7 @@ int main()
 
 	using namespace logicwise::test;
 
-	//--------------------------------------------------------------------------------
+	// variable list --------------------------------------------------------------------------------
 
 	using type_value_pair_list = type_list<
 		type_value_pair<int, 42>,
@@ -76,7 +76,7 @@ int main()
 	>;
 	// try to add more type-value pairs
 
-	//--------------------------------------------------------------------------------
+	// predicate list --------------------------------------------------------------------------------
 
 	static constexpr auto consistency = [] <typename T, auto V> {
 		return std::same_as<T, decltype(V)>;
@@ -110,7 +110,7 @@ int main()
 		constructibility
 	>::transform<to_property>;
 
-	//--------------------------------------------------------------------------------
+	// De Morgan's Law --------------------------------------------------------------------------------
 
 	static_assert(
 		rangewise<all_of, element>
@@ -124,7 +124,7 @@ int main()
 			.template operator() < property_list > ()
 			.template operator() < TypeValuePair > ();
 		}),
-		"De Morgan's first law: not (P1 and P2 and ... and Pn) ≡ (not P1) or (not P2) or ... or (not Pn)"
+		"De Morgan's First Law: not (P1 and P2 and ... and Pn) ≡ (not P1) or (not P2) or ... or (not Pn)"
 	);
 
 	static_assert(
@@ -139,7 +139,7 @@ int main()
 			.template operator() < property_list > ()
 			.template operator() < TypeValuePair > ();
 		}),
-		"De Morgan's second law: not (P1 or P2 or ... or Pn) ≡ (not P1) and (not P2) and ... and (not Pn)"
+		"De Morgan's Second Law: not (P1 or P2 or ... or Pn) ≡ (not P1) and (not P2) and ... and (not Pn)"
 	);
 
 	std::cout << std::endl << "Hello Logic!" << std::endl;

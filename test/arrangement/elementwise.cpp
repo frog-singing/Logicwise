@@ -40,7 +40,7 @@ int main()
 	//--------------------------------------------------------------------------------
 
 	static constexpr Extent1D extent{ 5 };
-	// try to replace extent with other non-negative numbers
+	// try to replace extent with other non-negative integers
 
 	using forward_index_sequence_for_element = index_sequencer<
 		arrangement::element,

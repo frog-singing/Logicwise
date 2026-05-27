@@ -44,7 +44,7 @@ int main()
 	//--------------------------------------------------------------------------------
 	
 	static constexpr Extent2D extent{ 3, 5 };
-	// try to replace extent with other non-negative number pairs
+	// try to replace extent with other non-negative integer pairs
 
 	using forward_index_sequence_for_zip_pair_padding = index_sequencer<
 		arrangement::zip_pair_padding,

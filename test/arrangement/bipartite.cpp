@@ -40,7 +40,7 @@ int main()
 	//--------------------------------------------------------------------------------
 
 	static constexpr Extent2D extent{ 3, 4 };
-	// try to replace extent with other non-negative number pairs
+	// try to replace extent with other non-negative integer pairs
 
 	using forward_index_sequence_for_cartesian_pair = index_sequencer<
 		arrangement::cartesian_pair,

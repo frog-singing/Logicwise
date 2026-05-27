@@ -81,7 +81,7 @@ int main()
 
 	using namespace logicwise::test;
 
-	// compile time vector-like container --------------------------------------------------------------------------------
+	// compile-time vector-like container --------------------------------------------------------------------------------
 
 	static constexpr combat_attribute
 		warrior		{	.attack = 14,	.defense = 10,	.health = 108	},
@@ -113,7 +113,7 @@ int main()
 
 			return monster_strike_count - adventurer_strike_count >= 2;
 		}),
-		"compile time container: adventurer-monster balance"
+		"compile-time container: adventurer-monster balance"
 	);
 
 	static_assert(
@@ -132,7 +132,7 @@ int main()
 
 			return true;
 		}),
-		"compile time container: same class adventurer balance"
+		"compile-time container: same class adventurer balance"
 	);
 
 	static_assert(
@@ -141,10 +141,10 @@ int main()
 		.satisfies([] (auto&& adventurer1, auto&& adventurer2) {
 			return adventurer_beats_adventurer(adventurer2, adventurer1);
 		}),
-		"compile time container: different class adventurer balance"
+		"compile-time container: different class adventurer balance"
 	);
 
-	// compile time vector-like container and runtime vector-like container --------------------------------------------------------------------------------
+	// compile-time vector-like container and runtime vector-like container --------------------------------------------------------------------------------
 
 	std::cout << std::boolalpha;
 
@@ -160,59 +160,59 @@ int main()
 		monster_pair_3
 	};
 
-	std::vector<combat_attribute> adventurer_team_A{};
+	std::vector<combat_attribute> adventurer_party_A{};
 
-	adventurer_team_A.push_back(warrior);
-	adventurer_team_A.push_back(mage);
-	adventurer_team_A.push_back(rogue);
-	adventurer_team_A.push_back(warrior);
-	adventurer_team_A.push_back(mage);
+	adventurer_party_A.push_back(warrior);
+	adventurer_party_A.push_back(mage);
+	adventurer_party_A.push_back(rogue);
+	adventurer_party_A.push_back(warrior);
+	adventurer_party_A.push_back(mage);
 
-	bool adventurer_team_A_clears_dungeon_X =
+	bool adventurer_party_A_clears_dungeon_X =
 		rangewise<all_of, zip_pair_truncation>
-		::between(dungeon_monster_pairs, adventurer_team_A) // testing complie time container and runtime container
+		::between(dungeon_monster_pairs, adventurer_party_A) // testing complie time container and runtime container
 		.satisfies([] (auto&& monsters, auto&& adventurer) { return adventurer_beats_monsters(adventurer, monsters); });
 
-	std::cout << "adventurer team A clears dungeon X: " << adventurer_team_A_clears_dungeon_X << std::endl;
+	std::cout << "adventurer party A clears dungeon X: " << adventurer_party_A_clears_dungeon_X << std::endl;
 
 	// combat_attribute{} is a placeholder and won't be used for padding in this scenario,
-	// because adventurer_team_A is longer
-	bool adventurer_team_A_clears_dungeon_Y =
+	// because adventurer_party_A is longer
+	bool adventurer_party_A_clears_dungeon_Y =
 		rangewise<all_of, zip_pair_padding>
 		::with_padding(combat_attribute{}, monster_pair_4)
-		.between(adventurer_team_A, dungeon_monster_pairs) // testing runtime container and complie time container
+		.between(adventurer_party_A, dungeon_monster_pairs) // testing runtime container and complie time container
 		.satisfies(adventurer_beats_monsters);
 
-	std::cout << "adventurer team A clears dungeon Y: " << adventurer_team_A_clears_dungeon_Y << std::endl;
+	std::cout << "adventurer party A clears dungeon Y: " << adventurer_party_A_clears_dungeon_Y << std::endl;
 
 	// runtime vector-like container --------------------------------------------------------------------------------
 	
 	std::cout << std::endl;
 
-	std::vector<combat_attribute> adventurer_team_B{ rogue, rogue, rogue };
+	std::vector<combat_attribute> adventurer_party_B{ rogue, rogue, rogue };
 
-	for (auto& adventurer : adventurer_team_B)
+	for (auto& adventurer : adventurer_party_B)
 	{
 		adventurer = warrior;
 	}
 
-	bool adventurer_team_A_wins_once_in_the_first_battle =
+	bool adventurer_party_A_wins_once_in_the_first_battle =
 		rangewise<exactly<1>, zip_pair_truncation>
-		::between(adventurer_team_A, adventurer_team_B)
+		::between(adventurer_party_A, adventurer_party_B)
 		.satisfies(adventurer_beats_adventurer);
 
-	std::cout << "adventurer team A wins once in the first battle: "
-		<< adventurer_team_A_wins_once_in_the_first_battle << std::endl;
+	std::cout << "adventurer party A wins once in the first battle: "
+		<< adventurer_party_A_wins_once_in_the_first_battle << std::endl;
 
-	// only warrior will be used for padding since adventurer_team_B is shorter
-	bool adventurer_team_A_wins_twice_in_the_second_battle =
+	// only warrior will be used for padding since adventurer_party_B is shorter
+	bool adventurer_party_A_wins_twice_in_the_second_battle =
 		rangewise<exactly<2>, zip_pair_padding>
 		::with_padding(rogue, warrior)
-		.between(adventurer_team_A, adventurer_team_B)
+		.between(adventurer_party_A, adventurer_party_B)
 		.satisfies(adventurer_beats_adventurer);
 
-	std::cout << "adventurer team A wins twice in the second battle: "
-		<< adventurer_team_A_wins_twice_in_the_second_battle << std::endl;
+	std::cout << "adventurer party A wins twice in the second battle: "
+		<< adventurer_party_A_wins_twice_in_the_second_battle << std::endl;
 
 	std::cout << std::endl << "Hello Logic!" << std::endl;
 }

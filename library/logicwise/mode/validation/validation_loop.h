@@ -20,13 +20,13 @@ namespace logicwise::detail
 	static constexpr bool template_validation_loop(AtomicValidationType&& atomic_validation)
 	{
 		using index_traverser_type = typename Arrangement::fast_index_traverser;
+		using index_sequencer_instance = index_sequencer<Arrangement, index_traverser_type, Extent>;
 
 		typename Quantifier::solver quantifier_solver{};
 
 #if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
 		//C++26
-		constexpr auto index_array =
-			index_sequencer<Arrangement, index_traverser_type, Extent>::generate_index_array();
+		constexpr auto index_array = index_sequencer_instance::generate_index_array();
 
 		template for (constexpr auto Index : index_array)
 		{
@@ -36,8 +36,7 @@ namespace logicwise::detail
 		}
 #else
 		//C++20
-		using index_sequence =
-			typename index_sequencer<Arrangement, index_traverser_type, Extent>::index_sequence;
+		using index_sequence = typename index_sequencer_instance::index_sequence;
 
 		index_sequence::invoke([&] <auto... Index> {
 			(..., (

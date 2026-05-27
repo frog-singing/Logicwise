@@ -10,7 +10,7 @@ English | [简体中文](README.zh-Hans.md)
 
 <!-------------------------------------------------------------------------------->
 
-## 🔍 Grammar Overview
+## 🔍 Syntax Overview
 
 ```cpp
 rangewise<all_of, cartesian_pair>
@@ -106,14 +106,14 @@ Both quantifier and arrangement are extensible!
 
 | Container			| Requirements	| Examples	| Counterexamples	|
 | ---				| ---			| ---		| ---				|
-| **Type List**		| Class template instantiations <br> where all arguments are types			| 1. `wrapper::type_list` <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<bool, int, double, char>` <br> 2. `std::tuple<bool, int, double, char>` | `std::array<int, 4>` <br> <br> _* The second argument is not a type_ |
-| **Value List**	| Class template instantiations <br> where all arguments <br> are values (NTTP)	| `wrapper::value_list` <br> &nbsp;&nbsp;&nbsp;&nbsp;`<true, 2, 3.0, '4'>` | `std::make_index_sequence<4>` <br> <br> _* This alias actually resolves to: <br> &nbsp;&nbsp;`std::integer_sequence` <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<std::size_t, 0, 1, 2, 3>`, <br> &nbsp;&nbsp;where the first argument is not a value_ |
+| **Type Wrapper**	| Class template <br> where all parameters are types				| 1. `wrapper::type_list` <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<bool, int, double, char>` <br> 2. `std::tuple<bool, int, double, char>` | `std::array<int, 4>` <br> <br> _* The second argument is not a type_ |
+| **Value Wrapper**	| Class template <br> where all parameters <br> are values (NTTP)	| `wrapper::value_list` <br> &nbsp;&nbsp;&nbsp;&nbsp;`<true, 2, 3.0, '4'>` | `std::make_index_sequence<4>` <br> <br> _* This alias actually resolves to: <br> &nbsp;&nbsp;`std::integer_sequence` <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<std::size_t, 0, 1, 2, 3>`, <br> &nbsp;&nbsp;where the first argument is not a value_ |
 | **Vector-like <br> Container**	| Contiguous memory, <br> amortized O(1) size retrieval, <br> and subscript access | 1. `std::vector<int>{ 1, 2, 3, 4 }` <br> 2. `std::array{ 1, 2, 3, 4 }` <br> 3. `int my_array[4]{ 1, 2, 3, 4 };` <br> 4. `std::span{ my_array }` | `std::list<int>{ 1, 2, 3, 4 }` <br> <br> _* Non-contiguous memory_ |
 | **Tuple-like <br> Container**		| Not directly supported; <br> could be converted <br> using `to_variant_array` <br> and accessed via `std::visit` | `container::to_variant_array(` <br> &nbsp;&nbsp;&nbsp;&nbsp;`std::make_tuple(true, 2, 3.0, '4')` <br> `)` | 1. `std::make_tuple(1, 2, 3, 4)` <br> 2. `wrapper::value_list` <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`<1, 2, 3, 4>{}` <br> <br> _* Direct use of tuple-like containers <br> &nbsp;&nbsp;is not supported_ |
 
 *Note: For bipartite arrangements, in scenarios of a meta container and an instance container,
 the static size of the instance container is required.
-Thus, the requirement for the instance container is elevated from a Vector-like Container to an* ___Array-like Container___*.*
+Thus, the requirement for the instance container is elevated from a Vector-like Container to an **Array-like Container**.*
 
 <!-------------------------------------------------------------------------------->
 
@@ -132,124 +132,290 @@ embarking on a logical journey from the trivial to the abstract, and ultimately 
 > Don't panic! You’ve probably used quantifiers a thousand times in your code without even knowing their formal name.  
 > Let's get reacquainted with them and see how they act in some fundamental scenarios.
 
-### Chapter I: I am One of Them — Elementwise 😒🤪😑
+### Act I: I Am One of Them — Elementwise 😒🤪😑
 
 #### [Finally, I Can See You Crystal Clear](test/mode/validation/elementwise.cpp)
+
+```cpp
+rangewise<Quantifier, ElementwiseArrangement>
+	::in<Range>()
+	.satisfies(predicate);
+```
 
 > In the past, once a template parameter entered a template,
 > it was like falling into a black hole, completely losing its trace.   
 > But now, not only can you see them, you can scrutinize them!
 
-### Chapter II: Relations compose the whole — Pairwise
+### Act II: Relations Compose the Whole — Pairwise 😊🤝😊
 
-#### [Placeholder](test/mode/validation/pairwise.cpp)
+#### [The Best-Laid Plans of Seasons Often Go Awry](test/mode/validation/pairwise.cpp)
 
-> sample text
+```cpp
+rangewise<Quantifier, PairwiseArrangement>
+	::in<Range>()
+	.satisfies(predicate);
+```
 
-### Chapter III: Bipartite
+> Spring, summer, autumn, and winter.
+> Seasons change exactly as they should, but sticking to plans is never quite so regular.  
+> How do our seasonal goals look by the end of the year?
+> And if plans do change, can we still remain true to our original aspirations?
 
-#### [Section 1: Meta](test/mode/validation/bipartite_meta.cpp)
+### Act III: It Takes Two — Bipartite ✊✋✌️
 
-> sample text
+#### [Meta Validation: A Worthy Opponent](test/mode/validation/bipartite_meta.cpp)
 
-#### [Section 2: Instance](test/mode/validation/bipartite_instance.cpp)
+```cpp
+rangewise<Quantifier, BipartiteArrangement>
+	::between<RangeA, RangeB>()
+	.satisfies(predicate);
+```
 
-> sample text
+> The battle gets intense. How do we break the stalemate? Let's see what classic game theory can teach us.
 
-#### [Section 3: Meta Meets Instance](test/mode/validation/bipartite_meta_and_instance.cpp)
+#### [Instance Validation: Dungeon & Adventurer](test/mode/validation/bipartite_instance.cpp)
 
-> sample text
+```cpp
+rangewise<Quantifier, BipartiteArrangement>
+	::between(rangeA, rangeB)
+	.satisfies(predicate);
+```
+
+> The adventurer party sets out on their journey.
+> The dungeon holds mystical treasures, but danger also lurks at every turn.
+> Sometimes their path is smooth sailing; other times, they are beset on all sides.  
+> Unknown depths lie ahead for them to explore, where the next foe could be a monster, or perhaps, other adventurers.
+
+#### [Meta Meets Instance: Tom's Fruit List](test/mode/validation/bipartite_meta_and_instance.cpp)
+
+```cpp
+rangewise<Quantifier, BipartiteArrangement>
+	::between<RangeA>(rangeB)
+	.satisfies(predicate);
+```
+
+> Tom has a fruit list. One day, he feels like grabbing some fruit to eat, only to find himself sharing with...
 
 <!-------------------------------------------------------------------------------->
 
 ## 🤔 Design Philosophy
 
-说人话：通过语法直接对逻辑建模，只需要你一点点的数学思维
+- **Speak Human**:
+Directly model your logic through intuitive syntax, requiring only a fraction of mathematical thinking.
 
-三界统一：类型、常量、实例
+- **Orthogonal Architecture**:
+Quantifiers, arrangements, ranges, and predicates are mutually independent, freely combinable, and highly extensible.
 
-零成本抽象
+- **Uniform Syntax**:
+Learn one syntax; rule them all.
+Whether you are validating types, values, or instances, the syntax remains consistent and smooth.
 
-- **Declarative Modeling (Let's Speak Human)**:
-We believe logic shouldn't be buried in a labyrinth of template meta-programming.
-Logicwise allows you to model predicate logic directly through highly intuitive syntax,
-requiring only a fraction of mathematical intuition.
-
-- **The Great Unification**:
-One grammar to rule them all. Uniformly audit and verify across three distinct domains:
-compile-time types (Meta), compile-time constants (Value), and runtime containers (Instance).
+- **Interspecific Hybridization**:
+In bipartite validation, type containers, value containers, and instance containers can be seamlessly mixed and matched,
+breaking down the reproductive isolation of C++.
 
 - **Zero-Cost Abstraction**:
-Heavy-duty logic compiled down to zero runtime overhead.
-The complex multidimensional folding collapses entirely at compile-time,
-leaving your runtime binary clean, efficient, and direct.
+Pure compile-time logic verification collapses directly into a boolean constant, introducing zero runtime overhead.
+Meanwhile, it theoretically minimizes unnecessary compilation overhead.
 
 <!-------------------------------------------------------------------------------->
 
 ## 🏭 Logic Factory
 
-Logicwise is not just a validation engine; it is a factory for formal algebraic structures.
-Located in the `library/` directory are our high-order, pre-verified logic components:
+Logicwise goes beyond validation — it can also be used to forge new C++ concepts!  
+Just feed in some existing concepts as raw materials, choose the right quantifier and arrangement,
+and the Logicwise assembly line will manufacture a brand-new concept for you!
+
+> **Clunk, Clunk!** (Sounds of factory machinery)
 
 ### [Wrapper](library/logicwise/wrapper.h)
 
-Provides formal mathematical sets like **Poset (Partially Ordered Set)**, **Chain (Total Order)**, **Antichain (Incomparable Set)**, and **Equivalence Class** as first-class, composable C++ types.
+Here, a wrapper refers to a class template that bundles a group of pure types or pure values into a single entity —
+essentially, a meta container.  
+Utilizing Logicwise's syntax, you can easily construct various practical wrappers.
+Logicwise provides several preset wrappers out of the box, such as sets, posets (partially ordered sets), and antichains.  
+These wrappers do more than just replace the basic `type_list` and `value_list`;
+they can be plugged directly into the range slot of the `rangewise` syntax to enable increasingly sophisticated logical modeling.
+
+If you want to build your own wrapper, take a look at the example below.  
+First, define a concept for your wrapper:
+
+```cpp
+template<typename Range>
+concept Set =
+	rangewise<none_of, combination_pair>
+	::template in<Range>()
+	.satisfies([] <typename T1, typename T2> { return std::same_as<T1, T2>; });
+```
+
+Then, use this concept to constrain your wrapper:
+
+```cpp
+template<typename... Type>
+	requires Set<type_list<Type...>>
+struct set {};
+```
+
+Of course, if you prefer not to split them up,
+writing the full `rangewise` syntax directly within the wrapper's definition works perfectly too:
+
+```cpp
+template<typename... Type>
+	requires (
+		rangewise<none_of, combination_pair>
+		::template in<type_list<Type...>>()
+		.satisfies([] <typename T1, typename T2> { return std::same_as<T1, T2>; })
+	)
+struct set {};
+```
+
+Next, try putting your newly defined wrapper to work.
+It can be passed straight into the range slot of the `rangewise` syntax:
+
+```cpp
+template<typename... Integral>
+concept DistinctRawIntegrals =
+	rangewise<all_of, element>
+	::in<set<Integral...>>()
+	.satisfies([] <typename T> { return std::integral<T>; });
+```
+
+If you are curious about how Logicwise implements wrappers under the hood, check out the
+[type set](library/logicwise/wrapper/set/type_set.h).
+The example above is a simplified version of it.
 
 ### [Relation](library/logicwise/relation.h)
 
-Houses automatic algebraic induction machinery
-(e.g., generating strict order, dual order, and incomparability out of a single user-defined partial relation).
+Here, a relation is defined specifically over types or values,
+typically appearing as a binary predicate in the form of a concept or a Lambda expression.  
+Utilizing Logicwise's syntax, you can take fundamental relations as raw materials to forge complex relations.
+Logicwise provides several preset relations out of the box, such as inclusion relations and exclusion relations.  
+From there, you can feed these relations right back into the predicate slot of the `rangewise` syntax
+to construct even higher-level relations.
+
+If you want to build your own relations, take a look at the example below.  
+First, take the fundamental relation `std::same_as` as raw material to construct a `BelongsTo` relation:
+
+```cpp
+template<typename Type, typename Range>
+concept BelongsTo =
+	rangewise<at_least<1>, element>
+	::template in<Range>()
+	.satisfies([] <typename Element> { return std::same_as<Type, Element>; });
+```
+
+Then, you can use this `BelongsTo` relation as raw material to construct a `SubRangeOf` relation:
+
+```cpp
+template<typename SubRange, typename SuperRange>
+concept SubRangeOf =
+	rangewise<all_of, element>
+	::template in<SubRange>()
+	.satisfies([] <typename Element> { return BelongsTo<Element, SuperRange>; });
+```
+
+Finally, combine the `Set` constraint from the previous example with the `SubRangeOf` relation here,
+and you assemble a mathematically flawless `SubSetOf` relation:
+
+```cpp
+template<typename SubSet, typename SuperSet>
+concept SubSetOf =
+	Set<SubSet> && Set<SuperSet> &&
+	SubRangeOf<SubSet, SuperSet>;
+```
+
+If you are curious about how Logicwise implements relations under the hood, check out the
+[typewise inclusion relation](library/logicwise/relation/inclusion/type_inclusion.h).
+The example above is a simplified version of it.
 
 <!-------------------------------------------------------------------------------->
 
 ## 🌀 Logic Limbo
 
+This is the limbo of logic.  
+From here, you will delve into the logical structures, internal mechanisms, consistency validation,
+and degenerate cases, step by step approaching the brink of logical collapse.
+
+> **If you have stumbled into this place, this is your last chance to turn back.**
+
 ### Arrangement Behavior
 
-验证 1D 到 2D 拓扑空间的索引生成纯度与对齐安全性
+Verify the correctness of index sequence for each arrangement in both general and degenerate cases.
 
 #### [Elementwise](test/arrangement/elementwise.cpp)
 
-> sample text
+> | Arrangement	| Meaning				|
+> | ---			| ---					|
+> | element		| Individual elements	|
 
 #### [Pairwise](test/arrangement/pairwise.cpp)
 
-> sample text
+> | Arrangement				| Meaning								|
+> | ---						| ---									|
+> | permutation_pair		| Permutations of any 2 elements		|
+> | combination_pair		| Order-preserving combination pairs	|
+> | linear_adjacent_pair	| One-way linear adjacent pairs			|
+> | circular_adjacent_pair	| One-way circular adjacent pairs		|
 
 #### [Bipartite](test/arrangement/bipartite.cpp)
 
-> sample text
+> | Arrangement			| Meaning						|
+> | ---					| ---							|
+> | cartesian_pair		| Cartesian product pairs		|
+> | zip_pair_truncation	| Truncated zip-aligned pairs	|
 
 #### [Bipartite with Padding](test/arrangement/bipartite_padding.cpp)
 
-> sample text
+> | Arrangement			| Meaning						|
+> | ---					| ---							|
+> | zip_pair_padding	| Padded zip-aligned pairs		|
 
 ### Quantifier Behavior
 
-#### [Short Circuit Evaluation](test/behavior/quantifier/short_circuit_evaluation.cpp)
+#### [Short-Circuit Evaluation](test/behavior/quantifier/short_circuit_evaluation.cpp)
 
-> sample text
+> Quantifiers support short-circuit evaluation, meaning that once the result is determined,
+> no further predicate evaluation is performed on the subsequent sequence.  
+> Note that a determined result does not imply that the quantifier is satisfied.
 
-#### [De Morgan's laws](test/behavior/quantifier/de_morgan_law.cpp)
+#### [De Morgan's Laws](test/behavior/quantifier/de_morgan_law.cpp)
 
-> sample text
+> De Morgan's First Law: The negation of a conjunction is equivalent to the disjunction of the negations.  
+> ¬(P1 ∧ P2 ∧ ... ∧ Pn) ≡ (¬P1) ∨ (¬P2) ∨ ... ∨ (¬Pn)
+>
+> De Morgan's Second Law: The negation of a disjunction is equivalent to the conjunction of the negations.  
+> ¬(P1 ∨ P2 ∨ ... ∨ Pn) ≡ (¬P1) ∧ (¬P2) ∧ ... ∧ (¬Pn)
+>
+> Used to verify the correctness of `all_of`, `any_of`, `none_of`, and `not_every` behaviors.
 
 ### Degeneracy
 
 #### [CV Ref Ptr Matrix](test/degeneracy/cv_ref_ptr_matrix.cpp)
 
-> sample text
+> In template parameter validation scenarios involving `const` and `volatile` qualifiers,
+> as well as reference and pointer declarators, the identity of template parameters may deviate unexpectedly.  
+> This test verifies Logicwise's correctness in handling these edge cases
+> by constructing matrices of various qualifier and declarator combinations.
 
-#### [Non-traversable Extent](test/degeneracy/non_traversable_extent.cpp)
+#### [Non-Traversable Extent](test/degeneracy/non_traversable_extent.cpp)
 
-> sample text
+> For scenarios involving a meta container, when the extent is non-traversable,
+> since there are no single variables or variable groups that need to be validated by the predicate,
+> it is impossible to guarantee that valid meta elements — whether types or values — can be retrieved as probes.  
+> In such cases, no constraints are applied on the shape of the predicate,
+> specifically the number and properties of its parameters.  
+> That is, the empty set can match predicates of any shape.
 
 <!-------------------------------------------------------------------------------->
 
 ## 🎬 Behind the Scenes
 
-- **Wrapper**: Not tested yet
-- **Relation**: Not tested yet
+### Important Notes
+
+In principle, the contents within `namespace logicwise::detail` are intended for internal use only
+and their stability is not guaranteed.
+Unless you know exactly what you are doing, please do not use or depend on them directly.  
+You can use other contents within `namespace logicwise` as long as they are not marked as `[unimplemented]`.
 
 ### Side Effects
 
@@ -283,14 +449,24 @@ Just promise me you won't write code like this, alright?
 
 For detailed information about compiler compatibility and known issues, see [KNOWN_COMPILER_ISSUES](KNOWN_COMPILER_ISSUES.md).
 
+### To Be Done
+
+Although I have said a lot about wrappers and relations, I didn't get around to testing them yet.
+Actually, they belong to a higher-level system, and some of the dependency features haven't been implemented.
+For now, let's just treat them as bonus features.
+
+The performance test remains a quest for another day. Right now, correctness is still the main focus.
+
+As for the features labeled `[unimplemented]` — don't take them seriously. I just wrote them for fun.
+
 <!-------------------------------------------------------------------------------->
 
 ## 🔌 Integration
 
-### Requirements
+### Prerequisites
 
 - **C++ Standard**: C++20 or later
-- **Compiler Support**: Any modern C++ compiler with C++20 support (MSVC, GCC, Clang)
+- **Compiler Support**: Any modern C++ compiler with C++20 support (MSVC, Clang, GCC)
 - **Build System**: CMake 3.21+
 
 ### Header-Only Library
@@ -309,8 +485,8 @@ Add the following to your `CMakeLists.txt`:
 include(FetchContent)
 
 FetchContent_Declare(logicwise
-  GIT_REPOSITORY https://github.com/frog-singing/Logicwise.git
-  GIT_TAG main
+  GIT_REPOSITORY "https://github.com/frog-singing/Logicwise.git"
+  GIT_TAG "v1.0.0"
 )
 
 FetchContent_MakeAvailable(logicwise)
