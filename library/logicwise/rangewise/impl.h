@@ -6,6 +6,7 @@
 #include <logicwise/mode/type.h>
 #include <logicwise/arrangement/type.h>
 #include <logicwise/mode/rangewise_validation.h>
+#include <logicwise/mode/rangewise_traversal.h>
 #include <logicwise/mode/rangewise_query.h>
 #include <logicwise/mode/rangewise_view.h>
 #include <logicwise/external_detail/exosuit.h>
@@ -29,16 +30,22 @@ namespace logicwise::detail
 		using type = rangewise_validation<Mode, Arrangement>;
 	};
 
-	template<std::same_as<query> Mode, typename Arrangement>
+	template<TraversalMode Mode, typename Arrangement>
 	struct rangewise_impl<Mode, Arrangement>
 	{
-		using type = rangewise_query<Arrangement>;
+		using type = rangewise_traversal<Mode, Arrangement>;
 	};
 
-	template<std::same_as<view> Mode, typename Arrangement>
+	template<QueryMode Mode, typename Arrangement>
 	struct rangewise_impl<Mode, Arrangement>
 	{
-		using type = rangewise_view<Arrangement>;
+		using type = rangewise_query<Mode, Arrangement>;
+	};
+
+	template<ViewMode Mode, typename Arrangement>
+	struct rangewise_impl<Mode, Arrangement>
+	{
+		using type = rangewise_view<Mode, Arrangement>;
 	};
 
 

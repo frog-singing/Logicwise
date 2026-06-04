@@ -8,19 +8,19 @@
 
 namespace logicwise::detail
 {
-	struct bipartite_viewer;
+	struct bipartite_traverser;
 
 	template<typename Mode, typename Arrangement>
-	class bipartite_view;
+	class bipartite_traversal;
 }
 
 
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::视图化 mode::view================================================================================
+	//行为模式::遍历 mode::traversal================================================================================
 
-	struct bipartite_viewer
+	struct bipartite_traverser
 	{
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 
 
 	template<typename Mode, typename Arrangement>
-	class bipartite_view : area_ahead<Mode, Arrangement>
+	class bipartite_traversal : area_ahead<Mode, Arrangement>
 	{
 
 

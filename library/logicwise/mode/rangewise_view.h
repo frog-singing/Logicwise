@@ -16,41 +16,41 @@ namespace logicwise::detail
 {
 	//行为模式::视图化 mode::view================================================================================
 
-	template<typename Arrangement>
+	template<typename Mode, typename Arrangement>
 	struct rangewise_view_impl;
 
-	template<ElementwiseArrangement Arrangement>
-	struct rangewise_view_impl<Arrangement>
+	template<typename Mode, ElementwiseArrangement Arrangement>
+	struct rangewise_view_impl<Mode, Arrangement>
 	{
-		using type = elementwise_view<Arrangement>;
+		using type = elementwise_view<Mode, Arrangement>;
 	};
 
-	template<PairwiseArrangement Arrangement>
-	struct rangewise_view_impl<Arrangement>
+	template<typename Mode, PairwiseArrangement Arrangement>
+	struct rangewise_view_impl<Mode, Arrangement>
 	{
-		using type = pairwise_view<Arrangement>;
+		using type = pairwise_view<Mode, Arrangement>;
 	};
 
-	template<TripletwiseArrangement Arrangement>
-	struct rangewise_view_impl<Arrangement>
+	template<typename Mode, TripletwiseArrangement Arrangement>
+	struct rangewise_view_impl<Mode, Arrangement>
 	{
-		using type = tripletwise_view<Arrangement>;
+		using type = tripletwise_view<Mode, Arrangement>;
 	};
 
-	template<BipartiteArrangement Arrangement>
-	struct rangewise_view_impl<Arrangement>
+	template<typename Mode, BipartiteArrangement Arrangement>
+	struct rangewise_view_impl<Mode, Arrangement>
 	{
-		using type = bipartite_view<Arrangement>;
+		using type = bipartite_view<Mode, Arrangement>;
 	};
 
-	template<MultipartiteArrangement Arrangement>
-	struct rangewise_view_impl<Arrangement>
+	template<typename Mode, MultipartiteArrangement Arrangement>
+	struct rangewise_view_impl<Mode, Arrangement>
 	{
-		using type = multipartite_view<Arrangement>;
+		using type = multipartite_view<Mode, Arrangement>;
 	};
 
 
-	template<typename Arrangement>
-	using rangewise_view = typename rangewise_view_impl<Arrangement>::type;
+	template<typename Mode, typename Arrangement>
+	using rangewise_view = typename rangewise_view_impl<Mode, Arrangement>::type;
 
 }

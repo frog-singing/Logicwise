@@ -10,7 +10,7 @@ namespace logicwise::detail
 {
 	struct bipartite_querier;
 
-	template<typename Arrangement>
+	template<typename Mode, typename Arrangement>
 	class bipartite_query;
 }
 
@@ -28,8 +28,8 @@ namespace logicwise::detail
 
 
 
-	template<typename Arrangement>
-	class bipartite_query : area_ahead<Arrangement>
+	template<typename Mode, typename Arrangement>
+	class bipartite_query : area_ahead<Mode, Arrangement>
 	{
 
 

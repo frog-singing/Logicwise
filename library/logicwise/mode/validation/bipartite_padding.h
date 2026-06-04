@@ -72,9 +72,9 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
 		{
-			constexpr typename Arrangement::extent_type extent{ TypeListA::size, TypeListB::size };
+			constexpr typename Arrangement::extent_type Extent{ TypeListA::size, TypeListB::size };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
 					constexpr auto component{ Index.component };
 					constexpr auto padding_state{ Index.padding_state };
@@ -126,9 +126,9 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
 		{
-			constexpr typename Arrangement::extent_type extent{ ValueListA::size, ValueListB::size };
+			constexpr typename Arrangement::extent_type Extent{ ValueListA::size, ValueListB::size };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
 					constexpr auto component{ Index.component };
 					constexpr auto padding_state{ Index.padding_state };
@@ -180,9 +180,9 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_type_list_and_value_list_with_invocable(ValidatorType&& validator)
 		{
-			constexpr typename Arrangement::extent_type extent{ TypeList::size, ValueList::size };
+			constexpr typename Arrangement::extent_type Extent{ TypeList::size, ValueList::size };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
 					constexpr auto component{ Index.component };
 					constexpr auto padding_state{ Index.padding_state };
@@ -234,9 +234,9 @@ namespace logicwise::detail
 			typename ValidatorType>
 		static constexpr bool validate_value_list_and_type_list_with_invocable(ValidatorType&& validator)
 		{
-			constexpr typename Arrangement::extent_type extent{ ValueList::size, TypeList::size };
+			constexpr typename Arrangement::extent_type Extent{ ValueList::size, TypeList::size };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
 					constexpr auto component{ Index.component };
 					constexpr auto padding_state{ Index.padding_state };
@@ -284,10 +284,10 @@ namespace logicwise::detail
 			const PaddingInstanceTypeJ& padding_instance_J, const ContainerType& container,
 			ValidatorType&& validator)
 		{
-			constexpr typename Arrangement::extent_type extent
+			constexpr typename Arrangement::extent_type Extent
 			{ TypeList::size, static_container_size<ContainerType> };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
 					constexpr auto component{ Index.component };
 					constexpr auto padding_state{ Index.padding_state };
@@ -309,10 +309,10 @@ namespace logicwise::detail
 			const PaddingInstanceTypeJ& padding_instance_J, const ContainerType& container,
 			ValidatorType&& validator)
 		{
-			constexpr typename Arrangement::extent_type extent
+			constexpr typename Arrangement::extent_type Extent
 			{ ValueList::size, static_container_size<ContainerType> };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
 				constexpr auto component{ Index.component };
 				constexpr auto padding_state{ Index.padding_state };

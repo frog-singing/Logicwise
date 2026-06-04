@@ -58,9 +58,9 @@ namespace logicwise::detail
             typename ValidatorType>
         static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
         {
-            constexpr typename Arrangement::extent_type extent{ TypeList::size };
+            constexpr typename Arrangement::extent_type Extent{ TypeList::size };
 
-			return template_validation_loop<Quantifier, Arrangement, extent>
+			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> { return
                     validator.template operator() < typename TypeList::template element<Index> > ();
 				});
@@ -94,9 +94,9 @@ namespace logicwise::detail
             typename ValidatorType>
         static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
         {
-            constexpr typename Arrangement::extent_type extent{ ValueList::size };
+            constexpr typename Arrangement::extent_type Extent{ ValueList::size };
 
-            return template_validation_loop<Quantifier, Arrangement, extent>
+            return template_validation_loop<Quantifier, Arrangement, Extent>
                 ([&] <auto Index> { return
                     validator.template operator() < ValueList::template element<Index> > ();
                 });

@@ -3,10 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <version> //用于 __cpp_expansion_statements (C++26)，C++20标准
-#include <logicwise/external_detail/cxx_standard.h>
-
-#include <logicwise/index/index_sequencer.h>
+#include <logicwise/mode/traversal/traversal_loop.h>
 #include <functional> //用于 std::invoke
 
 
@@ -19,32 +16,16 @@ namespace logicwise::detail
 		typename AtomicValidationType>
 	static constexpr bool template_validation_loop(AtomicValidationType&& atomic_validation)
 	{
-		using index_traverser_type = typename Arrangement::fast_index_traverser;
-		using index_sequencer_instance = index_sequencer<Arrangement, index_traverser_type, Extent>;
+		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
 		typename Quantifier::solver quantifier_solver{};
 
-#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
-		//C++26
-		constexpr auto index_array = index_sequencer_instance::generate_index_array();
-
-		template for (constexpr auto Index : index_array)
-		{
-			if (quantifier_solver.solved()) { break; }
-
-			quantifier_solver.step(atomic_validation.template operator() < Index > ());
-		}
-#else
-		//C++20
-		using index_sequence = typename index_sequencer_instance::index_sequence;
-
-		index_sequence::invoke([&] <auto... Index> {
-			(..., (
-				quantifier_solver.solved() ? void() :
-				quantifier_solver.step(atomic_validation.template operator() < Index > ())
-			));																								
-		});
-#endif
+		template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
+			([&] <auto Index> {
+				if (quantifier_solver.solved()) { return true; }
+				quantifier_solver.step(atomic_validation.template operator() < Index > ());
+				return false;
+			});
 
 		return quantifier_solver.result();
 	}
@@ -53,16 +34,16 @@ namespace logicwise::detail
 	static constexpr bool instance_validation_loop(typename Arrangement::extent_type extent,
 		AtomicValidationType&& atomic_validation)
 	{
-		using index_traverser_type = typename Arrangement::fast_index_traverser;
+		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
 		typename Quantifier::solver quantifier_solver{};
-		index_traverser_type index_traverser{ extent };
 
-		while (!quantifier_solver.solved() && !index_traverser.done())
-		{
-			quantifier_solver.step(std::invoke(atomic_validation, index_traverser.state()));
-			index_traverser.step();
-		}
+		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
+			[&] (auto index) {
+				if (quantifier_solver.solved()) { return true; }
+				quantifier_solver.step(std::invoke(atomic_validation, index));
+				return false;
+			});
 
 		return quantifier_solver.result();
 	}

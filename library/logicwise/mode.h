@@ -31,6 +31,7 @@ namespace logicwise::quantifier
 
 }
 
+
 //逻辑维度::行为模式
 namespace logicwise::mode
 {
@@ -38,7 +39,15 @@ namespace logicwise::mode
 
 	//[未实现] [unimplemented]
 
-	using detail::query; //查询
-	using detail::view; //视图化
+	//遍历
+	using detail::for_each;
+	using detail::in_reverse_for_each;
+
+	//查询
+	using detail::query;
+
+	//视图化
+	using detail::view;
+	using detail::in_reverse_view;
 
 }
