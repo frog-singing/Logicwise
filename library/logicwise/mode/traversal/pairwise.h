@@ -68,9 +68,6 @@ namespace logicwise::detail
 		using extent_type = typename Arrangement::extent_type;
         using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
 
-        using forward_index_traverser = typename Arrangement::forward_index_traverser;
-        using reverse_index_traverser = typename Arrangement::reverse_index_traverser;
-
 		template<typename WrapperInstance>
 		struct in_wrapper
 		{
@@ -234,10 +231,10 @@ namespace logicwise::detail
             }
             constexpr void execute(OperationType&& operation)
             {
-                typename Arrangement::extent_type extent{ std::ranges::size(container) };
+                extent_type extent{ std::ranges::size(container) };
 
                 instance_execute_loop<Arrangement, IndexTraverserType>(extent,
-                    [&] (auto index) {
+                    [&] (auto&& index) {
                         std::invoke(operation, container[index[0]], container[index[1]]);
                     });
             }
@@ -250,10 +247,10 @@ namespace logicwise::detail
             }
             constexpr void execute_until(OperationType&& operation)
             {
-                typename Arrangement::extent_type extent{ std::ranges::size(container) };
+                extent_type extent{ std::ranges::size(container) };
 
                 instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-                    [&] (auto index) { return
+                    [&] (auto&& index) { return
                         std::invoke(operation, container[index[0]], container[index[1]]);
                     });
             }
@@ -263,7 +260,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<OperationType>,
                     "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] (auto instance_i, auto instance_j) { ... }");
+                    "Expected: [] (auto&& instance_i, auto&& instance_j) { ... }");
             }
 
             template<typename OperationType>
@@ -271,7 +268,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<OperationType>,
                     "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] (auto instance_i, auto instance_j) -> bool { ... }");
+                    "Expected: [] (auto&& instance_i, auto&& instance_j) -> bool { ... }");
             }
 
 		};

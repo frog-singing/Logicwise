@@ -63,7 +63,7 @@ namespace logicwise::detail
 					return;
 				}
 
-				//不能用 index_j >= extent_i ，否则处于非法索引时连续 step 会换行绕回，导致永远无法被 done 检测到非法状态
+				//不能用 index_j >= extent_i，否则处于非法索引时连续 step 会换行绕回，导致永远无法被 done 检测到非法状态
 				if (index_j == extent_i)
 				{
 					++index_i;
@@ -108,7 +108,7 @@ namespace logicwise::detail
 					return;
 				}
 
-				//不能用 index_j < 0 ，否则处于非法索引时连续 step 会换行绕回，导致永远无法被 done 检测到非法状态
+				//不能用 index_j < 0，否则处于非法索引时连续 step 会换行绕回，导致永远无法被 done 检测到非法状态
 				if (index_j == -1)
 				{
 					--index_i;

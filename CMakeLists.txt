@@ -111,7 +111,7 @@ else()
     # 将接口头文件列表注入目标，使得IDE可见。不影响编译
     target_sources(logicwise_library INTERFACE ${logicwise_header_file})
 
-    # 设置 Source Group ，在 IDE 中更整洁
+    # 设置 Source Group，在 IDE 中更整洁
     source_group(
         TREE "${CMAKE_CURRENT_SOURCE_DIR}/library"
         PREFIX "Header File"

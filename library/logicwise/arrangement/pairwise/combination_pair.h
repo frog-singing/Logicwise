@@ -57,7 +57,7 @@ namespace logicwise::detail
 			{
 				++index_j;
 
-				//不要用 index_j >= extent_i ，否则处于非法索引时连续 step 会导致无效开销
+				//不要用 index_j >= extent_i，否则处于非法索引时连续 step 会导致无效开销
 				if (index_j == extent_i)
 				{
 					++index_i;

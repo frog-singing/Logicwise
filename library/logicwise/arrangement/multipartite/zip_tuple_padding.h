@@ -14,8 +14,8 @@ namespace logicwise::detail
 {
 	struct zip_tuple_padding;
 
-	template<std::size_t N>
-	struct zip_tuple_padding_ND;
+	template<std::size_t Arity>
+	struct zip_tuple_padding_impl;
 }
 
 
@@ -27,18 +27,21 @@ namespace logicwise::detail
 	//填充对齐多元组
 	struct zip_tuple_padding : multipartite_arrangement_tag
 	{
-		template<std::size_t N>
-		using arrangement_ND = zip_tuple_padding_ND<N>;
+		template<std::size_t Arity>
+		using arrangement = zip_tuple_padding_impl<Arity>;
 	};
 
-	template<std::size_t N>
-	struct zip_tuple_padding_ND : arrangement_with_padding_tag
+	template<std::size_t Arity>
+	struct zip_tuple_padding_impl : arrangement_with_padding_tag
 	{
-		using extent_type = ExtentND<N>;
-		using index_trait = IndexTraitPaddingND<N>;
+		using extent_type = Extent<Arity>;
+		using index_trait = IndexTraitPadding<Arity>;
 		using index_type = typename index_trait::index_type;
 		using index_integer_type = int;
 
+
+		//使用 const extent_type&
+		//使用 const index_type&
 	};
 
 }

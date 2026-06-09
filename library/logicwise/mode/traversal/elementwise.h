@@ -216,10 +216,10 @@ namespace logicwise::detail
             }
             constexpr void execute(OperationType&& operation)
             {
-                typename Arrangement::extent_type extent{ std::ranges::size(container) };
+                extent_type extent{ std::ranges::size(container) };
 
                 instance_execute_loop<Arrangement, IndexTraverserType>(extent,
-                    [&] (auto index) {
+                    [&] (auto&& index) {
                         std::invoke(operation, container[index]);
                     });
             }
@@ -231,10 +231,10 @@ namespace logicwise::detail
             }
             constexpr void execute_until(OperationType&& operation)
             {
-                typename Arrangement::extent_type extent{ std::ranges::size(container) };
+                extent_type extent{ std::ranges::size(container) };
 
                 instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-                    [&] (auto index) { return
+                    [&] (auto&& index) { return
                         std::invoke(operation, container[index]);
                     });
             }
@@ -244,7 +244,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<OperationType>,
                     "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] (auto instance_i) { ... }");
+                    "Expected: [] (auto&& instance_i) { ... }");
             }
 
             template<typename OperationType>
@@ -252,7 +252,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<OperationType>,
                     "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] (auto instance_i) -> bool { ... }");
+                    "Expected: [] (auto&& instance_i) -> bool { ... }");
             }
 
         };

@@ -109,7 +109,7 @@ namespace logicwise::detail
             typename Arrangement::extent_type extent{ std::ranges::size(container) };
 
 			return instance_validation_loop<Quantifier, Arrangement>(extent,
-				[&] (auto index) { return
+				[&] (auto&& index) { return
                     std::invoke(validator, container[index]);
 				});
         }
@@ -310,7 +310,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<ValidatorType>,
                     "[logicwise] Error: Incompatible validator signature!\n"
-                    "Expected: [] (auto instance_i) -> bool { ... }");
+                    "Expected: [] (auto&& instance_i) -> bool { ... }");
 
                 return false;
             }

@@ -1,0 +1,42 @@
+// Logicwise
+// Copyright (c) 2026 Frog Singing (@frog-singing)
+// SPDX-License-Identifier: MIT
+
+#pragma once
+#include <logicwise/arrangement/type.h>
+#include <logicwise/index/type.h>
+#include <logicwise/detail/safe_integer_cast.h>
+#include <logicwise/arrangement/elementwise/element.h>
+#include <logicwise/arrangement/pairwise/linear_adjacent_pair.h>
+#include "void_multiplet.h"
+#include <cstddef> //用于 std::size_t
+#include <cassert> //用于 assert
+#include <concepts> //用于 std::integral，C++20标准
+
+
+//逻辑维度::细节
+namespace logicwise::detail
+{
+	//排布::逐多元组 arrangement::multipletwise================================================================================
+
+	//单向线性相邻多元组
+	template<std::size_t Arity>
+	struct linear_adjacent_multiplet_impl : multipletwise_arrangement_tag
+	{
+		using type = linear_adjacent_multiplet_impl;
+
+		using extent_type = Extent1D;
+		using index_trait = IndexTrait<Arity>;
+		using index_type = typename index_trait::index_type;
+		using index_integer_type = int;
+
+	};
+
+	template<> struct linear_adjacent_multiplet_impl<0> { using type = void_multiplet; };
+	template<> struct linear_adjacent_multiplet_impl<1> { using type = element; };
+	template<> struct linear_adjacent_multiplet_impl<2> { using type = linear_adjacent_pair; };
+
+	template<std::integral auto Arity> requires (Arity >= 0)
+	using linear_adjacent_multiplet = typename linear_adjacent_multiplet_impl<static_cast<std::size_t>(Arity)>::type;
+
+}

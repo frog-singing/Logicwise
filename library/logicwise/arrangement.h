@@ -6,6 +6,7 @@
 #include "arrangement/elementwise.h"
 #include "arrangement/pairwise.h"
 #include "arrangement/tripletwise.h"
+#include "arrangement/multipletwise.h"
 #include "arrangement/bipartite.h"
 #include "arrangement/multipartite.h"
 

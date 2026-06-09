@@ -14,8 +14,8 @@ namespace logicwise::detail
 {
 	struct zip_tuple_truncation;
 
-	template<std::size_t N>
-	struct zip_tuple_truncation_ND;
+	template<std::size_t Arity>
+	struct zip_tuple_truncation_impl;
 }
 
 
@@ -27,18 +27,21 @@ namespace logicwise::detail
 	//截断对齐多元组
 	struct zip_tuple_truncation : multipartite_arrangement_tag
 	{
-		template<std::size_t N>
-		using arrangement_ND = zip_tuple_truncation_ND<N>;
+		template<std::size_t Arity>
+		using arrangement = zip_tuple_truncation_impl<Arity>;
 	};
 
-	template<std::size_t N>
-	struct zip_tuple_truncation_ND
+	template<std::size_t Arity>
+	struct zip_tuple_truncation_impl
 	{
-		using extent_type = ExtentND<N>;
-		using index_trait = IndexTraitND<N>;
+		using extent_type = Extent<Arity>;
+		using index_trait = IndexTrait<Arity>;
 		using index_type = typename index_trait::index_type;
 		using index_integer_type = int;
 
+
+		//使用 const extent_type&
+		//使用 const index_type&
 	};
 
 }

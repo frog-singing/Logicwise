@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <version> //用于 __cpp_lib_unreachable (C++23)，C++20标准
+#include <logicwise/external_detail/cxx_standard.h>
+
 #include <concepts> //用于 std::integral，C++20标准
 #include <utility> //用于 std::cmp_greater (C++20), std::cmp_less (C++20)
 #include <limits> //用于 std::numeric_limits
@@ -20,6 +23,10 @@ namespace logicwise::detail
         if (std::cmp_greater(value, std::numeric_limits<Target>::max()) ||
             std::cmp_less(value, std::numeric_limits<Target>::min()))
         {
+#if defined(__cpp_lib_unreachable) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_23
+            //C++23
+			std::unreachable();
+#endif
             assert(false && "[logicwise] Narrowing conversion : integer cast overflow.");
             return 0;
         }

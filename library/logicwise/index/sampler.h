@@ -22,6 +22,7 @@ namespace logicwise::detail
 		!(typename Arrangement::light_index_traverser{ Extent }.done());
 
 	//需要满足 TraversableExtent<Arrangement, Extent>
+	//state() 的返回类型可能是 index_type 或 const index_type&，此处 probe_index 必须进行值拷贝，即 auto，而非 decltype(auto)
 	template<typename Arrangement, auto Extent>
 	inline constexpr auto probe_index
 	{

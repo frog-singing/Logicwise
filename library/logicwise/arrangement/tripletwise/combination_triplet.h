@@ -16,7 +16,7 @@ namespace logicwise::detail
 	//排布::逐三元组 arrangement::tripletwise================================================================================
 
 	//保序组合三元组
-	struct combination_triplet : multipartite_arrangement_tag
+	struct combination_triplet : tripletwise_arrangement_tag
 	{
 		using extent_type = Extent1D;
 		using index_trait = IndexTrait3D;

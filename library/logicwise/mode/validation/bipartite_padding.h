@@ -265,7 +265,7 @@ namespace logicwise::detail
 			{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 			return instance_validation_loop<Quantifier, Arrangement>(extent,
-				[&] (auto index) {
+				[&] (auto&& index) {
 					auto [component, padding_state] = index;
 
 					return std::invoke(validator,
@@ -810,7 +810,7 @@ namespace logicwise::detail
 				{
 					static_assert(dependent_false_v<ValidatorType>,
 						"[logicwise] Error: Incompatible validator signature!\n"
-						"Expected: [] (auto instance_i, auto instance_j) -> bool { ... }");
+						"Expected: [] (auto&& instance_i, auto&& instance_j) -> bool { ... }");
 
 					return false;
 				}
@@ -939,7 +939,7 @@ namespace logicwise::detail
 				{
 					static_assert(dependent_false_v<ValidatorType>,
 						"[logicwise] Error: Incompatible validator signature!\n"
-						"Expected: [] <typename TypeI>(auto instance_j) -> bool { ... }");
+						"Expected: [] <typename TypeI>(auto&& instance_j) -> bool { ... }");
 
 					return false;
 				}
@@ -1066,7 +1066,7 @@ namespace logicwise::detail
 				{
 					static_assert(dependent_false_v<ValidatorType>,
 						"[logicwise] Error: Incompatible validator signature!\n"
-						"Expected: [] <auto ValueI>(auto instance_j) -> bool { ... }");
+						"Expected: [] <auto ValueI>(auto&& instance_j) -> bool { ... }");
 
 					return false;
 				}

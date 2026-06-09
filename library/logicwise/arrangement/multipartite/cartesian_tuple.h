@@ -14,8 +14,8 @@ namespace logicwise::detail
 {
 	struct cartesian_tuple;
 
-	template<std::size_t N>
-	struct cartesian_tuple_ND;
+	template<std::size_t Arity>
+	struct cartesian_tuple_impl;
 }
 
 
@@ -27,18 +27,21 @@ namespace logicwise::detail
 	//笛卡尔积多元组
 	struct cartesian_tuple : multipartite_arrangement_tag
 	{
-		template<std::size_t N>
-		using arrangement_ND = cartesian_tuple_ND<N>;
+		template<std::size_t Arity>
+		using arrangement = cartesian_tuple_impl<Arity>;
 	};
 
-	template<std::size_t N>
-	struct cartesian_tuple_ND
+	template<std::size_t Arity>
+	struct cartesian_tuple_impl
 	{
-		using extent_type = ExtentND<N>;
-		using index_trait = IndexTraitND<N>;
+		using extent_type = Extent<Arity>;
+		using index_trait = IndexTrait<Arity>;
 		using index_type = typename index_trait::index_type;
 		using index_integer_type = int;
 
+
+		//使用 const extent_type&
+		//使用 const index_type&
 	};
 
 }

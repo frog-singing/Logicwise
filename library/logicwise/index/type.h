@@ -9,14 +9,14 @@
 
 namespace logicwise::detail
 {
-	template<std::size_t N>
-	struct IndexTraitND;
+	template<std::size_t Dimension>
+	struct IndexTrait;
 
-	template<std::size_t N>
-	struct IndexTraitPaddingND;
+	template<std::size_t Dimension>
+	struct IndexTraitPadding;
 
-	template<std::size_t N>
-	struct [[nodiscard]] ExtentND;
+	template<std::size_t Dimension>
+	struct [[nodiscard]] Extent;
 }
 
 
@@ -26,12 +26,12 @@ namespace logicwise::detail
 	//索引 index================================================================================
 
 	//索引协议
-	using IndexTrait1D = IndexTraitND<1>;
-	using IndexTrait2D = IndexTraitND<2>;
-	using IndexTrait3D = IndexTraitND<3>;
+	using IndexTrait1D = IndexTrait<1>;
+	using IndexTrait2D = IndexTrait<2>;
+	using IndexTrait3D = IndexTrait<3>;
 
 	template<>
-	struct IndexTraitND<1>
+	struct IndexTrait<1>
 	{
 		using index_type = std::size_t;
 
@@ -47,10 +47,10 @@ namespace logicwise::detail
 
 	};
 
-	template<std::size_t N>
-	struct IndexTraitND
+	template<std::size_t Dimension>
+	struct IndexTrait
 	{
-		using index_type = std::array<std::size_t, N>;
+		using index_type = std::array<std::size_t, Dimension>;
 
 		template<index_type... Index>
 		struct index_sequence
@@ -65,19 +65,19 @@ namespace logicwise::detail
 	};
 	
 	//带填充索引协议
-	using IndexTraitPadding2D = IndexTraitPaddingND<2>;
+	using IndexTraitPadding2D = IndexTraitPadding<2>;
 
-	template<std::size_t N>
-	struct [[nodiscard]] IndexPaddingND
+	template<std::size_t Dimension>
+	struct [[nodiscard]] IndexPadding
 	{
-		std::array<std::size_t, N> component{}; //分量
-		std::array<bool, N> padding_state{}; //true 表示填充
+		std::array<std::size_t, Dimension> component{}; //分量
+		std::array<bool, Dimension> padding_state{}; //true 表示填充
 	};
 
-	template<std::size_t N>
-	struct IndexTraitPaddingND
+	template<std::size_t Dimension>
+	struct IndexTraitPadding
 	{
-		using index_type = IndexPaddingND<N>;
+		using index_type = IndexPadding<Dimension>;
 
 		template<index_type... Index>
 		struct index_sequence
@@ -92,23 +92,23 @@ namespace logicwise::detail
 	};
 
 	//规模结构体
-	using Extent1D = ExtentND<1>;
-	using Extent2D = ExtentND<2>;
+	using Extent1D = Extent<1>;
+	using Extent2D = Extent<2>;
 
-	template<std::size_t N>
-	struct [[nodiscard]] ExtentND
+	template<std::size_t Dimension>
+	struct [[nodiscard]] Extent
 	{
-		std::array<std::size_t, N> component{}; //分量
+		std::array<std::size_t, Dimension> component{}; //分量
 
 
-		[[nodiscard]] constexpr std::size_t& i() noexcept requires (N >= 1) { return component[0]; }
-		[[nodiscard]] constexpr std::size_t i() const noexcept requires (N >= 1) { return component[0]; }
+		[[nodiscard]] constexpr std::size_t& i() noexcept requires (Dimension >= 1) { return component[0]; }
+		[[nodiscard]] constexpr std::size_t i() const noexcept requires (Dimension >= 1) { return component[0]; }
 
-		[[nodiscard]] constexpr std::size_t& j() noexcept requires (N >= 2) { return component[1]; }
-		[[nodiscard]] constexpr std::size_t j() const noexcept requires (N >= 2) { return component[1]; }
+		[[nodiscard]] constexpr std::size_t& j() noexcept requires (Dimension >= 2) { return component[1]; }
+		[[nodiscard]] constexpr std::size_t j() const noexcept requires (Dimension >= 2) { return component[1]; }
 
-		[[nodiscard]] constexpr std::size_t& k() noexcept requires (N >= 3) { return component[2]; }
-		[[nodiscard]] constexpr std::size_t k() const noexcept requires (N >= 3) { return component[2]; }
+		[[nodiscard]] constexpr std::size_t& k() noexcept requires (Dimension >= 3) { return component[2]; }
+		[[nodiscard]] constexpr std::size_t k() const noexcept requires (Dimension >= 3) { return component[2]; }
 
 
 		[[nodiscard]] constexpr bool empty() const noexcept

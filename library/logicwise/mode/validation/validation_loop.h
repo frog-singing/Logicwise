@@ -39,7 +39,7 @@ namespace logicwise::detail
 		typename Quantifier::solver quantifier_solver{};
 
 		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-			[&] (auto index) {
+			[&] (auto&& index) {
 				if (quantifier_solver.solved()) { return true; }
 				quantifier_solver.step(std::invoke(atomic_validation, index));
 				return false;
