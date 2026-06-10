@@ -6,9 +6,9 @@
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/type.h>
 #include <logicwise/detail/safe_integer_cast.h>
+#include <logicwise/arrangement/voidwise/void.h>
 #include <logicwise/arrangement/elementwise/element.h>
-#include <logicwise/arrangement/pairwise/combination_pair.h>
-#include "void_multiplet.h"
+#include <logicwise/arrangement/pairwise/circular_adjacent_pair.h>
 #include <cstddef> //用于 std::size_t
 #include <algorithm> //用于 std::min, std::max
 #include <cassert> //用于 assert
@@ -60,8 +60,7 @@ namespace logicwise::detail
 
             forward_index_traverser() = delete; //禁用默认构造函数
 
-            //Arity == 1 时，index_type 为 std::size_t 而非 std::array<std::size_t, 1>
-            explicit constexpr forward_index_traverser(extent_type extent) noexcept requires (Arity != 1)
+            explicit constexpr forward_index_traverser(extent_type extent) noexcept
                 : max_index{ safe_integer_cast<index_integer_type>(extent.i()) - 1 }
             {
 				//Arity 为 0 或溢出
@@ -126,8 +125,7 @@ namespace logicwise::detail
 
             reverse_index_traverser() = delete; //禁用默认构造函数
 
-            //Arity == 1 时，index_type 为 std::size_t 而非 std::array<std::size_t, 1>
-            explicit constexpr reverse_index_traverser(extent_type extent) noexcept requires (Arity != 1)
+            explicit constexpr reverse_index_traverser(extent_type extent) noexcept
                 : max_index{ extent.i() - 1 }
             {
                 //Arity 为 0 或溢出
@@ -157,8 +155,8 @@ namespace logicwise::detail
                 return index;
             }
 
-            //Arity >= 2 且未溢出
-            constexpr void step() noexcept requires (SampleSize >= 2)
+            //Arity >= 1 且未溢出
+            constexpr void step() noexcept requires (SampleSize >= 1)
             {
                 std::size_t position{ Arity - 1 };
 
@@ -186,8 +184,8 @@ namespace logicwise::detail
 
 	};
 	
-	template<> struct combination_multiplet_impl<0> { using type = void_multiplet; };
-	template<> struct combination_multiplet_impl<1> { using type = element; };
+	template<> struct combination_multiplet_impl<0> { using type = multipletwise_void; };
+	template<> struct combination_multiplet_impl<1> { using type = multipletwise_element; };
 	template<> struct combination_multiplet_impl<2> { using type = combination_pair; };
 
 	template<std::integral auto Arity> requires (Arity >= 0)

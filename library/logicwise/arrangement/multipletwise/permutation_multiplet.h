@@ -6,9 +6,9 @@
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/type.h>
 #include <logicwise/detail/safe_integer_cast.h>
+#include <logicwise/arrangement/voidwise/void.h>
 #include <logicwise/arrangement/elementwise/element.h>
-#include <logicwise/arrangement/pairwise/permutation_pair.h>
-#include "void_multiplet.h"
+#include <logicwise/arrangement/pairwise/circular_adjacent_pair.h>
 #include <cstddef> //用于 std::size_t
 #include <cassert> //用于 assert
 #include <concepts> //用于 std::integral，C++20标准
@@ -32,8 +32,8 @@ namespace logicwise::detail
 
 	};
 
-	template<> struct permutation_multiplet_impl<0> { using type = void_multiplet; };
-	template<> struct permutation_multiplet_impl<1> { using type = element; };
+	template<> struct permutation_multiplet_impl<0> { using type = multipletwise_void; };
+	template<> struct permutation_multiplet_impl<1> { using type = multipletwise_element; };
 	template<> struct permutation_multiplet_impl<2> { using type = permutation_pair; };
 
 	template<std::integral auto Arity> requires (Arity >= 0)

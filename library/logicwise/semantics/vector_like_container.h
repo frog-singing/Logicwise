@@ -10,13 +10,13 @@
 #include <cstddef> //用于 std::size_t
 #include <span> //用于 std::span
 #include <array> //用于 std::array, std::to_array
-#include <concepts> //用于 std::move_constructible, std::convertible_to, std::derived_from, std::same_as，C++20标准
+#include <concepts> //用于 std::move_constructible，C++20标准
 
 
 //逻辑维度::细节
 namespace logicwise::detail
 {
-    //细节 detail================================================================================
+    //语义 semantics================================================================================
 
     template<VectorLike ContainerType>
     struct vector_like_container_trait
@@ -115,47 +115,6 @@ namespace logicwise::detail
                 return std::to_array(static_cast<expected_container_type>(container));
             }
         }
-
-    };
-
-    //--------------------------------------------------------------------------------
-
-    template<typename PaddingInstanceType>
-    struct padding_instance_trait
-    {
-        static constexpr bool is_left_value = std::is_lvalue_reference_v<PaddingInstanceType>;
-
-        //去掉引用和 const volatile
-        using raw_padding_instance_type = std::remove_cvref_t<PaddingInstanceType>;
-
-        //接口
-        using stored_padding_instance_type = std::conditional_t <
-            is_left_value,
-            const raw_padding_instance_type&,
-            raw_padding_instance_type
-        >;
-
-        //接口
-        //convertible_to 禁止显式转换场景下的隐式转换
-        template<typename TargetRawType>
-        static constexpr bool is_compatible_type = 
-			std::convertible_to<stored_padding_instance_type, TargetRawType>;
-
-        template<typename TargetRawType>
-        static constexpr bool should_normalize_as_reference = is_left_value &&
-            (
-                std::derived_from<raw_padding_instance_type, TargetRawType> ||
-                std::same_as<raw_padding_instance_type, TargetRawType>
-            );
-
-        //接口
-		//需要满足 is_compatible_type<TargetRawType>
-        template<typename TargetRawType>
-        using normalized_padding_instance_type = std::conditional_t<
-            should_normalize_as_reference<TargetRawType>,
-            const TargetRawType&,
-            TargetRawType
-        >;
 
     };
 

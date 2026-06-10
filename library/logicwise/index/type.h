@@ -9,6 +9,8 @@
 
 namespace logicwise::detail
 {
+	struct IndexTraitScalar;
+
 	template<std::size_t Dimension>
 	struct IndexTrait;
 
@@ -25,13 +27,8 @@ namespace logicwise::detail
 {
 	//索引 index================================================================================
 
-	//索引协议
-	using IndexTrait1D = IndexTrait<1>;
-	using IndexTrait2D = IndexTrait<2>;
-	using IndexTrait3D = IndexTrait<3>;
-
-	template<>
-	struct IndexTrait<1>
+	//标量索引协议
+	struct IndexTraitScalar
 	{
 		using index_type = std::size_t;
 
@@ -44,8 +41,13 @@ namespace logicwise::detail
 				return std::forward<Invocable>(invocable).template operator() < Index... > ();
 			}
 		};
-
 	};
+
+	//索引协议
+	using IndexTrait0D = IndexTrait<0>;
+	using IndexTrait1D = IndexTrait<1>;
+	using IndexTrait2D = IndexTrait<2>;
+	using IndexTrait3D = IndexTrait<3>;
 
 	template<std::size_t Dimension>
 	struct IndexTrait
@@ -92,6 +94,7 @@ namespace logicwise::detail
 	};
 
 	//规模结构体
+	using Extent0D = Extent<0>;
 	using Extent1D = Extent<1>;
 	using Extent2D = Extent<2>;
 

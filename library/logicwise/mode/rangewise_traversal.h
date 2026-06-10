@@ -8,7 +8,9 @@
 #include "traversal/pairwise.h"
 #include "traversal/tripletwise.h"
 #include "traversal/bipartite.h"
+#include "traversal/bipartite_padding.h"
 #include "traversal/multipartite.h"
+#include "traversal/multipartite_padding.h"
 
 
 //逻辑维度::细节

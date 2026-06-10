@@ -9,9 +9,9 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-    //细节 detail================================================================================
+    //语义::填充 semantics::padding================================================================================
 
-    struct element_padder
+    struct template_element_padder
     {
         //类型维度填充
         template<bool ShouldPad, typename PaddingElement, typename TypeList, std::size_t ElementIndex>

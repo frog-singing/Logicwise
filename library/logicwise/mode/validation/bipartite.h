@@ -7,7 +7,7 @@
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
-#include <logicwise/detail/vector_like_container_trait.h>
+#include <logicwise/semantics/vector_like_container.h>
 #include "validation_loop.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke

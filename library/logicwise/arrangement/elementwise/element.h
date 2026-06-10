@@ -10,16 +10,28 @@
 #include <cassert> //用于 assert
 
 
+namespace logicwise::detail
+{
+    template<typename IndexTrait>
+    struct base_element;
+
+	struct element;
+	struct multipletwise_element;
+	struct multipartite_element;
+}
+
+
 //逻辑维度::细节
 namespace logicwise::detail
 {
 	//排布::逐元素 arrangement::elementwise================================================================================
 
-	//单个元素
-	struct element : elementwise_arrangement_tag
+	//基础元素
+    template<typename IndexTrait>
+    struct base_element
 	{
 		using extent_type = Extent1D;
-        using index_trait = IndexTrait1D;
+        using index_trait = IndexTrait;
 		using index_type = typename index_trait::index_type;
         using index_integer_type = int;
 
@@ -84,4 +96,12 @@ namespace logicwise::detail
 
 	};
 
+    //单个元素
+    struct element : base_element<IndexTraitScalar>, elementwise_arrangement_tag {};
+
+	//逐多元组元素
+	struct multipletwise_element : base_element<IndexTrait1D>, multipletwise_arrangement_tag {};
+
+    //多部元素
+	struct multipartite_element : base_element<IndexTrait1D>, multipartite_arrangement_tag {};
 }

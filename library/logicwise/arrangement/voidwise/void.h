@@ -7,15 +7,27 @@
 #include <logicwise/index/type.h>
 
 
+namespace logicwise::detail
+{
+	template<typename ExtentType>
+	struct base_void;
+
+	struct multipletwise_void;
+	struct multipartite_void;
+}
+
+
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//排布::逐多元组 arrangement::multipletwise================================================================================
+	//排布::虚空维度 arrangement::voidwise================================================================================
 
-	struct void_multiplet : multipletwise_arrangement_tag
+	//基础虚空
+	template<typename ExtentType>
+	struct base_void
 	{
-		using extent_type = Extent1D;
-		using index_trait = IndexTrait<0>;
+		using extent_type = ExtentType;
+		using index_trait = IndexTrait0D;
 		using index_type = typename index_trait::index_type;
 
 		static constexpr std::size_t index_count(extent_type)
@@ -38,4 +50,9 @@ namespace logicwise::detail
 
 	};
 
+	//逐多元组虚空
+	struct multipletwise_void : base_void<Extent1D>, multipletwise_arrangement_tag {};
+
+	//多部虚空
+	struct multipartite_void : base_void<Extent0D>, multipartite_arrangement_tag {};
 }

@@ -7,7 +7,7 @@
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
-#include <logicwise/detail/vector_like_container_trait.h>
+#include <logicwise/semantics/vector_like_container.h>
 #include "traversal_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
@@ -483,7 +483,7 @@ namespace logicwise::detail
                 std::forward<OperationType>(operation)
                     .template operator() < ProbeTypeI > (instance_j);
             }
-            static constexpr void execute(OperationType&& operation)
+            constexpr void execute(OperationType&& operation)
             {
 				template_execute_loop<Arrangement, IndexTraverserType, Extent>
 					([&] <auto Index> {
@@ -499,7 +499,7 @@ namespace logicwise::detail
                 bool{ std::forward<OperationType>(operation)
                     .template operator() < ProbeTypeI > (instance_j) };
             }
-            static constexpr void execute_until(OperationType&& operation)
+            constexpr void execute_until(OperationType&& operation)
             {
 				template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 					([&] <auto Index> { return
@@ -557,9 +557,9 @@ namespace logicwise::detail
                 requires requires(OperationType&& operation, const StoredInstanceType& instance_j)
             {
                 std::forward<OperationType>(operation)
-                    .template operator() < ProbeTypeI > (instance_j);
+                    .template operator() < ProbeValueI > (instance_j);
             }
-            static constexpr void execute(OperationType&& operation)
+            constexpr void execute(OperationType&& operation)
             {
 				template_execute_loop<Arrangement, IndexTraverserType, Extent>
 					([&] <auto Index> {
@@ -573,9 +573,9 @@ namespace logicwise::detail
                 requires requires(OperationType&& operation, const StoredInstanceType& instance_j)
             {
                 bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeTypeI > (instance_j) };
+                    .template operator() < ProbeValueI > (instance_j) };
             }
-            static constexpr void execute_until(OperationType&& operation)
+            constexpr void execute_until(OperationType&& operation)
             {
 				template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 					([&] <auto Index> { return

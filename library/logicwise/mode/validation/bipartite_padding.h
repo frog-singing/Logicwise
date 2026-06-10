@@ -8,8 +8,9 @@
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/sampler.h>
-#include <logicwise/detail/element_padder.h>
-#include <logicwise/detail/vector_like_container_trait.h>
+#include <logicwise/semantics/vector_like_container.h>
+#include <logicwise/semantics/padding/template_element_padder.h>
+#include <logicwise/semantics/padding/padding_instance_trait.h>
 #include "validation_loop.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke
@@ -80,11 +81,11 @@ namespace logicwise::detail
 					constexpr auto padding_state{ Index.padding_state };
 
 					return validator.template operator() <
-							typename element_padder::template actual_type
-							<padding_state[0], PaddingTypeI, TypeListA, component[0]>,
-							typename element_padder::template actual_type
-							<padding_state[1], PaddingTypeJ, TypeListB, component[1]>
-						> ();
+						typename template_element_padder::template actual_type
+						<padding_state[0], PaddingTypeI, TypeListA, component[0]>,
+						typename template_element_padder::template actual_type
+						<padding_state[1], PaddingTypeJ, TypeListB, component[1]>
+					> ();
 				});
 		}
 
@@ -134,11 +135,11 @@ namespace logicwise::detail
 					constexpr auto padding_state{ Index.padding_state };
 
 					return validator.template operator() <
-							element_padder::template actual_value
-							<padding_state[0], PaddingValueI, ValueListA, component[0]>,
-							element_padder::template actual_value
-							<padding_state[1], PaddingValueJ, ValueListB, component[1]>
-						> ();
+						template_element_padder::template actual_value
+						<padding_state[0], PaddingValueI, ValueListA, component[0]>,
+						template_element_padder::template actual_value
+						<padding_state[1], PaddingValueJ, ValueListB, component[1]>
+					> ();
 				});
 		}
 
@@ -188,11 +189,11 @@ namespace logicwise::detail
 					constexpr auto padding_state{ Index.padding_state };
 
 					return validator.template operator() <
-							typename element_padder::template actual_type
-							<padding_state[0], PaddingTypeI, TypeList, component[0]>,
-							element_padder::template actual_value
-							<padding_state[1], PaddingValueJ, ValueList, component[1]>
-						> ();
+						typename template_element_padder::template actual_type
+						<padding_state[0], PaddingTypeI, TypeList, component[0]>,
+						template_element_padder::template actual_value
+						<padding_state[1], PaddingValueJ, ValueList, component[1]>
+					> ();
 				});
 		}
 
@@ -242,11 +243,11 @@ namespace logicwise::detail
 					constexpr auto padding_state{ Index.padding_state };
 
 					return validator.template operator() <
-							element_padder::template actual_value
-							<padding_state[0], PaddingValueI, ValueList, component[0]>,
-							typename element_padder::template actual_type
-							<padding_state[1], PaddingTypeJ, TypeList, component[1]>
-						> ();
+						template_element_padder::template actual_value
+						<padding_state[0], PaddingValueI, ValueList, component[0]>,
+						typename template_element_padder::template actual_type
+						<padding_state[1], PaddingTypeJ, TypeList, component[1]>
+					> ();
 				});
 		}
 
@@ -294,7 +295,7 @@ namespace logicwise::detail
 
 					return validator.template operator()
 						<
-							typename element_padder::template actual_type
+							typename template_element_padder::template actual_type
 							<padding_state[0], PaddingTypeI, TypeList, component[0]>
 						>
 						(padding_state[1] ? padding_instance_J : container[component[1]]);
@@ -314,15 +315,15 @@ namespace logicwise::detail
 
 			return template_validation_loop<Quantifier, Arrangement, Extent>
 				([&] <auto Index> {
-				constexpr auto component{ Index.component };
-				constexpr auto padding_state{ Index.padding_state };
+					constexpr auto component{ Index.component };
+					constexpr auto padding_state{ Index.padding_state };
 
-				return validator.template operator()
-					<
-						element_padder::template actual_value
-						<padding_state[0], PaddingValueI, ValueList, component[0]>
-					>
-					(padding_state[1] ? padding_instance_J : container[component[1]]);
+					return validator.template operator()
+						<
+							template_element_padder::template actual_value
+							<padding_state[0], PaddingValueI, ValueList, component[0]>
+						>
+						(padding_state[1] ? padding_instance_J : container[component[1]]);
 			});
 		}
 

@@ -18,7 +18,7 @@ namespace logicwise::test
 		}
 		else
 		{
-			using index_type = detail::IndexTrait1D::index_type;
+			using index_type = detail::IndexTraitScalar::index_type;
 
 			index_sequence::invoke([] <index_type Head, index_type... Tail> {
 				std::cout << Head;
