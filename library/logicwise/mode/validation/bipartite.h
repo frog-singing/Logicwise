@@ -7,17 +7,16 @@
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
+#include <logicwise/semantics/trait_predicate.h>
 #include <logicwise/semantics/vector_like_container.h>
 #include "validation_loop.h"
-#include <ranges> //用于 std::ranges，C++20标准
-#include <functional> //用于 std::invoke
 #include <utility> //用于 std::forward
+#include <functional> //用于 std::invoke
+#include <ranges> //用于 std::ranges，C++20标准
 
 
 namespace logicwise::detail
 {
-	struct bipartite_validator;
-
 	template<typename Quantifier, typename Arrangement>
 	class bipartite_validation;
 }
@@ -27,226 +26,6 @@ namespace logicwise::detail
 namespace logicwise::detail
 {
 	//行为模式::验证 mode::validation================================================================================
-
-	struct bipartite_validator
-	{
-		template<typename Quantifier, typename Arrangement, typename TypeListA, typename TypeListB,
-			template<typename, typename> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_type_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_type_list_with_invocable
-					<Quantifier, Arrangement, TypeListA, TypeListB>
-					([] <typename TypeI, typename TypeJ> { return Validator<TypeI, TypeJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_type_list_with_invocable
-					<Quantifier, Arrangement, TypeListA, TypeListB>
-					([] <typename TypeI, typename TypeJ> { return Validator<TypeI, TypeJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement, typename TypeListA, typename TypeListB,
-			typename ValidatorType>
-		static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ TypeListA::size, TypeListB::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> { return
-					validator.template operator() <
-						typename TypeListA::template element<Index[0]>,
-						typename TypeListB::template element<Index[1]>
-					> ();
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement, typename ValueListA, typename ValueListB,
-			template<auto, auto> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_value_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_value_list_with_invocable
-					<Quantifier, Arrangement, ValueListA, ValueListB>
-					([] <auto ValueI, auto ValueJ> { return Validator<ValueI, ValueJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_value_list_with_invocable
-					<Quantifier, Arrangement, ValueListA, ValueListB>
-					([] <auto ValueI, auto ValueJ> { return Validator<ValueI, ValueJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement, typename ValueListA, typename ValueListB,
-			typename ValidatorType>
-		static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ ValueListA::size, ValueListB::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> { return
-					validator.template operator() <
-						ValueListA::template element<Index[0]>,
-						ValueListB::template element<Index[1]>
-					> ();
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement, typename TypeList, typename ValueList,
-			template<typename, auto> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_type_list_and_value_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_type_list_and_value_list_with_invocable
-					<Quantifier, Arrangement, TypeList, ValueList>
-					([] <typename TypeI, auto ValueJ> { return Validator<TypeI, ValueJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_type_list_and_value_list_with_invocable
-					<Quantifier, Arrangement, TypeList, ValueList>
-					([] <typename TypeI, auto ValueJ> { return Validator<TypeI, ValueJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement, typename TypeList, typename ValueList,
-			typename ValidatorType>
-		static constexpr bool validate_type_list_and_value_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ TypeList::size, ValueList::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> { return
-					validator.template operator() <
-						typename TypeList::template element<Index[0]>,
-						ValueList::template element<Index[1]>
-					> ();
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement, typename ValueList, typename TypeList,
-			template<auto, typename> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_value_list_and_type_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_value_list_and_type_list_with_invocable
-					<Quantifier, Arrangement, ValueList, TypeList>
-					([] <auto ValueI, typename TypeJ> { return Validator<ValueI, TypeJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_value_list_and_type_list_with_invocable
-					<Quantifier, Arrangement, ValueList, TypeList>
-					([] <auto ValueI, typename TypeJ> { return Validator<ValueI, TypeJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement, typename ValueList, typename TypeList,
-			typename ValidatorType>
-		static constexpr bool validate_value_list_and_type_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ ValueList::size, TypeList::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> { return
-					validator.template operator() <
-						ValueList::template element<Index[0]>,
-						typename TypeList::template element<Index[1]>
-					> ();
-				});
-		}
-
-		//--------------------------------------------------------------------------------
-
-		template<typename Quantifier, typename Arrangement,
-			typename ContainerTypeA, typename ContainerTypeB, typename ValidatorType>
-		static constexpr bool validate_container(
-			const ContainerTypeA& containerA, const ContainerTypeB& containerB, ValidatorType&& validator)
-		{
-			typename Arrangement::extent_type extent
-			{ std::ranges::size(containerA), std::ranges::size(containerB) };
-
-			return instance_validation_loop<Quantifier, Arrangement>(extent,
-				[&] (auto&& index) { return
-					std::invoke(validator, containerA[index[0]], containerB[index[1]]);
-				});
-		}
-
-		//--------------------------------------------------------------------------------
-
-		template<typename Quantifier, typename Arrangement, typename TypeList,
-			typename ContainerType, typename ValidatorType>
-		static constexpr bool validate_type_list_and_container(
-			const ContainerType& container, ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent
-			{ TypeList::size, static_container_size<ContainerType> };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> { return
-					validator.template operator()
-					< typename TypeList::template element<Index[0]> >
-					(container[Index[1]]);
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement, typename ValueList,
-			typename ContainerType, typename ValidatorType>
-		static constexpr bool validate_value_list_and_container(
-			const ContainerType& container, ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent
-			{ ValueList::size, static_container_size<ContainerType> };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> { return
-					validator.template operator()
-					< ValueList::template element<Index[0]> >
-					(container[Index[1]]);
-				});
-		}
-
-	};
-
-	//================================================================================
 
 	template<typename Quantifier, typename Arrangement>
 	class bipartite_validation
@@ -340,24 +119,10 @@ namespace logicwise::detail
 		{
 			using ListA = as_type_list<TypeListA>;
 			using ListB = as_type_list<TypeListB>;
-
-			static constexpr auto ProbeIndex = probe_index <
-				Arrangement,
-				extent_type{ ListA::size, ListB::size }
-			> ;
-
+			static constexpr extent_type Extent{ ListA::size, ListB::size };
+			static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
 			using ProbeTypeI = typename ListA::template element<ProbeIndex[0]>;
 			using ProbeTypeJ = typename ListB::template element<ProbeIndex[1]>;
-
-			template<template<typename, typename> typename Validator>
-				requires requires { typename Validator<ProbeTypeI, ProbeTypeJ>; }
-			[[nodiscard]] static constexpr bool satisfies()
-			{
-				using TraitCertificate = Validator<ProbeTypeI, ProbeTypeJ>;
-
-				return bipartite_validator::template validate_type_list_with_trait
-					<Quantifier, Arrangement, ListA, ListB, Validator, TraitCertificate>();
-			}
 
 			template<typename ValidatorType>
 				requires requires(ValidatorType&& validator)
@@ -367,9 +132,29 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 			{
-				return bipartite_validator::template validate_type_list_with_invocable
-					<Quantifier, Arrangement, ListA, ListB>
-					(std::forward<ValidatorType>(validator));
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						validator.template operator() <
+							typename ListA::template element<Index[0]>,
+							typename ListB::template element<Index[1]>
+						> ();
+					});
+			}
+
+			template<template<typename, typename> typename Validator>
+				requires requires { typename Validator<ProbeTypeI, ProbeTypeJ>; }
+			[[nodiscard]] static constexpr bool satisfies()
+			{
+				using TraitCertificate = Validator<ProbeTypeI, ProbeTypeJ>;
+				constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						PredicateSolver.template operator() < Validator<
+							typename ListA::template element<Index[0]>,
+							typename ListB::template element<Index[1]>
+						> > ();
+					});
 			}
 
 			template<typename ValidatorType>
@@ -393,24 +178,10 @@ namespace logicwise::detail
 		{
 			using ListA = as_value_list<ValueListA>;
 			using ListB = as_value_list<ValueListB>;
-
-			static constexpr auto ProbeIndex = probe_index <
-				Arrangement,
-				extent_type{ ListA::size, ListB::size }
-			> ;
-
+			static constexpr extent_type Extent{ ListA::size, ListB::size };
+			static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
 			static constexpr auto ProbeValueI = ListA::template element<ProbeIndex[0]>;
 			static constexpr auto ProbeValueJ = ListB::template element<ProbeIndex[1]>;
-
-			template<template<auto, auto> typename Validator>
-				requires requires { typename Validator<ProbeValueI, ProbeValueJ>; }
-			[[nodiscard]] static constexpr bool satisfies()
-			{
-				using TraitCertificate = Validator<ProbeValueI, ProbeValueJ>;
-
-				return bipartite_validator::template validate_value_list_with_trait
-					<Quantifier, Arrangement, ListA, ListB, Validator, TraitCertificate>();
-			}
 
 			template<typename ValidatorType>
 				requires requires(ValidatorType&& validator)
@@ -420,9 +191,29 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 			{
-				return bipartite_validator::template validate_value_list_with_invocable
-					<Quantifier, Arrangement, ListA, ListB>
-					(std::forward<ValidatorType>(validator));
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						validator.template operator() <
+							ListA::template element<Index[0]>,
+							ListB::template element<Index[1]>
+						> ();
+					});
+			}
+
+			template<template<auto, auto> typename Validator>
+				requires requires { typename Validator<ProbeValueI, ProbeValueJ>; }
+			[[nodiscard]] static constexpr bool satisfies()
+			{
+				using TraitCertificate = Validator<ProbeValueI, ProbeValueJ>;
+				constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						PredicateSolver.template operator() < Validator<
+							ListA::template element<Index[0]>,
+							ListB::template element<Index[1]>
+						> > ();
+					});
 			}
 
 			template<typename ValidatorType>
@@ -446,24 +237,10 @@ namespace logicwise::detail
 		{
 			using ListA = as_type_list<TypeList>;
 			using ListB = as_value_list<ValueList>;
-
-			static constexpr auto ProbeIndex = probe_index <
-				Arrangement,
-				extent_type{ ListA::size, ListB::size }
-			> ;
-
+			static constexpr extent_type Extent{ ListA::size, ListB::size };
+			static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
 			using ProbeTypeI = typename ListA::template element<ProbeIndex[0]>;
 			static constexpr auto ProbeValueJ = ListB::template element<ProbeIndex[1]>;
-
-			template<template<typename, auto> typename Validator>
-				requires requires { typename Validator<ProbeTypeI, ProbeValueJ>; }
-			[[nodiscard]] static constexpr bool satisfies()
-			{
-				using TraitCertificate = Validator<ProbeTypeI, ProbeValueJ>;
-
-				return bipartite_validator::template validate_type_list_and_value_list_with_trait
-					<Quantifier, Arrangement, ListA, ListB, Validator, TraitCertificate>();
-			}
 
 			template<typename ValidatorType>
 				requires requires(ValidatorType&& validator)
@@ -473,9 +250,29 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 			{
-				return bipartite_validator::template validate_type_list_and_value_list_with_invocable
-					<Quantifier, Arrangement, ListA, ListB>
-					(std::forward<ValidatorType>(validator));
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						validator.template operator() <
+							typename ListA::template element<Index[0]>,
+							ListB::template element<Index[1]>
+						> ();
+					});
+			}
+
+			template<template<typename, auto> typename Validator>
+				requires requires { typename Validator<ProbeTypeI, ProbeValueJ>; }
+			[[nodiscard]] static constexpr bool satisfies()
+			{
+				using TraitCertificate = Validator<ProbeTypeI, ProbeValueJ>;
+				constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						PredicateSolver.template operator() < Validator<
+							typename ListA::template element<Index[0]>,
+							ListB::template element<Index[1]>
+						> > ();
+					});
 			}
 
 			template<typename ValidatorType>
@@ -499,24 +296,10 @@ namespace logicwise::detail
 		{
 			using ListA = as_value_list<ValueList>;
 			using ListB = as_type_list<TypeList>;
-
-			static constexpr auto ProbeIndex = probe_index <
-				Arrangement,
-				extent_type{ ListA::size, ListB::size }
-			> ;
-
+			static constexpr extent_type Extent{ ListA::size, ListB::size };
+			static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
 			static constexpr auto ProbeValueI = ListA::template element<ProbeIndex[0]>;
 			using ProbeTypeJ = typename ListB::template element<ProbeIndex[1]>;
-
-			template<template<auto, typename> typename Validator>
-				requires requires { typename Validator<ProbeValueI, ProbeTypeJ>; }
-			[[nodiscard]] static constexpr bool satisfies()
-			{
-				using TraitCertificate = Validator<ProbeValueI, ProbeTypeJ>;
-
-				return bipartite_validator::template validate_value_list_and_type_list_with_trait
-					<Quantifier, Arrangement, ListA, ListB, Validator, TraitCertificate>();
-			}
 
 			template<typename ValidatorType>
 				requires requires(ValidatorType&& validator)
@@ -526,9 +309,29 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 			{
-				return bipartite_validator::template validate_value_list_and_type_list_with_invocable
-					<Quantifier, Arrangement, ListA, ListB>
-					(std::forward<ValidatorType>(validator));
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						validator.template operator() <
+							ListA::template element<Index[0]>,
+							typename ListB::template element<Index[1]>
+						> ();
+					});
+			}
+
+			template<template<auto, typename> typename Validator>
+				requires requires { typename Validator<ProbeValueI, ProbeTypeJ>; }
+			[[nodiscard]] static constexpr bool satisfies()
+			{
+				using TraitCertificate = Validator<ProbeValueI, ProbeTypeJ>;
+				constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						PredicateSolver.template operator() < Validator<
+							ListA::template element<Index[0]>,
+							typename ListB::template element<Index[1]>
+						> > ();
+					});
 			}
 
 			template<typename ValidatorType>
@@ -579,9 +382,12 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
 			{
-				return bipartite_validator::template validate_container
-					<Quantifier, Arrangement>
-					(containerA, containerB, std::forward<ValidatorType>(validator));
+				extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
+
+				return instance_validation_loop<Quantifier, Arrangement>(extent,
+					[&] (auto&& index) { return
+						std::invoke(validator, containerA[index[0]], containerB[index[1]]);
+					});
 			}
 
 			template<typename ValidatorType>
@@ -618,12 +424,8 @@ namespace logicwise::detail
 		{
 			using List = as_type_list<TypeList>;
 			static constexpr auto ContainerSize = static_container_size<ContainerType>;
-
-			static constexpr auto ProbeIndex = probe_index <
-				Arrangement,
-				extent_type{ List::size, ContainerSize }
-			> ;
-
+			static constexpr extent_type Extent{ List::size, ContainerSize };
+			static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
 			using ProbeTypeI = typename List::template element<ProbeIndex[0]>;
 
 			using ContainerTrait = vector_like_container_trait<ContainerType>;
@@ -647,9 +449,12 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
 			{
-				return bipartite_validator::template validate_type_list_and_container
-					<Quantifier, Arrangement, List>
-					(container, std::forward<ValidatorType>(validator));
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						validator.template operator()
+						< typename List::template element<Index[0]> >
+						(container[Index[1]]);
+					});
 			}
 
 			template<typename ValidatorType>
@@ -673,12 +478,8 @@ namespace logicwise::detail
 		{
 			using List = as_value_list<ValueList>;
 			static constexpr auto ContainerSize = static_container_size<ContainerType>;
-
-			static constexpr auto ProbeIndex = probe_index <
-				Arrangement,
-				extent_type{ List::size, ContainerSize }
-			> ;
-
+			static constexpr extent_type Extent{ List::size, ContainerSize };
+			static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
 			static constexpr auto ProbeValueI = List::template element<ProbeIndex[0]>;
 
 			using ContainerTrait = vector_like_container_trait<ContainerType>;
@@ -702,9 +503,12 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
 			{
-				return bipartite_validator::template validate_value_list_and_container
-					<Quantifier, Arrangement, List>
-					(container, std::forward<ValidatorType>(validator));
+				return template_validation_loop<Quantifier, Arrangement, Extent>
+					([&] <auto Index> { return
+						validator.template operator()
+						< List::template element<Index[0]> >
+						(container[Index[1]]);
+					});
 			}
 
 			template<typename ValidatorType>

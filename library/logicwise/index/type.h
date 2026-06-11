@@ -9,6 +9,9 @@
 
 namespace logicwise::detail
 {
+	template<typename IndexType>
+	struct IndexProtocol;
+
 	struct IndexTraitScalar;
 
 	template<std::size_t Dimension>
@@ -27,10 +30,11 @@ namespace logicwise::detail
 {
 	//索引 index================================================================================
 
-	//标量索引协议
-	struct IndexTraitScalar
+	//索引协议
+	template<typename IndexType>
+	struct IndexProtocol
 	{
-		using index_type = std::size_t;
+		using index_type = IndexType;
 
 		template<index_type... Index>
 		struct index_sequence
@@ -41,32 +45,22 @@ namespace logicwise::detail
 				return std::forward<Invocable>(invocable).template operator() < Index... > ();
 			}
 		};
+
 	};
 
-	//索引协议
+	//标量索引特征
+	struct IndexTraitScalar : IndexProtocol<std::size_t> {};
+
+	//索引特征
 	using IndexTrait0D = IndexTrait<0>;
 	using IndexTrait1D = IndexTrait<1>;
 	using IndexTrait2D = IndexTrait<2>;
 	using IndexTrait3D = IndexTrait<3>;
 
 	template<std::size_t Dimension>
-	struct IndexTrait
-	{
-		using index_type = std::array<std::size_t, Dimension>;
+	struct IndexTrait : IndexProtocol<std::array<std::size_t, Dimension>> {};
 
-		template<index_type... Index>
-		struct index_sequence
-		{
-			template<typename Invocable>
-			static constexpr decltype(auto) invoke(Invocable&& invocable)
-			{
-				return std::forward<Invocable>(invocable).template operator() < Index... > ();
-			}
-		};
-
-	};
-	
-	//带填充索引协议
+	//带填充索引特征
 	using IndexTraitPadding2D = IndexTraitPadding<2>;
 
 	template<std::size_t Dimension>
@@ -77,21 +71,7 @@ namespace logicwise::detail
 	};
 
 	template<std::size_t Dimension>
-	struct IndexTraitPadding
-	{
-		using index_type = IndexPadding<Dimension>;
-
-		template<index_type... Index>
-		struct index_sequence
-		{
-			template<typename Invocable>
-			static constexpr decltype(auto) invoke(Invocable&& invocable)
-			{
-				return std::forward<Invocable>(invocable).template operator() < Index... > ();
-			}
-		};
-
-	};
+	struct IndexTraitPadding : IndexProtocol<IndexPadding<Dimension>> {};
 
 	//规模结构体
 	using Extent0D = Extent<0>;

@@ -29,6 +29,8 @@ namespace logicwise::detail
 {
 	//行为模式::遍历 mode::traversal================================================================================
 
+	//(PaddingElementI, PaddingElementJ) 必须是合法组合
+
 	template<typename Mode, ArrangementWithPadding Arrangement>
 	class bipartite_traversal<Mode, Arrangement>
 	{
@@ -598,7 +600,7 @@ namespace logicwise::detail
 
 					instance_execute_loop<Arrangement, IndexTraverserType>(extent,
 						[&] (auto&& index) {
-							auto [component, padding_state] = index;
+							auto&& [component, padding_state] = index;
 
 							std::invoke(operation,
 								padding_state[0] ? padding_instance_I : containerA[component[0]],
@@ -618,7 +620,7 @@ namespace logicwise::detail
 
 					instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
 						[&] (auto&& index) {
-							auto [component, padding_state] = index;
+							auto&& [component, padding_state] = index;
 
 							return std::invoke(operation,
 								padding_state[0] ? padding_instance_I : containerA[component[0]],
@@ -770,7 +772,7 @@ namespace logicwise::detail
 									<padding_state[0], PaddingTypeI, List, component[0]>
 								>
 								(padding_state[1] ? padding_instance_J : container[component[1]]);
-					});
+						});
 				}
 
 				template<typename OperationType>
@@ -792,7 +794,7 @@ namespace logicwise::detail
 									<padding_state[0], PaddingTypeI, List, component[0]>
 								>
 								(padding_state[1] ? padding_instance_J : container[component[1]]);
-					});
+						});
 				}
 
 				template<typename OperationType>
@@ -937,7 +939,7 @@ namespace logicwise::detail
 									<padding_state[0], PaddingValueI, List, component[0]>
 								>
 								(padding_state[1] ? padding_instance_J : container[component[1]]);
-					});
+						});
 				}
 
 				template<typename OperationType>
@@ -959,7 +961,7 @@ namespace logicwise::detail
 									<padding_state[0], PaddingValueI, List, component[0]>
 								>
 								(padding_state[1] ? padding_instance_J : container[component[1]]);
-					});
+						});
 				}
 
 				template<typename OperationType>

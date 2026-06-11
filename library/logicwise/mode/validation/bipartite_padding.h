@@ -8,6 +8,7 @@
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/sampler.h>
+#include <logicwise/semantics/trait_predicate.h>
 #include <logicwise/semantics/vector_like_container.h>
 #include <logicwise/semantics/padding/template_element_padder.h>
 #include <logicwise/semantics/padding/padding_instance_trait.h>
@@ -19,8 +20,6 @@
 
 namespace logicwise::detail
 {
-	struct bipartite_padding_validator;
-
 	template<typename Quantifier, typename Arrangement>
 	class bipartite_validation;
 }
@@ -32,304 +31,6 @@ namespace logicwise::detail
 	//行为模式::验证 mode::validation================================================================================
 
 	//(PaddingElementI, PaddingElementJ) 必须是合法组合
-
-	struct bipartite_padding_validator
-	{
-		template<typename Quantifier, typename Arrangement,
-			typename PaddingTypeI,	typename PaddingTypeJ,
-			typename TypeListA,		typename TypeListB,
-			template<typename, typename> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_type_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_type_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingTypeI,	PaddingTypeJ,
-					TypeListA,		TypeListB>
-					([] <typename TypeI, typename TypeJ> { return Validator<TypeI, TypeJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_type_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingTypeI,	PaddingTypeJ,
-					TypeListA,		TypeListB>
-					([] <typename TypeI, typename TypeJ> { return Validator<TypeI, TypeJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			typename PaddingTypeI,	typename PaddingTypeJ,
-			typename TypeListA,		typename TypeListB,
-			typename ValidatorType>
-		static constexpr bool validate_type_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ TypeListA::size, TypeListB::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> {
-					constexpr auto component{ Index.component };
-					constexpr auto padding_state{ Index.padding_state };
-
-					return validator.template operator() <
-						typename template_element_padder::template actual_type
-						<padding_state[0], PaddingTypeI, TypeListA, component[0]>,
-						typename template_element_padder::template actual_type
-						<padding_state[1], PaddingTypeJ, TypeListB, component[1]>
-					> ();
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			auto PaddingValueI,		auto PaddingValueJ,
-			typename ValueListA,	typename ValueListB,
-			template<auto, auto> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_value_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_value_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingValueI,	PaddingValueJ,
-					ValueListA,		ValueListB>
-					([] <auto ValueI, auto ValueJ> { return Validator<ValueI, ValueJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_value_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingValueI,	PaddingValueJ,
-					ValueListA,		ValueListB>
-					([] <auto ValueI, auto ValueJ> { return Validator<ValueI, ValueJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			auto PaddingValueI,		auto PaddingValueJ,
-			typename ValueListA,	typename ValueListB,
-			typename ValidatorType>
-		static constexpr bool validate_value_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ ValueListA::size, ValueListB::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> {
-					constexpr auto component{ Index.component };
-					constexpr auto padding_state{ Index.padding_state };
-
-					return validator.template operator() <
-						template_element_padder::template actual_value
-						<padding_state[0], PaddingValueI, ValueListA, component[0]>,
-						template_element_padder::template actual_value
-						<padding_state[1], PaddingValueJ, ValueListB, component[1]>
-					> ();
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			typename PaddingTypeI,	auto PaddingValueJ,
-			typename TypeList,		typename ValueList,
-			template<typename, auto> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_type_list_and_value_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_type_list_and_value_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingTypeI,	PaddingValueJ,
-					TypeList,		ValueList>
-					([] <typename TypeI, auto ValueJ> { return Validator<TypeI, ValueJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_type_list_and_value_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingTypeI,	PaddingValueJ,
-					TypeList,		ValueList>
-					([] <typename TypeI, auto ValueJ> { return Validator<TypeI, ValueJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			typename PaddingTypeI,	auto PaddingValueJ,
-			typename TypeList,		typename ValueList,
-			typename ValidatorType>
-		static constexpr bool validate_type_list_and_value_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ TypeList::size, ValueList::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> {
-					constexpr auto component{ Index.component };
-					constexpr auto padding_state{ Index.padding_state };
-
-					return validator.template operator() <
-						typename template_element_padder::template actual_type
-						<padding_state[0], PaddingTypeI, TypeList, component[0]>,
-						template_element_padder::template actual_value
-						<padding_state[1], PaddingValueJ, ValueList, component[1]>
-					> ();
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			auto PaddingValueI,		typename PaddingTypeJ,
-			typename ValueList,		typename TypeList,
-			template<auto, typename> typename Validator, typename TraitCertificate>
-		static constexpr bool validate_value_list_and_type_list_with_trait()
-		{
-			if constexpr (requires { bool{ TraitCertificate::value }; })
-			{
-				return validate_value_list_and_type_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingValueI,	PaddingTypeJ,
-					ValueList,		TypeList>
-					([] <auto ValueI, typename TypeJ> { return Validator<ValueI, TypeJ>::value; });
-			}
-			else if constexpr (requires { bool{ TraitCertificate{} }; })
-			{
-				return validate_value_list_and_type_list_with_invocable
-					<Quantifier, Arrangement,
-					PaddingValueI,	PaddingTypeJ,
-					ValueList,		TypeList>
-					([] <auto ValueI, typename TypeJ> { return Validator<ValueI, TypeJ>{}; });
-			}
-			else
-			{
-				static_assert(dependent_false_v<TraitCertificate>,
-					"[logicwise] Error: Unsupported trait validator! "
-					"Certificate must provide '::value' or be convertible to bool via construction.");
-
-				return false;
-			}
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			auto PaddingValueI,		typename PaddingTypeJ,
-			typename ValueList,		typename TypeList,
-			typename ValidatorType>
-		static constexpr bool validate_value_list_and_type_list_with_invocable(ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent{ ValueList::size, TypeList::size };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> {
-					constexpr auto component{ Index.component };
-					constexpr auto padding_state{ Index.padding_state };
-
-					return validator.template operator() <
-						template_element_padder::template actual_value
-						<padding_state[0], PaddingValueI, ValueList, component[0]>,
-						typename template_element_padder::template actual_type
-						<padding_state[1], PaddingTypeJ, TypeList, component[1]>
-					> ();
-				});
-		}
-
-		//--------------------------------------------------------------------------------
-
-		template<typename Quantifier, typename Arrangement,
-			typename PaddingInstanceTypeI,	typename PaddingInstanceTypeJ,
-			typename ContainerTypeA,		typename ContainerTypeB,
-			typename ValidatorType>
-		static constexpr bool validate_container(
-			const PaddingInstanceTypeI& padding_instance_I,	const PaddingInstanceTypeJ& padding_instance_J,
-			const ContainerTypeA& containerA,				const ContainerTypeB& containerB,
-			ValidatorType&& validator)
-		{
-			typename Arrangement::extent_type extent
-			{ std::ranges::size(containerA), std::ranges::size(containerB) };
-
-			return instance_validation_loop<Quantifier, Arrangement>(extent,
-				[&] (auto&& index) {
-					auto [component, padding_state] = index;
-
-					return std::invoke(validator,
-						padding_state[0] ? padding_instance_I : containerA[component[0]],
-						padding_state[1] ? padding_instance_J : containerB[component[1]]);
-				});
-		}
-
-		//--------------------------------------------------------------------------------
-
-		template<typename Quantifier, typename Arrangement,
-			typename PaddingTypeI,			typename TypeList,
-			typename PaddingInstanceTypeJ,	typename ContainerType,
-			typename ValidatorType>
-		static constexpr bool validate_type_list_and_container(
-			const PaddingInstanceTypeJ& padding_instance_J, const ContainerType& container,
-			ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent
-			{ TypeList::size, static_container_size<ContainerType> };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> {
-					constexpr auto component{ Index.component };
-					constexpr auto padding_state{ Index.padding_state };
-
-					return validator.template operator()
-						<
-							typename template_element_padder::template actual_type
-							<padding_state[0], PaddingTypeI, TypeList, component[0]>
-						>
-						(padding_state[1] ? padding_instance_J : container[component[1]]);
-				});
-		}
-
-		template<typename Quantifier, typename Arrangement,
-			auto PaddingValueI,				typename ValueList,
-			typename PaddingInstanceTypeJ,	typename ContainerType,
-			typename ValidatorType>
-		static constexpr bool validate_value_list_and_container(
-			const PaddingInstanceTypeJ& padding_instance_J, const ContainerType& container,
-			ValidatorType&& validator)
-		{
-			constexpr typename Arrangement::extent_type Extent
-			{ ValueList::size, static_container_size<ContainerType> };
-
-			return template_validation_loop<Quantifier, Arrangement, Extent>
-				([&] <auto Index> {
-					constexpr auto component{ Index.component };
-					constexpr auto padding_state{ Index.padding_state };
-
-					return validator.template operator()
-						<
-							template_element_padder::template actual_value
-							<padding_state[0], PaddingValueI, ValueList, component[0]>
-						>
-						(padding_state[1] ? padding_instance_J : container[component[1]]);
-			});
-		}
-
-	};
-
-	//================================================================================
 
 	template<typename Quantifier, ArrangementWithPadding Arrangement>
 	class bipartite_validation<Quantifier, Arrangement>
@@ -386,6 +87,8 @@ namespace logicwise::detail
 
 
 	private:
+		using extent_type = typename Arrangement::extent_type;
+
 		template<typename PaddingTypeI, typename PaddingTypeJ>
 		class pad_with_type
 		{
@@ -410,19 +113,8 @@ namespace logicwise::detail
 			template<typename ListA, typename ListB>
 			struct between_type_list
 			{
-				template<template<typename, typename> typename Validator>
-					requires requires { typename Validator<PaddingTypeI, PaddingTypeJ>; }
-				[[nodiscard]] static constexpr bool satisfies()
-				{
-					using TraitCertificate = Validator<PaddingTypeI, PaddingTypeJ>;
-
-					return bipartite_padding_validator::template validate_type_list_with_trait
-						<Quantifier, Arrangement,
-						PaddingTypeI,	PaddingTypeJ,
-						ListA,			ListB,
-						Validator, TraitCertificate>();
-				}
-
+				static constexpr extent_type Extent{ ListA::size, ListB::size };
+				
 				template<typename ValidatorType>
 					requires requires(ValidatorType&& validator)
 				{
@@ -431,11 +123,39 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 				{
-					return bipartite_padding_validator::template validate_type_list_with_invocable
-						<Quantifier, Arrangement,
-						PaddingTypeI,	PaddingTypeJ,
-						ListA,			ListB>
-						(std::forward<ValidatorType>(validator));
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return validator.template operator() <
+								typename template_element_padder::template actual_type
+								<padding_state[0], PaddingTypeI, ListA, component[0]>,
+								typename template_element_padder::template actual_type
+								<padding_state[1], PaddingTypeJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<template<typename, typename> typename Validator>
+					requires requires { typename Validator<PaddingTypeI, PaddingTypeJ>; }
+				[[nodiscard]] static constexpr bool satisfies()
+				{
+					using TraitCertificate = Validator<PaddingTypeI, PaddingTypeJ>;
+					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return PredicateSolver.template operator() < Validator<
+								typename template_element_padder::template actual_type
+								<padding_state[0], PaddingTypeI, ListA, component[0]>,
+								typename template_element_padder::template actual_type
+								<padding_state[1], PaddingTypeJ, ListB, component[1]>
+							> > ();
+						});
 				}
 
 				template<typename ValidatorType>
@@ -476,18 +196,7 @@ namespace logicwise::detail
 			template<typename ListA, typename ListB>
 			struct between_value_list
 			{
-				template<template<auto, auto> typename Validator>
-					requires requires { typename Validator<PaddingValueI, PaddingValueJ>; }
-				[[nodiscard]] static constexpr bool satisfies()
-				{
-					using TraitCertificate = Validator<PaddingValueI, PaddingValueJ>;
-
-					return bipartite_padding_validator::template validate_value_list_with_trait
-						<Quantifier, Arrangement,
-						PaddingValueI,	PaddingValueJ,
-						ListA,			ListB,
-						Validator, TraitCertificate>();
-				}
+				static constexpr extent_type Extent{ ListA::size, ListB::size };
 
 				template<typename ValidatorType>
 					requires requires(ValidatorType&& validator)
@@ -497,11 +206,39 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 				{
-					return bipartite_padding_validator::template validate_value_list_with_invocable
-						<Quantifier, Arrangement,
-						PaddingValueI,	PaddingValueJ,
-						ListA,			ListB>
-						(std::forward<ValidatorType>(validator));
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+							
+							return validator.template operator() <
+								template_element_padder::template actual_value
+								<padding_state[0], PaddingValueI, ListA, component[0]>,
+								template_element_padder::template actual_value
+								<padding_state[1], PaddingValueJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<template<auto, auto> typename Validator>
+					requires requires { typename Validator<PaddingValueI, PaddingValueJ>; }
+				[[nodiscard]] static constexpr bool satisfies()
+				{
+					using TraitCertificate = Validator<PaddingValueI, PaddingValueJ>;
+					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return PredicateSolver.template operator() < Validator<
+								template_element_padder::template actual_value
+								<padding_state[0], PaddingValueI, ListA, component[0]>,
+								template_element_padder::template actual_value
+								<padding_state[1], PaddingValueJ, ListB, component[1]>
+							> > ();
+						});
 				}
 
 				template<typename ValidatorType>
@@ -542,18 +279,7 @@ namespace logicwise::detail
 			template<typename ListA, typename ListB>
 			struct between_type_list_and_value_list
 			{
-				template<template<typename, auto> typename Validator>
-					requires requires { typename Validator<PaddingTypeI, PaddingValueJ>; }
-				[[nodiscard]] static constexpr bool satisfies()
-				{
-					using TraitCertificate = Validator<PaddingTypeI, PaddingValueJ>;
-
-					return bipartite_padding_validator::template validate_type_list_and_value_list_with_trait
-						<Quantifier, Arrangement,
-						PaddingTypeI,	PaddingValueJ,
-						ListA,			ListB,
-						Validator, TraitCertificate>();
-				}
+				static constexpr extent_type Extent{ ListA::size, ListB::size };
 
 				template<typename ValidatorType>
 					requires requires(ValidatorType&& validator)
@@ -563,11 +289,39 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 				{
-					return bipartite_padding_validator::template validate_type_list_and_value_list_with_invocable
-						<Quantifier, Arrangement,
-						PaddingTypeI,	PaddingValueJ,
-						ListA,			ListB>
-						(std::forward<ValidatorType>(validator));
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return validator.template operator() <
+								typename template_element_padder::template actual_type
+								<padding_state[0], PaddingTypeI, ListA, component[0]>,
+								template_element_padder::template actual_value
+								<padding_state[1], PaddingValueJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<template<typename, auto> typename Validator>
+					requires requires { typename Validator<PaddingTypeI, PaddingValueJ>; }
+				[[nodiscard]] static constexpr bool satisfies()
+				{
+					using TraitCertificate = Validator<PaddingTypeI, PaddingValueJ>;
+					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return PredicateSolver.template operator() < Validator<
+								typename template_element_padder::template actual_type
+								<padding_state[0], PaddingTypeI, ListA, component[0]>,
+								template_element_padder::template actual_value
+								<padding_state[1], PaddingValueJ, ListB, component[1]>
+							> > ();
+						});
 				}
 
 				template<typename ValidatorType>
@@ -608,18 +362,7 @@ namespace logicwise::detail
 			template<typename ListA, typename ListB>
 			struct between_value_list_and_type_list
 			{
-				template<template<auto, typename> typename Validator>
-					requires requires { typename Validator<PaddingValueI, PaddingTypeJ>; }
-				[[nodiscard]] static constexpr bool satisfies()
-				{
-					using TraitCertificate = Validator<PaddingValueI, PaddingTypeJ>;
-
-					return bipartite_padding_validator::template validate_value_list_and_type_list_with_trait
-						<Quantifier, Arrangement,
-						PaddingValueI,	PaddingTypeJ,
-						ListA,			ListB,
-						Validator, TraitCertificate>();
-				}
+				static constexpr extent_type Extent{ ListA::size, ListB::size };
 
 				template<typename ValidatorType>
 					requires requires(ValidatorType&& validator)
@@ -629,11 +372,39 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
 				{
-					return bipartite_padding_validator::template validate_value_list_and_type_list_with_invocable
-						<Quantifier, Arrangement,
-						PaddingValueI,	PaddingTypeJ,
-						ListA,			ListB>
-						(std::forward<ValidatorType>(validator));
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return validator.template operator() <
+								template_element_padder::template actual_value
+								<padding_state[0], PaddingValueI, ListA, component[0]>,
+								typename template_element_padder::template actual_type
+								<padding_state[1], PaddingTypeJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<template<auto, typename> typename Validator>
+					requires requires { typename Validator<PaddingValueI, PaddingTypeJ>; }
+				[[nodiscard]] static constexpr bool satisfies()
+				{
+					using TraitCertificate = Validator<PaddingValueI, PaddingTypeJ>;
+					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
+
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return PredicateSolver.template operator() < Validator<
+								template_element_padder::template actual_value
+								<padding_state[0], PaddingValueI, ListA, component[0]>,
+								typename template_element_padder::template actual_type
+								<padding_state[1], PaddingTypeJ, ListB, component[1]>
+							> > ();
+						});
 				}
 
 				template<typename ValidatorType>
@@ -797,13 +568,16 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
 				{
-					return bipartite_padding_validator::template validate_container
-						<Quantifier, Arrangement>
-						(
-							padding_instance_I,	padding_instance_J,
-							containerA,			containerB,
-							std::forward<ValidatorType>(validator)
-						);
+					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
+
+					return instance_validation_loop<Quantifier, Arrangement>(extent,
+						[&] (auto&& index) {
+							auto&& [component, padding_state] = index;
+
+							return std::invoke(validator,
+								padding_state[0] ? padding_instance_I : containerA[component[0]],
+								padding_state[1] ? padding_instance_J : containerB[component[1]]);
+						});
 				}
 
 				template<typename ValidatorType>
@@ -901,6 +675,9 @@ namespace logicwise::detail
 				using StoredContainerType = typename ContainerTrait::stored_container_type;
 				using ExpectedContainerType = typename ContainerTrait::expected_container_type;
 
+				static constexpr auto ContainerSize = static_container_size<StoredContainerType>;
+				static constexpr extent_type Extent{ List::size, ContainerSize };
+
 				using PaddingInstanceTraitJ = padding_instance_trait<ExpectedPaddingInstanceTypeJ>;
 
 				static constexpr bool padding_instance_compatible_with_container =
@@ -930,9 +707,18 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
 				{
-					return bipartite_padding_validator::template validate_type_list_and_container
-						<Quantifier, Arrangement, PaddingTypeI, List>
-						(padding_instance_J, container, std::forward<ValidatorType>(validator));
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return validator.template operator()
+								<
+									typename template_element_padder::template actual_type
+									<padding_state[0], PaddingTypeI, List, component[0]>
+								>
+								(padding_state[1] ? padding_instance_J : container[component[1]]);
+						});
 				}
 
 				template<typename ValidatorType>
@@ -1028,6 +814,9 @@ namespace logicwise::detail
 				using StoredContainerType = typename ContainerTrait::stored_container_type;
 				using ExpectedContainerType = typename ContainerTrait::expected_container_type;
 
+				static constexpr auto ContainerSize = static_container_size<StoredContainerType>;
+				static constexpr extent_type Extent{ List::size, ContainerSize };
+
 				using PaddingInstanceTraitJ = padding_instance_trait<ExpectedPaddingInstanceTypeJ>;
 
 				static constexpr bool padding_instance_compatible_with_container =
@@ -1057,9 +846,18 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
 				{
-					return bipartite_padding_validator::template validate_value_list_and_container
-						<Quantifier, Arrangement, PaddingValueI, List>
-						(padding_instance_J, container, std::forward<ValidatorType>(validator));
+					return template_validation_loop<Quantifier, Arrangement, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return validator.template operator()
+								<
+									template_element_padder::template actual_value
+									<padding_state[0], PaddingValueI, List, component[0]>
+								>
+								(padding_state[1] ? padding_instance_J : container[component[1]]);
+						});
 				}
 
 				template<typename ValidatorType>
