@@ -49,7 +49,9 @@ namespace logicwise::detail
 	};
 
 	//标量索引特征
-	struct IndexTraitScalar : IndexProtocol<std::size_t> {};
+	struct IndexTraitScalar : IndexProtocol<
+		std::size_t //index_type
+	> {};
 
 	//索引特征
 	using IndexTrait0D = IndexTrait<0>;
@@ -58,7 +60,9 @@ namespace logicwise::detail
 	using IndexTrait3D = IndexTrait<3>;
 
 	template<std::size_t Dimension>
-	struct IndexTrait : IndexProtocol<std::array<std::size_t, Dimension>> {};
+	struct IndexTrait : IndexProtocol<
+		std::array<std::size_t, Dimension> //index_type
+	> {};
 
 	//带填充索引特征
 	using IndexTraitPadding2D = IndexTraitPadding<2>;
@@ -71,7 +75,9 @@ namespace logicwise::detail
 	};
 
 	template<std::size_t Dimension>
-	struct IndexTraitPadding : IndexProtocol<IndexPadding<Dimension>> {};
+	struct IndexTraitPadding : IndexProtocol<
+		IndexPadding<Dimension> //index_type
+	> {};
 
 	//规模结构体
 	using Extent0D = Extent<0>;

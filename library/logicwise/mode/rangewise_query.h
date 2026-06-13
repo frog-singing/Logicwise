@@ -8,7 +8,9 @@
 #include "query/pairwise.h"
 #include "query/tripletwise.h"
 #include "query/bipartite.h"
+#include "query/bipartite_padding.h"
 #include "query/multipartite.h"
+#include "query/multipartite_padding.h"
 
 
 //逻辑维度::细节
