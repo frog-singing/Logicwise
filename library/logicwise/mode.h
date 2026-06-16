@@ -9,7 +9,7 @@
 //逻辑维度::量词
 namespace logicwise::quantifier
 {
-	//行为模式::验证 mode::validation================================================================================
+	//行为模式::验证 mode::verification================================================================================
 
 	using detail::quantifier_tag;
 	using detail::Quantifier;

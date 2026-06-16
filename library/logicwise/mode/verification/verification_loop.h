@@ -10,11 +10,11 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::validation================================================================================
+	//行为模式::验证 mode::verification================================================================================
 
 	template<typename Quantifier, typename Arrangement, typename Arrangement::extent_type Extent,
-		typename AtomicValidationType>
-	static constexpr bool template_validation_loop(AtomicValidationType&& atomic_validation)
+		typename AtomicVerificationType>
+	static constexpr bool template_verification_loop(AtomicVerificationType&& atomic_verification)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
@@ -23,16 +23,16 @@ namespace logicwise::detail
 		template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 			([&] <auto Index> {
 				if (quantifier_solver.solved()) { return true; }
-				quantifier_solver.step(atomic_validation.template operator() < Index > ());
+				quantifier_solver.step(atomic_verification.template operator() < Index > ());
 				return false;
 			});
 
 		return quantifier_solver.result();
 	}
 
-	template<typename Quantifier, typename Arrangement, typename AtomicValidationType>
-	static constexpr bool instance_validation_loop(typename Arrangement::extent_type extent,
-		AtomicValidationType&& atomic_validation)
+	template<typename Quantifier, typename Arrangement, typename AtomicVerificationType>
+	static constexpr bool instance_verification_loop(typename Arrangement::extent_type extent,
+		AtomicVerificationType&& atomic_verification)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
@@ -41,7 +41,7 @@ namespace logicwise::detail
 		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
 			[&] (auto&& index) {
 				if (quantifier_solver.solved()) { return true; }
-				quantifier_solver.step(std::invoke(atomic_validation, index));
+				quantifier_solver.step(std::invoke(atomic_verification, index));
 				return false;
 			});
 

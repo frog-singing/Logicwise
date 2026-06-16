@@ -11,19 +11,19 @@
 
 namespace logicwise::detail
 {
-	struct multipartite_validator;
+	struct multipartite_verifier;
 
 	template<typename Quantifier, typename Arrangement>
-	class multipartite_validation;
+	class multipartite_verification;
 }
 
 
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::validation================================================================================
+	//行为模式::验证 mode::verification================================================================================
 	
-	struct multipartite_validator
+	struct multipartite_verifier
 	{
 
 
@@ -32,7 +32,7 @@ namespace logicwise::detail
 	//================================================================================
 
 	template<typename Quantifier, typename Arrangement>
-	class multipartite_validation : area_ahead<Quantifier, Arrangement>
+	class multipartite_verification : area_ahead<Quantifier, Arrangement>
 	{
 	public:
 		template<typename... Emptiness>
@@ -72,20 +72,20 @@ namespace logicwise::detail
 	private:
 		struct among_emptiness
 		{
-			static constexpr bool validation_result{ typename Quantifier::solver{}.result() };
+			static constexpr bool verification_result{ typename Quantifier::solver{}.result() };
 
 			template<template<typename...> typename>
-			[[nodiscard]] static constexpr bool satisfies() noexcept { return validation_result; }
+			[[nodiscard]] static constexpr bool satisfies() noexcept { return verification_result; }
 
 			template<template<auto...> typename>
-			[[nodiscard]] static constexpr bool satisfies() noexcept { return validation_result; }
+			[[nodiscard]] static constexpr bool satisfies() noexcept { return verification_result; }
 
-			[[nodiscard]] static constexpr bool satisfies(auto&&) noexcept { return validation_result; }
+			[[nodiscard]] static constexpr bool satisfies(auto&&) noexcept { return verification_result; }
 
 			template<template<typename> typename>
-			[[nodiscard]] static constexpr bool satisfies_rangewise() noexcept { return validation_result; }
+			[[nodiscard]] static constexpr bool satisfies_rangewise() noexcept { return verification_result; }
 
-			[[nodiscard]] static constexpr bool satisfies_rangewise(auto&&) noexcept { return validation_result; }
+			[[nodiscard]] static constexpr bool satisfies_rangewise(auto&&) noexcept { return verification_result; }
 		};
 
 		template<typename... WrapperInstance>

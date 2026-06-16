@@ -71,7 +71,7 @@ rangewise<all_of, cartesian_pair>
 | more_than\<N>	| ∃<sub>>N</sub>	| 严格下界量词	| 严格大于 N 个	|
 | less_than\<N>	| ∃<sub><N</sub>	| 严格上界量词	| 严格小于 N 个	|
 
-[【序章偷跑】想不想看看你能用这些量词做点什么？](test/mode/validation/quantifier.cpp)
+[【序章偷跑】想不想看看你能用这些量词做点什么？](test/mode/verification/quantifier.cpp)
 
 ### [8+ 种排布](library/logicwise/arrangement.h)
 
@@ -124,14 +124,14 @@ rangewise<all_of, cartesian_pair>
 
 ### 序幕：你与量词的再次邂逅 🏃‍➡️💖🏃‍
 
-#### [等等，啥是量词？](test/mode/validation/quantifier.cpp)
+#### [等等，啥是量词？](test/mode/verification/quantifier.cpp)
 
 > 别慌！你一定已经在代码中使用过各种量词了，只是还不知道它们的大名而已。  
 > 让我们重新认识一下它们，梳理一下基本用法。
 
 ### 第一幕：我是其中之一&#8202;——逐元素 😒🤪😑
 
-#### [借我，借我一双慧眼吧](test/mode/validation/elementwise.cpp)
+#### [借我，借我一双慧眼吧](test/mode/verification/elementwise.cpp)
 
 ```cpp
 rangewise<Quantifier, ElementwiseArrangement>
@@ -144,7 +144,7 @@ rangewise<Quantifier, ElementwiseArrangement>
 
 ### 第二幕：关系构成整体——逐对 😊🤝😊
 
-#### [季划赶不上变化](test/mode/validation/pairwise.cpp)
+#### [季划赶不上变化](test/mode/verification/pairwise.cpp)
 
 ```cpp
 rangewise<Quantifier, PairwiseArrangement>
@@ -157,7 +157,7 @@ rangewise<Quantifier, PairwiseArrangement>
 
 ### 第三幕：孤掌难鸣——二部 ✊✌️✋
 
-#### [元验证：旗鼓相当的对手](test/mode/validation/bipartite_meta.cpp)
+#### [元验证：旗鼓相当的对手](test/mode/verification/bipartite_meta.cpp)
 
 ```cpp
 rangewise<Quantifier, BipartiteArrangement>
@@ -167,7 +167,7 @@ rangewise<Quantifier, BipartiteArrangement>
 
 > 战况焦灼，如何破局？从经典的博弈论中，让我们看看能学到怎样的智慧。
 
-#### [实例验证：地下城与冒险者](test/mode/validation/bipartite_instance.cpp)
+#### [实例验证：地下城与冒险者](test/mode/verification/bipartite_instance.cpp)
 
 ```cpp
 rangewise<Quantifier, BipartiteArrangement>
@@ -178,7 +178,7 @@ rangewise<Quantifier, BipartiteArrangement>
 > 冒险者小队踏上了旅程。地下城有神秘宝藏，却也危机四伏。旅途有时一帆风顺，有时也腹背受敌。  
 > 前方的未知等待着他们探索，下一个敌人是怪物...还是其他冒险者？
 
-#### [当元遇见实例：汤姆的水果清单](test/mode/validation/bipartite_meta_and_instance.cpp)
+#### [当元遇见实例：汤姆的水果清单](test/mode/verification/bipartite_meta_and_instance.cpp)
 
 ```cpp
 rangewise<Quantifier, BipartiteArrangement>
@@ -303,13 +303,13 @@ concept SubSetOf =
 ## 🌀 逻辑边境
 
 这里是逻辑的过渡地带。  
-从这里开始，你将深入逻辑结构、内部机制、一致性校验、退化情形，一步步来到逻辑即将崩塌的边缘。
+从这里开始，你将深入逻辑结构、内部机制、一致性验证、退化情形，一步步来到逻辑即将崩塌的边缘。
 
 > **如果你误入此地，这是你最后的回头机会。**
 
 ### 排布行为
 
-校验每种排布的索引序列在一般情况和退化情况的正确性。
+验证每种排布的索引序列在一般情况和退化情况的正确性。
 
 #### [逐元素](test/arrangement/elementwise.cpp)
 
@@ -354,14 +354,14 @@ concept SubSetOf =
 > 德摩根第二定律：析取的否命题等价于否命题的合取。  
 > ¬(P1 ∨ P2 ∨ ... ∨ Pn) ≡ (¬P1) ∧ (¬P2) ∧ ... ∧ (¬Pn)
 > 
-> 用于校验 `all_of`、`any_of`、`none_of` 和 `not_every` 的行为正确性。
+> 用于验证 `all_of`、`any_of`、`none_of` 和 `not_every` 的行为正确性。
 
 ### 退化
 
 #### [CV、引用、指针之矩阵](test/degeneracy/cv_ref_ptr_matrix.cpp)
 
 > 在针对模板参数的验证场景中，当涉及 `const` 和 `volatile` 限定符、引用和指针声明符时，模板参数的身份同一性可能会发生非预期的偏离。  
-> 本测试通过构建不同限定符、声明符组合的矩阵，校验 Logicwise 在这些边缘情况下的行为正确性。
+> 本测试通过构建不同限定符、声明符组合的矩阵，验证 Logicwise 在这些边缘情况下的行为正确性。
 
 #### [不可遍历规模](test/degeneracy/non_traversable_extent.cpp)
 

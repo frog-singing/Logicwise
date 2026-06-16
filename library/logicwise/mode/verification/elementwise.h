@@ -9,7 +9,7 @@
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/trait_predicate.h>
 #include <logicwise/semantics/vector_like_container.h>
-#include "validation_loop.h"
+#include "verification_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
 #include <ranges> //用于 std::ranges，C++20标准
@@ -18,17 +18,17 @@
 namespace logicwise::detail
 {
     template<typename Quantifier, typename Arrangement>
-    class elementwise_validation;
+    class elementwise_verification;
 }
 
 
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::validation================================================================================
+	//行为模式::验证 mode::verification================================================================================
 
     template<typename Quantifier, typename Arrangement>
-	class elementwise_validation
+	class elementwise_verification
 	{
     public:
         template<typename WrapperInstance>
@@ -71,15 +71,15 @@ namespace logicwise::detail
         template<typename WrapperInstance>
         struct in_wrapper
         {
-            static constexpr bool validation_result{ typename Quantifier::solver{}.result() };
+            static constexpr bool verification_result{ typename Quantifier::solver{}.result() };
 
             template<template<typename> typename>
-            [[nodiscard]] static constexpr bool satisfies() noexcept { return validation_result; }
+            [[nodiscard]] static constexpr bool satisfies() noexcept { return verification_result; }
 
             template<template<auto> typename>
-            [[nodiscard]] static constexpr bool satisfies() noexcept { return validation_result; }
+            [[nodiscard]] static constexpr bool satisfies() noexcept { return verification_result; }
 
-            [[nodiscard]] static constexpr bool satisfies(auto&&) noexcept { return validation_result; }
+            [[nodiscard]] static constexpr bool satisfies(auto&&) noexcept { return verification_result; }
 
         };
 
@@ -95,38 +95,38 @@ namespace logicwise::detail
             static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
             using ProbeTypeI = typename List::template element<ProbeIndex>;
 
-            template<typename ValidatorType>
-                requires requires(ValidatorType&& validator)
+            template<typename VerifierType>
+                requires requires(VerifierType&& verifier)
             {
-                bool{ std::forward<ValidatorType>(validator)
+                bool{ std::forward<VerifierType>(verifier)
                     .template operator() < ProbeTypeI > () };
             }
-            [[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
+            [[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
             {
-                return template_validation_loop<Quantifier, Arrangement, Extent>
+                return template_verification_loop<Quantifier, Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        validator.template operator() < typename List::template element<Index> > ();
+                        verifier.template operator() < typename List::template element<Index> > ();
 				    });
             }
 
-            template<template<typename> typename Validator>
-                requires requires { typename Validator<ProbeTypeI>; }
+            template<template<typename> typename Verifier>
+                requires requires { typename Verifier<ProbeTypeI>; }
             [[nodiscard]] static constexpr bool satisfies()
             {
-                using TraitCertificate = Validator<ProbeTypeI>;
+                using TraitCertificate = Verifier<ProbeTypeI>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-                return template_validation_loop<Quantifier, Arrangement, Extent>
+                return template_verification_loop<Quantifier, Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Validator< typename List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
                     });
             }
 
-            template<typename ValidatorType>
-            static constexpr bool satisfies(ValidatorType&&)
+            template<typename VerifierType>
+            static constexpr bool satisfies(VerifierType&&)
             {
-                static_assert(dependent_false_v<ValidatorType>,
-                    "[logicwise] Error: Incompatible validator signature!\n"
+                static_assert(dependent_false_v<VerifierType>,
+                    "[logicwise] Error: Incompatible verifier signature!\n"
                     "Expected: [] <typename TypeI>() -> bool { ... }");
 
                 return false;
@@ -146,38 +146,38 @@ namespace logicwise::detail
             static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
             static constexpr auto ProbeValueI = List::template element<ProbeIndex>;
 
-            template<typename ValidatorType>
-				requires requires(ValidatorType && validator)
+            template<typename VerifierType>
+				requires requires(VerifierType && verifier)
             {
-                bool{ std::forward<ValidatorType>(validator)
+                bool{ std::forward<VerifierType>(verifier)
                     .template operator() < ProbeValueI > () };
             }
-            [[nodiscard]] static constexpr bool satisfies(ValidatorType&& validator)
+            [[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
             {
-                return template_validation_loop<Quantifier, Arrangement, Extent>
+                return template_verification_loop<Quantifier, Arrangement, Extent>
                     ([&] <auto Index> { return
-                        validator.template operator() < List::template element<Index> > ();
+                        verifier.template operator() < List::template element<Index> > ();
                     });
             }
 
-            template<template<auto> typename Validator>
-                requires requires { typename Validator<ProbeValueI>; }
+            template<template<auto> typename Verifier>
+                requires requires { typename Verifier<ProbeValueI>; }
             [[nodiscard]] static constexpr bool satisfies()
             {
-                using TraitCertificate = Validator<ProbeValueI>;
+                using TraitCertificate = Verifier<ProbeValueI>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-                return template_validation_loop<Quantifier, Arrangement, Extent>
+                return template_verification_loop<Quantifier, Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Validator< List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
                     });
             }
 
-            template<typename ValidatorType>
-            static constexpr bool satisfies(ValidatorType&&)
+            template<typename VerifierType>
+            static constexpr bool satisfies(VerifierType&&)
             {
-                static_assert(dependent_false_v<ValidatorType>,
-                    "[logicwise] Error: Incompatible validator signature!\n"
+                static_assert(dependent_false_v<VerifierType>,
+                    "[logicwise] Error: Incompatible verifier signature!\n"
                     "Expected: [] <auto ValueI>() -> bool { ... }");
 
                 return false;
@@ -202,26 +202,26 @@ namespace logicwise::detail
             explicit constexpr in_container(ExpectedContainerType container) noexcept
                 : container{ ContainerTrait::cast_container(static_cast<ExpectedContainerType>(container)) } {}
 
-            template<typename ValidatorType>
-                requires requires(ValidatorType&& validator, const StoredInstanceType& instance_i)
+            template<typename VerifierType>
+                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
             {
-                bool{ std::invoke(std::forward<ValidatorType>(validator), instance_i) };
+                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
             }
-            [[nodiscard]] constexpr bool satisfies(ValidatorType&& validator) const
+            [[nodiscard]] constexpr bool satisfies(VerifierType&& verifier) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
-			    return instance_validation_loop<Quantifier, Arrangement>(extent,
+			    return instance_verification_loop<Quantifier, Arrangement>(extent,
 				    [&] (auto&& index) { return
-                        std::invoke(validator, container[index]);
+                        std::invoke(verifier, container[index]);
 				    });
             }
 
-            template<typename ValidatorType>
-            static constexpr bool satisfies(ValidatorType&&)
+            template<typename VerifierType>
+            static constexpr bool satisfies(VerifierType&&)
             {
-                static_assert(dependent_false_v<ValidatorType>,
-                    "[logicwise] Error: Incompatible validator signature!\n"
+                static_assert(dependent_false_v<VerifierType>,
+                    "[logicwise] Error: Incompatible verifier signature!\n"
                     "Expected: [] (auto&& instance_i) -> bool { ... }");
 
                 return false;

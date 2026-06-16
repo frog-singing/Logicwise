@@ -42,7 +42,7 @@ Orthogonally compose your logic:
 	</tr>
 </table>
 
-*Validate as you declare. Let the code speak for itself.*
+*Verify as you declare. Let the code speak for itself.*
 
 </div>
 
@@ -71,7 +71,7 @@ Orthogonally compose your logic:
 | more_than\<N>	| ∃<sub>>N</sub>	| Strict Lower-Bound Quantifier	| Strictly greater than N		|
 | less_than\<N>	| ∃<sub><N</sub>	| Strict Upper-Bound Quantifier	| Strictly less than N			|
 
-[**[Prologue Sneak Peek]** Wondering what you can do with these quantifiers?](test/mode/validation/quantifier.cpp)
+[**[Prologue Sneak Peek]** Wondering what you can do with these quantifiers?](test/mode/verification/quantifier.cpp)
 
 ### [8+ Arrangements](library/logicwise/arrangement.h)
 
@@ -127,14 +127,14 @@ embarking on a logical journey from the trivial to the abstract, and ultimately 
 
 ### Prologue: Another Encounter with Quantifiers 🏃‍➡️💖🏃‍
 
-#### [Wait, What Quantifier?](test/mode/validation/quantifier.cpp)
+#### [Wait, What Quantifier?](test/mode/verification/quantifier.cpp)
 
 > Don't panic! You’ve probably used quantifiers a thousand times in your code without even knowing their formal name.  
 > Let's get reacquainted with them and see how they act in some fundamental scenarios.
 
 ### Act I: I Am One of Them — Elementwise 😒🤪😑
 
-#### [Finally, I Can See You Crystal Clear](test/mode/validation/elementwise.cpp)
+#### [Finally, I Can See You Crystal Clear](test/mode/verification/elementwise.cpp)
 
 ```cpp
 rangewise<Quantifier, ElementwiseArrangement>
@@ -148,7 +148,7 @@ rangewise<Quantifier, ElementwiseArrangement>
 
 ### Act II: Relations Compose the Whole — Pairwise 😊🤝😊
 
-#### [The Best-Laid Plans of Seasons Often Go Awry](test/mode/validation/pairwise.cpp)
+#### [The Best-Laid Plans of Seasons Often Go Awry](test/mode/verification/pairwise.cpp)
 
 ```cpp
 rangewise<Quantifier, PairwiseArrangement>
@@ -163,7 +163,7 @@ rangewise<Quantifier, PairwiseArrangement>
 
 ### Act III: It Takes Two — Bipartite ✊✋✌️
 
-#### [Meta Validation: A Worthy Opponent](test/mode/validation/bipartite_meta.cpp)
+#### [Meta Verification: A Worthy Opponent](test/mode/verification/bipartite_meta.cpp)
 
 ```cpp
 rangewise<Quantifier, BipartiteArrangement>
@@ -173,7 +173,7 @@ rangewise<Quantifier, BipartiteArrangement>
 
 > The battle gets intense. How do we break the stalemate? Let's see what classic game theory can teach us.
 
-#### [Instance Validation: Dungeon & Adventurer](test/mode/validation/bipartite_instance.cpp)
+#### [Instance Verification: Dungeon & Adventurer](test/mode/verification/bipartite_instance.cpp)
 
 ```cpp
 rangewise<Quantifier, BipartiteArrangement>
@@ -186,7 +186,7 @@ rangewise<Quantifier, BipartiteArrangement>
 > Sometimes their path is smooth sailing; other times, they are beset on all sides.  
 > Unknown depths lie ahead for them to explore, where the next foe could be a monster, or perhaps, other adventurers.
 
-#### [Meta Meets Instance: Tom's Fruit List](test/mode/validation/bipartite_meta_and_instance.cpp)
+#### [Meta Meets Instance: Tom's Fruit List](test/mode/verification/bipartite_meta_and_instance.cpp)
 
 ```cpp
 rangewise<Quantifier, BipartiteArrangement>
@@ -208,10 +208,10 @@ Quantifiers, arrangements, ranges, and predicates are mutually independent, free
 
 - **Uniform Syntax**:
 Learn one syntax; rule them all.
-Whether you are validating types, values, or instances, the syntax remains consistent and smooth.
+Whether you are verifying types, values, or instances, the syntax remains consistent and smooth.
 
 - **Interspecific Hybridization**:
-In bipartite validation, type containers, value containers, and instance containers can be seamlessly mixed and matched,
+In bipartite verification, type containers, value containers, and instance containers can be seamlessly mixed and matched,
 breaking down the reproductive isolation of C++.
 
 - **Zero-Cost Abstraction**:
@@ -222,7 +222,7 @@ Meanwhile, it theoretically minimizes unnecessary compilation overhead.
 
 ## 🏭 Logic Factory
 
-Logicwise goes beyond validation — it can also be used to forge new C++ concepts!  
+Logicwise goes beyond verification — it can also be used to forge new C++ concepts!  
 Just feed in some existing concepts as raw materials, choose the right quantifier and arrangement,
 and the Logicwise assembly line will manufacture a brand-new concept for you!
 
@@ -333,7 +333,7 @@ The example above is a simplified version of it.
 ## 🌀 Logic Limbo
 
 This is the limbo of logic.  
-From here, you will delve into the logical structures, internal mechanisms, consistency validation,
+From here, you will delve into the logical structures, internal mechanisms, consistency verification,
 and degenerate cases, step by step approaching the brink of logical collapse.
 
 > **If you have stumbled into this place, this is your last chance to turn back.**
@@ -392,7 +392,7 @@ Verify the correctness of index sequence for each arrangement in both general an
 
 #### [CV Ref Ptr Matrix](test/degeneracy/cv_ref_ptr_matrix.cpp)
 
-> In template parameter validation scenarios involving `const` and `volatile` qualifiers,
+> In template parameter verification scenarios involving `const` and `volatile` qualifiers,
 > as well as reference and pointer declarators, the identity of template parameters may deviate unexpectedly.  
 > This test verifies Logicwise's correctness in handling these edge cases
 > by constructing matrices of various qualifier and declarator combinations.
@@ -400,7 +400,7 @@ Verify the correctness of index sequence for each arrangement in both general an
 #### [Non-Traversable Extent](test/degeneracy/non_traversable_extent.cpp)
 
 > For scenarios involving a meta container, when the extent is non-traversable,
-> since there are no single variables or variable groups that need to be validated by the predicate,
+> since there are no single variables or variable groups that need to be verified by the predicate,
 > it is impossible to guarantee that valid meta elements — whether types or values — can be retrieved as probes.  
 > In such cases, no constraints are applied on the shape of the predicate,
 > specifically the number and properties of its parameters.  
@@ -419,7 +419,7 @@ You can use other contents within `namespace logicwise` as long as they are not 
 
 ### Side Effects
 
-For now, Logicwise is targeted just for validation, so don't ever stuff side effects into the callback functions!
+For now, Logicwise is targeted just for verification, so don't ever stuff side effects into the callback functions!
 And also don't treat it as a traversal framework...
 
 Well, I know the following code compiles:
@@ -441,7 +441,7 @@ constexpr int count = []
 static_assert(count == 4, "");
 ```
 
-But that's way too weird! **The validation mode does not guarantee a uniform traversal direction.**
+But that's way too weird! **The verification mode does not guarantee a uniform traversal direction.**
 Just promise me you won't write code like this, alright?
 (If you guys really need it, maybe I'll consider adding a traversal mode...)
 

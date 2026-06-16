@@ -92,7 +92,7 @@ or `valuewise::equal_to`, depending on the intent of the test.
 Affected file:
 
 ```text
-test/mode/validation/quantifier.cpp
+test/mode/verification/quantifier.cpp
 ```
 
 Observed environment:

@@ -38,8 +38,8 @@ int main()
 
 	//--------------------------------------------------------------------------------
 
-	// Normally, predicates are validated in reverse order.
-	// In case of elementwise arrangement, predicates are always validated in reverse order.
+	// Normally, predicates are verified in reverse order.
+	// In case of elementwise arrangement, predicates are always verified in reverse order.
 
 	static_assert(
 		rangewise<always_true, element>

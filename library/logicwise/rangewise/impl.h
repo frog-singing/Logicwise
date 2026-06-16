@@ -5,7 +5,7 @@
 #pragma once
 #include <logicwise/mode/type.h>
 #include <logicwise/arrangement/type.h>
-#include <logicwise/mode/rangewise_validation.h>
+#include <logicwise/mode/rangewise_verification.h>
 #include <logicwise/mode/rangewise_traversal.h>
 #include <logicwise/mode/rangewise_query.h>
 #include <logicwise/mode/rangewise_view.h>
@@ -27,7 +27,7 @@ namespace logicwise::detail
 	template<Quantifier Mode, typename Arrangement>
 	struct rangewise_impl<Mode, Arrangement>
 	{
-		using type = rangewise_validation<Mode, Arrangement>;
+		using type = rangewise_verification<Mode, Arrangement>;
 	};
 
 	template<TraversalMode Mode, typename Arrangement>

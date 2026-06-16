@@ -84,7 +84,7 @@ V == nullptr
 影响文件：
 
 ```text
-test/mode/validation/quantifier.cpp
+test/mode/verification/quantifier.cpp
 ```
 
 已观察环境：

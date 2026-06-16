@@ -8,19 +8,19 @@
 
 namespace logicwise::detail
 {
-	struct tripletwise_validator;
+	struct tripletwise_verifier;
 
 	template<typename Quantifier, typename Arrangement>
-	class tripletwise_validation;
+	class tripletwise_verification;
 }
 
 
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::validation================================================================================
+	//行为模式::验证 mode::verification================================================================================
 
-	struct tripletwise_validator
+	struct tripletwise_verifier
 	{
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 	//================================================================================
 
 	template<typename Quantifier, typename Arrangement>
-	class tripletwise_validation : area_ahead<Quantifier,Arrangement>
+	class tripletwise_verification : area_ahead<Quantifier,Arrangement>
 	{
 
 

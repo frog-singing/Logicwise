@@ -138,7 +138,7 @@ int main()
 			std::array<int, 0> non_traversable_range{};
 			std::array traversable_range{ nullptr };
 
-			constexpr bool default_validation_result{ typename Quantifier::solver{}.result() };
+			constexpr bool default_verification_result{ typename Quantifier::solver{}.result() };
 
 			return rangewise<all_of, element>
 				::in<arrangement_list>()
@@ -152,25 +152,25 @@ int main()
 						::template between<NonTraversableRange, TraversableRange>()
 						.satisfies(UnreachablePredicate)
 						==
-						default_validation_result &&
+						default_verification_result &&
 
 						rangewise<Quantifier, Arrangement>
 						::template between<TraversableRange, NonTraversableRange>()
 						.satisfies(UnreachablePredicate)
 						==
-						default_validation_result &&
+						default_verification_result &&
 
 						rangewise<Quantifier, Arrangement>
 						::template between<NonTraversableRange>(traversable_range)
 						.satisfies(UnreachablePredicate)
 						==
-						default_validation_result &&
+						default_verification_result &&
 
 						rangewise<Quantifier, Arrangement>
 						::template between<TraversableRange>(non_traversable_range)
 						.satisfies(UnreachablePredicate)
 						==
-						default_validation_result;
+						default_verification_result;
 					});
 				});
 		}),
