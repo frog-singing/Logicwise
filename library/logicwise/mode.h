@@ -37,11 +37,12 @@ namespace logicwise::mode
 {
 	//行为模式 mode================================================================================
 
-	//[未实现] [unimplemented]
-
 	//遍历
 	using detail::for_each;
 	using detail::in_reverse_for_each;
+
+
+	//[未实现] [unimplemented]
 
 	//查询
 	using detail::query;

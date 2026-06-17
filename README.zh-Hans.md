@@ -48,6 +48,164 @@ rangewise<all_of, cartesian_pair>
 
 <!-------------------------------------------------------------------------------->
 
+## 📖 快速入门
+
+```cpp
+#include <logicwise.h>
+
+#include <array>
+#include <concepts>
+#include <iostream>
+
+
+int main()
+{
+	using namespace logicwise; // rangewise
+	using namespace logicwise::quantifier; // all_of, any_of, none_of, exactly<N> ...
+	using namespace logicwise::mode; // for_each, in_reverse_for_each
+	using namespace logicwise::arrangement; // element, combination_pair, linear_adjacent_pair, cartesian_pair, zip_pair_truncation ...
+	using namespace logicwise::wrapper; // type_list, value_list
+
+	// 验证模式 --------------------------------------------------------------------------------
+
+	static_assert(
+		rangewise<none_of, element>
+		::in<type_list<double, void, int&, type_list<int>, double>>()
+		.satisfies([] <typename T> { return std::same_as<T, int>; }),
+		"按范围维度，类型列表中不存在元素满足“和 int 是相同类型”。"
+	);
+
+	static_assert(
+		rangewise<any_of, combination_pair>
+		::in<value_list<1, 2, 3, 4>>()
+		.satisfies([] <auto V1, auto V2> { return (V1 + V2) == 5; }),
+		"按范围维度，值列表中存在组合对满足“两个值的和等于 5”。"
+	);
+
+	static_assert(
+		rangewise<exactly<9>, cartesian_pair>
+		::between<value_list<true, 2, 3.0>>(std::array{ 1, 2, 3, 4 })
+		.satisfies([] <auto V1>(auto&& v2) { return V1 != v2; }),
+		"按范围维度，值列表和数组之间恰好有 9 个笛卡尔积对满足“两个值不相等”。"
+	);
+
+	// 遍历模式 --------------------------------------------------------------------------------
+
+	constexpr int count_1 = []
+		{
+			int i{ 0 };
+
+			rangewise<for_each, element>
+				::in(std::array{ 1, 2, 3, 4 })
+				.execute([&] (auto&& v) { if (v % 2 == 0) { ++i; } });
+
+			return i;
+		}();
+
+	static_assert(count_1 == 2, "按范围维度，数组中有 2 个偶数。");
+
+	int count_2{ 0 };
+
+	rangewise<for_each, linear_adjacent_pair>
+		::in<type_list<bool, int, double, double, char>>()
+		.execute_until([&] <typename T1, typename T2> {
+			if constexpr (std::same_as<T1, T2>) { return true; }
+			++count_2;
+			std::cout << "<" << typeid(T1).name() << ", " << typeid(T2).name() << ">" << std::endl;
+			return false;
+		});
+
+	std::cout << "计数：" << count_2 << std::endl << std::endl;
+
+	/*
+	输出：
+	<bool, int>
+	<int, double>
+	计数：2
+	*/
+
+	int count_3{ 0 };
+
+	rangewise<in_reverse_for_each, zip_pair_truncation>
+		::between<type_list<bool, int, double, char, void>, value_list<true, 2u, 3.0, 4>>()
+		.execute([&] <typename T, auto V> {
+			if constexpr (!std::same_as<T, decltype(V)>) { return; }
+			++count_3;
+			std::cout << "<" << typeid(T).name() << ", " << V << ">" << std::endl;
+		});
+
+	std::cout << "计数：" << count_3 << std::endl << std::endl;
+	
+	/*
+	输出：
+	<double, 3>
+	<bool, 1>
+	计数：2
+	*/
+
+	std::cout << "Hello Logic!" << std::endl;
+}
+```
+
+<!-------------------------------------------------------------------------------->
+
+## 🔌 集成方式
+
+### 开发环境要求
+
+- **C++ 标准**：C++20 或更高版本
+- **编译器支持**：任何支持 C\++20 的现代 C++ 编译器（MSVC、Clang、GCC）
+- **构建系统**：CMake 3.21+
+
+### 仅头文件库
+
+Logicwise 是一个仅头文件库，直接包含即可：
+
+```cpp
+#include <logicwise.h>
+```
+
+### CMake 集成
+
+在你的 `CMakeLists.txt` 中添加：
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(logicwise
+  GIT_REPOSITORY "https://github.com/frog-singing/Logicwise.git"
+  GIT_TAG "v1.0.0"
+)
+
+FetchContent_MakeAvailable(logicwise)
+
+target_link_libraries(your_target PRIVATE logicwise::logicwise)
+```
+
+### 手动集成
+
+下载 [Logicwise](https://github.com/frog-singing/Logicwise) 库，将 `Logicwise/library` 目录包含在你项目的包含路径中。
+
+Logicwise 同时依赖了 [Manipond](https://github.com/frog-singing/Manipond) 库，因此你还需要下载 Manipond 库，然后将 `Manipond/exosuit_library` 和 `Manipond/meta_library` 目录包含在你项目的包含路径中。
+
+推荐把 Manipond 放到 `Logicwise/external/Manipond` ，这是 `Logicwise/CMakeLists.txt` 中的预设路径。
+
+<!-------------------------------------------------------------------------------->
+
+## 🤔 设计哲学
+
+- **说人话**：通过自然的语法直接对逻辑建模，只需要你一点点的数学思维。
+
+- **正交架构**：量词、排布、范围和谓词相互独立，任意组合，灵活扩展。
+
+- **语法统一**：只需要学习一种语法，就能丝滑验证类型、值和实例。
+
+- **物种杂交**：在二部验证中，类型容器、值容器和实例容器之间的混合匹配毫无压力，打破 C++ 的物种隔离。
+
+- **零成本抽象**：纯编译期逻辑验证直接坍缩为布尔常量，不引入任何运行时开销。同时在编译期，也尽量从理论上避免额外的编译开销。
+
+<!-------------------------------------------------------------------------------->
+
 ## 📝 词汇表
 
 ### [9+ 个量词](library/logicwise/mode.h)
@@ -187,20 +345,6 @@ rangewise<Quantifier, BipartiteArrangement>
 ```
 
 > 汤姆有个水果清单。一天，他想找点水果吃，不过和他一起分享水果的是...
-
-<!-------------------------------------------------------------------------------->
-
-## 🤔 设计哲学
-
-- **说人话**：通过自然的语法直接对逻辑建模，只需要你一点点的数学思维。
-
-- **正交架构**：量词、排布、范围和谓词相互独立，任意组合，灵活扩展。
-
-- **语法统一**：只需要学习一种语法，就能丝滑验证类型、值和实例。
-
-- **物种杂交**：在二部验证中，类型容器、值容器和实例容器之间的混合匹配毫无压力，打破 C++ 的物种隔离。
-
-- **零成本抽象**：纯编译期逻辑验证直接坍缩为布尔常量，不引入任何运行时开销。同时在编译期，也尽量从理论上避免额外的编译开销。
 
 <!-------------------------------------------------------------------------------->
 
@@ -401,7 +545,9 @@ constexpr int count = []
 static_assert(count == 4, "");
 ```
 
-但是这也太怪了吧！<strong>验证模式并不保证统一的遍历方向。</strong>答应我，别这么写好吗。（如果你们真的有需求，或许我会考虑添加遍历模式的...）
+但是这也太怪了吧！<strong>验证模式并不保证统一的遍历方向。</strong>答应我，别这么写好吗。  
+~~（如果你们真的有需求，或许我会考虑添加遍历模式的...）~~  
+（遍历模式已实装，但我还没来得及测试。）
 
 ### 已知编译器问题
 
@@ -414,49 +560,6 @@ static_assert(count == 4, "");
 性能这块改天再说，目前还是聚焦于保障正确性吧。
 
 标记为 `[未实现]` 的功能也别当真哈，都是写着玩的。
-
-<!-------------------------------------------------------------------------------->
-
-## 🔌 集成方式
-
-### 开发环境要求
-
-- **C++ 标准**：C++20 或更高版本
-- **编译器支持**：任何支持 C\++20 的现代 C++ 编译器（MSVC、Clang、GCC）
-- **构建系统**：CMake 3.21+
-
-### 仅头文件库
-
-Logicwise 是一个仅头文件库，直接包含即可：
-
-```cpp
-#include <logicwise.h>
-```
-
-### CMake 集成
-
-在你的 `CMakeLists.txt` 中添加：
-
-```cmake
-include(FetchContent)
-
-FetchContent_Declare(logicwise
-  GIT_REPOSITORY "https://github.com/frog-singing/Logicwise.git"
-  GIT_TAG "v1.0.0"
-)
-
-FetchContent_MakeAvailable(logicwise)
-
-target_link_libraries(your_target PRIVATE logicwise::logicwise)
-```
-
-### 手动集成
-
-下载 [Logicwise](https://github.com/frog-singing/Logicwise) 库，将 `Logicwise/library` 目录包含在你项目的包含路径中。
-
-Logicwise 同时依赖了 [Manipond](https://github.com/frog-singing/Manipond) 库，因此你还需要下载 Manipond 库，然后将 `Manipond/exosuit_library` 和 `Manipond/meta_library` 目录包含在你项目的包含路径中。
-
-推荐把 Manipond 放到 `Logicwise/external/Manipond` ，这是 `Logicwise/CMakeLists.txt` 中的预设路径。
 
 <!-------------------------------------------------------------------------------->
 

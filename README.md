@@ -48,6 +48,174 @@ Orthogonally compose your logic:
 
 <!-------------------------------------------------------------------------------->
 
+## 📖 Quick Start
+
+```cpp
+#include <logicwise.h>
+
+#include <array>
+#include <concepts>
+#include <iostream>
+
+
+int main()
+{
+	using namespace logicwise; // rangewise
+	using namespace logicwise::quantifier; // all_of, any_of, none_of, exactly<N> ...
+	using namespace logicwise::mode; // for_each, in_reverse_for_each
+	using namespace logicwise::arrangement; // element, combination_pair, linear_adjacent_pair, cartesian_pair, zip_pair_truncation ...
+	using namespace logicwise::wrapper; // type_list, value_list
+
+	// verification mode --------------------------------------------------------------------------------
+
+	static_assert(
+		rangewise<none_of, element>
+		::in<type_list<double, void, int&, type_list<int>, double>>()
+		.satisfies([] <typename T> { return std::same_as<T, int>; }),
+		"Rangewise, none of the elements in the type list satisfy 'being the same type as int'."
+	);
+
+	static_assert(
+		rangewise<any_of, combination_pair>
+		::in<value_list<1, 2, 3, 4>>()
+		.satisfies([] <auto V1, auto V2> { return (V1 + V2) == 5; }),
+		"Rangewise, there exists a combination pair in the value list that satisfies 'the sum of the two values equals 5'."
+	);
+
+	static_assert(
+		rangewise<exactly<9>, cartesian_pair>
+		::between<value_list<true, 2, 3.0>>(std::array{ 1, 2, 3, 4 })
+		.satisfies([] <auto V1>(auto&& v2) { return V1 != v2; }),
+		"Rangewise, exactly 9 cartesian pairs between the value list and the array satisfy 'the two values are not equal'."
+	);
+	
+	// traversal mode --------------------------------------------------------------------------------
+
+	constexpr int count_1 = []
+		{
+			int i{ 0 };
+
+			rangewise<for_each, element>
+				::in(std::array{ 1, 2, 3, 4 })
+				.execute([&] (auto&& v) { if (v % 2 == 0) { ++i; } });
+
+			return i;
+		}();
+
+	static_assert(count_1 == 2, "Rangewise, there are 2 even numbers in the array.");
+
+	int count_2{ 0 };
+
+	rangewise<for_each, linear_adjacent_pair>
+		::in<type_list<bool, int, double, double, char>>()
+		.execute_until([&] <typename T1, typename T2> {
+			if constexpr (std::same_as<T1, T2>) { return true; }
+			++count_2;
+			std::cout << "<" << typeid(T1).name() << ", " << typeid(T2).name() << ">" << std::endl;
+			return false;
+		});
+
+	std::cout << "count: " << count_2 << std::endl << std::endl;
+
+	/*
+	output:
+	<bool, int>
+	<int, double>
+	count: 2
+	*/
+
+	int count_3{ 0 };
+
+	rangewise<in_reverse_for_each, zip_pair_truncation>
+		::between<type_list<bool, int, double, char, void>, value_list<true, 2u, 3.0, 4>>()
+		.execute([&] <typename T, auto V> {
+			if constexpr (!std::same_as<T, decltype(V)>) { return; }
+			++count_3;
+			std::cout << "<" << typeid(T).name() << ", " << V << ">" << std::endl;
+		});
+
+	std::cout << "count: " << count_3 << std::endl << std::endl;
+	
+	/*
+	output:
+	<double, 3>
+	<bool, 1>
+	count: 2
+	*/
+
+	std::cout << "Hello Logic!" << std::endl;
+}
+```
+
+<!-------------------------------------------------------------------------------->
+
+## 🔌 Integration
+
+### Prerequisites
+
+- **C++ Standard**: C++20 or later
+- **Compiler Support**: Any modern C++ compiler with C++20 support (MSVC, Clang, GCC)
+- **Build System**: CMake 3.21+
+
+### Header-Only Library
+
+Logicwise is a header-only library — simply include it:
+
+```cpp
+#include <logicwise.h>
+```
+
+### CMake Integration
+
+Add the following to your `CMakeLists.txt`:
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(logicwise
+  GIT_REPOSITORY "https://github.com/frog-singing/Logicwise.git"
+  GIT_TAG "v1.0.0"
+)
+
+FetchContent_MakeAvailable(logicwise)
+
+target_link_libraries(your_target PRIVATE logicwise::logicwise)
+```
+
+### Manual Integration
+
+Download the [Logicwise](https://github.com/frog-singing/Logicwise) library
+and include the `Logicwise/library` directory in your project's include paths.
+
+Logicwise also depends on the [Manipond](https://github.com/frog-singing/Manipond) library.
+Download Manipond and include the `Manipond/exosuit_library` and `Manipond/meta_library` directories in your project's include paths.
+
+It is recommended to place Manipond at `Logicwise/external/Manipond`, which is the default path specified in `Logicwise/CMakeLists.txt`.
+
+<!-------------------------------------------------------------------------------->
+
+## 🤔 Design Philosophy
+
+- **Speak Human**:
+Directly model your logic through intuitive syntax, requiring only a fraction of mathematical thinking.
+
+- **Orthogonal Architecture**:
+Quantifiers, arrangements, ranges, and predicates are mutually independent, freely combinable, and highly extensible.
+
+- **Uniform Syntax**:
+Learn one syntax; rule them all.
+Whether you are verifying types, values, or instances, the syntax remains consistent and smooth.
+
+- **Interspecific Hybridization**:
+In bipartite verification, type containers, value containers, and instance containers can be seamlessly mixed and matched,
+breaking down the reproductive isolation of C++.
+
+- **Zero-Cost Abstraction**:
+Pure compile-time logic verification collapses directly into a boolean constant, introducing zero runtime overhead.
+Meanwhile, it theoretically minimizes unnecessary compilation overhead.
+
+<!-------------------------------------------------------------------------------->
+
 ## 📝 Vocabulary List
 
 ### [9+ Quantifiers](library/logicwise/mode.h)
@@ -195,28 +363,6 @@ rangewise<Quantifier, BipartiteArrangement>
 ```
 
 > Tom has a fruit list. One day, he feels like grabbing some fruit to eat, only to find himself sharing with...
-
-<!-------------------------------------------------------------------------------->
-
-## 🤔 Design Philosophy
-
-- **Speak Human**:
-Directly model your logic through intuitive syntax, requiring only a fraction of mathematical thinking.
-
-- **Orthogonal Architecture**:
-Quantifiers, arrangements, ranges, and predicates are mutually independent, freely combinable, and highly extensible.
-
-- **Uniform Syntax**:
-Learn one syntax; rule them all.
-Whether you are verifying types, values, or instances, the syntax remains consistent and smooth.
-
-- **Interspecific Hybridization**:
-In bipartite verification, type containers, value containers, and instance containers can be seamlessly mixed and matched,
-breaking down the reproductive isolation of C++.
-
-- **Zero-Cost Abstraction**:
-Pure compile-time logic verification collapses directly into a boolean constant, introducing zero runtime overhead.
-Meanwhile, it theoretically minimizes unnecessary compilation overhead.
 
 <!-------------------------------------------------------------------------------->
 
@@ -442,8 +588,9 @@ static_assert(count == 4, "");
 ```
 
 But that's way too weird! **The verification mode does not guarantee a uniform traversal direction.**
-Just promise me you won't write code like this, alright?
-(If you guys really need it, maybe I'll consider adding a traversal mode...)
+Just promise me you won't write code like this, alright?  
+~~(If you guys really need it, maybe I'll consider adding a traversal mode...)~~  
+(The traversal mode is available now, but I haven't had the time to test it yet.)
 
 ### Known Compiler Issues
 
@@ -458,51 +605,6 @@ For now, let's just treat them as bonus features.
 The performance test remains a quest for another day. Right now, correctness is still the main focus.
 
 As for the features labeled `[unimplemented]` — don't take them seriously. I just wrote them for fun.
-
-<!-------------------------------------------------------------------------------->
-
-## 🔌 Integration
-
-### Prerequisites
-
-- **C++ Standard**: C++20 or later
-- **Compiler Support**: Any modern C++ compiler with C++20 support (MSVC, Clang, GCC)
-- **Build System**: CMake 3.21+
-
-### Header-Only Library
-
-Logicwise is a header-only library — simply include it:
-
-```cpp
-#include <logicwise.h>
-```
-
-### CMake Integration
-
-Add the following to your `CMakeLists.txt`:
-
-```cmake
-include(FetchContent)
-
-FetchContent_Declare(logicwise
-  GIT_REPOSITORY "https://github.com/frog-singing/Logicwise.git"
-  GIT_TAG "v1.0.0"
-)
-
-FetchContent_MakeAvailable(logicwise)
-
-target_link_libraries(your_target PRIVATE logicwise::logicwise)
-```
-
-### Manual Integration
-
-Download the [Logicwise](https://github.com/frog-singing/Logicwise) library
-and include the `Logicwise/library` directory in your project's include paths.
-
-Logicwise also depends on the [Manipond](https://github.com/frog-singing/Manipond) library.
-Download Manipond and include the `Manipond/exosuit_library` and `Manipond/meta_library` directories in your project's include paths.
-
-It is recommended to place Manipond at `Logicwise/external/Manipond`, which is the default path specified in `Logicwise/CMakeLists.txt`.
 
 <!-------------------------------------------------------------------------------->
 
