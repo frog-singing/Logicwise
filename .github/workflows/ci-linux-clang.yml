@@ -14,5 +14,5 @@ jobs:
     uses: ./.github/workflows/_compiler_template.yml
     with:
       os: ubuntu-latest
-      cxx_compiler: clang++-18
-      display_name: "Linux / Clang 18"
+      cxx_compiler: clang++-19
+      display_name: "Linux / Clang 19"

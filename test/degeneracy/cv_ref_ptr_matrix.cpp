@@ -96,7 +96,11 @@ int main()
 		>>()
 		.satisfies([] <auto V> {
 			return std::same_as<decltype(V), int*> && V == nullptr &&
-				valuewise::same_as<V, ptr>; // same_as for Clang/GCC, !same_as for MSVC
+#if defined(_MSC_VER)
+				!valuewise::same_as<V, ptr>; // !same_as for MSVC
+#else
+				valuewise::same_as<V, ptr>; // same_as for Clang/GCC
+#endif
 		}),
 		"value equivalence"
 	);
@@ -109,7 +113,11 @@ int main()
 		>>()
 		.satisfies([] <auto& V> {
 			return std::same_as<decltype(V), int* const&> && V == nullptr &&
-				valuewise::same_as<V, ptr>; // same_as for Clang/GCC, !same_as for MSVC
+#if defined(_MSC_VER)
+				!valuewise::same_as<V, ptr>; // !same_as for MSVC
+#else
+				valuewise::same_as<V, ptr>; // same_as for Clang/GCC
+#endif
 		}),
 		"value equivalence"
 	);
@@ -122,7 +130,11 @@ int main()
 		>>()
 		.satisfies([] <auto&& V> {
 			return std::same_as<decltype(V), int* const&> && V == nullptr &&
-				valuewise::same_as<V, ptr>; // same_as for Clang/GCC, !same_as for MSVC
+#if defined(_MSC_VER)
+				!valuewise::same_as<V, ptr>; // !same_as for MSVC
+#else
+				valuewise::same_as<V, ptr>; // same_as for Clang/GCC
+#endif
 		}),
 		"value equivalence"
 	);
