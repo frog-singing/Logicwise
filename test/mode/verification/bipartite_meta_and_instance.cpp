@@ -20,24 +20,24 @@ namespace logicwise::test
 
 	//--------------------------------------------------------------------------------
 
-	enum struct color { red, orange, yellow, green, cyan, blue, purple };
-	enum struct size { big, medium, small };
+	enum struct color_type { red, orange, yellow, green, cyan, blue, purple };
+	enum struct size_type { big, medium, small };
 
-	template<color Color>
+	template<color_type Color>
 	struct fruit
 	{
-		static constexpr color color{ Color };
-		size size{ size::medium };
+		static constexpr color_type color{ Color };
+		size_type size{ size_type::medium };
 	};
 
-	struct apple		: fruit<color::red>		{};
-	struct strawberry	: fruit<color::red>		{};
-	struct orange		: fruit<color::orange>	{};
-	struct banana		: fruit<color::yellow>	{};
-	struct mango		: fruit<color::yellow>	{};
-	struct watermelon	: fruit<color::green>	{};
-	struct blueberry	: fruit<color::blue>	{};
-	struct grape		: fruit<color::purple>	{};
+	struct apple		: fruit<color_type::red>		{};
+	struct strawberry	: fruit<color_type::red>		{};
+	struct orange		: fruit<color_type::orange>	{};
+	struct banana		: fruit<color_type::yellow>	{};
+	struct mango		: fruit<color_type::yellow>	{};
+	struct watermelon	: fruit<color_type::green>	{};
+	struct blueberry	: fruit<color_type::blue>	{};
+	struct grape		: fruit<color_type::purple>	{};
 
 	using all_fruit_types = type_list<apple, strawberry, orange, banana, mango, watermelon, blueberry, grape>;
 
@@ -47,7 +47,7 @@ namespace logicwise::test
 	{
 		using preferred_fruit_list = type_set<strawberry, banana, mango, watermelon, blueberry>;
 
-		static constexpr std::array disliked_color_array{ color::orange, color::cyan, color::purple };
+		static constexpr std::array disliked_color_array{ color_type::orange, color_type::cyan, color_type::purple };
 	};
 
 	struct supermarket
@@ -89,11 +89,11 @@ int main()
 	);
 
 	static constexpr auto fruit_tuple = std::make_tuple(
-		strawberry{ size::big },
-		banana{ size::medium },
-		mango{ size::big },
-		watermelon{ size::big },
-		blueberry{ size::medium }
+		strawberry{ size_type::big },
+		banana{ size_type::medium },
+		mango{ size_type::big },
+		watermelon{ size_type::big },
+		blueberry{ size_type::medium }
 	);
 
 	static constexpr auto& fruit_tuple_ref = fruit_tuple;
@@ -103,7 +103,7 @@ int main()
 		::between<Tom::preferred_fruit_list>(to_variant_array(fruit_tuple_ref))
 		.satisfies([] <typename FruitType>(auto&& variant) {
 			return std::visit([] (auto fruit) {
-				return fruit.size != size::small && std::same_as<FruitType, decltype(fruit)>;
+				return fruit.size != size_type::small && std::same_as<FruitType, decltype(fruit)>;
 			}, variant);
 		}),
 		"type wrapper and compile-time container: fruits for Tom"
@@ -112,21 +112,21 @@ int main()
 	// value wrapper and compile-time array-like container --------------------------------------------------------------------------------
 
 	using fruit_list = value_list<
-		apple{ size::medium },
-		watermelon{ size::big },
-		blueberry{ size::medium }
+		apple{ size_type::medium },
+		watermelon{ size_type::big },
+		blueberry{ size_type::medium }
 	>;
 
 	static_assert(
 		rangewise<none_of, cartesian_pair>
 		::between<fruit_list>(Tom::disliked_color_array)
-		.satisfies([] <auto Fruit>(auto&& color) { return Fruit.color == color || Fruit.size == size::small; }),
+		.satisfies([] <auto Fruit>(auto&& color) { return Fruit.color == color || Fruit.size == size_type::small; }),
 		"value wrapper and compile-time container: fruits Tom won't dislike"
 	);
 
 	static_assert(
 		rangewise<all_of, zip_pair_truncation>
-		::between<fruit_list>(std::array{ color::red, color::green, color::blue })
+		::between<fruit_list>(std::array{ color_type::red, color_type::green, color_type::blue })
 		.satisfies([] <auto Fruit>(auto&& color) { return Fruit.color == color; }),
 		"value wrapper and compile-time container: an RGB fruit sequence"
 	);
@@ -138,16 +138,16 @@ int main()
 	using variant_type = all_fruit_types::template apply<std::variant>;
 
 	std::array<variant_type, 6> fruit_array{
-		apple{ size::small },
-		banana{ size::medium },
-		mango{ size::big },
-		mango{ size::medium },
-		watermelon{ size::big },
-		grape{ size::small }
+		apple{ size_type::small },
+		banana{ size_type::medium },
+		mango{ size_type::big },
+		mango{ size_type::medium },
+		watermelon{ size_type::big },
+		grape{ size_type::small }
 	};
 
-	fruit_array[0] = banana{ size::big };
-	fruit_array[5] = watermelon{ size::big };
+	fruit_array[0] = banana{ size_type::big };
+	fruit_array[5] = watermelon{ size_type::big };
 
 	bool everyone_prefers_these_fruits =
 		rangewise<all_of, cartesian_pair>
@@ -167,9 +167,9 @@ int main()
 			}, variant);
 		};
 
-	fruit_array[0] = grape{ size::big };		// Tom doesn't prefer grape
-	fruit_array[1] = blueberry{ size::medium };	// the supermarket doesn't prefer blueberry
-	fruit_array[2] = apple{ size::small };		// the fruit stand doesn't prefer apple
+	fruit_array[0] = grape{ size_type::big };		// Tom doesn't prefer grape
+	fruit_array[1] = blueberry{ size_type::medium };	// the supermarket doesn't prefer blueberry
+	fruit_array[2] = apple{ size_type::small };		// the fruit stand doesn't prefer apple
 
 	bool not_everyone_prefers_their_distributed_fruit =
 		rangewise<not_every, zip_pair_truncation>
@@ -199,17 +199,17 @@ int main()
 	std::cout << std::endl;
 
 	static constexpr auto red_fruits_should_be_small = [] (auto fruit) {
-			if constexpr (fruit.color == color::red) { return fruit.size == size::small; }
+			if constexpr (fruit.color == color_type::red) { return fruit.size == size_type::small; }
 			return true;
 		};
 
 	static constexpr auto yellow_fruits_should_not_be_small = [] (auto fruit) {
-			if constexpr (fruit.color == color::yellow) { return fruit.size != size::small; }
+			if constexpr (fruit.color == color_type::yellow) { return fruit.size != size_type::small; }
 			return true;
 		};
 
 	static constexpr auto watermelons_should_be_big = [] (auto fruit) {
-			if constexpr (std::same_as<decltype(fruit), watermelon>) { return fruit.size == size::big; }
+			if constexpr (std::same_as<decltype(fruit), watermelon>) { return fruit.size == size_type::big; }
 			return true;
 		};
 
@@ -232,11 +232,11 @@ int main()
 		};
 
 	static constexpr auto the_fourth_fruit_should_be_medium = [] (auto fruit) {
-			return fruit.size == size::medium;
+			return fruit.size == size_type::medium;
 		};
 
 	static constexpr auto the_rest_should_not_be_cyan = [] (auto fruit) {
-			return fruit.color != color::cyan;
+			return fruit.color != color_type::cyan;
 		};
 
 	static constexpr auto placeholder_requirement = [] (auto) { return true; };

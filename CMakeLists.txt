@@ -61,12 +61,12 @@ else()
 endif()
 
 FetchContent_Declare(manipond
-
-    # 关闭静默模式，让 Git 的下载进度直接刷在控制台上
-    FETCHCONTENT_QUIET OFF
+    FETCHCONTENT_QUIET  OFF     # 显式终止静默模式，允许 CMake 输出宏观依赖配置阶段的状态日志
+    GIT_SHALLOW         TRUE    # 启用浅克隆（Depth=1），仅下载指定标签切片，避免下载历史提交内容以优化构建带宽
+    GIT_PROGRESS        TRUE    # 强制打印 Git 传输层进度，维持控制台活跃心跳以防 CI 超时熔断
 
     GIT_REPOSITORY  "https://github.com/frog-singing/Manipond.git"
-    GIT_TAG         "v1.0.0" # GIT_TAG 向后贪婪匹配参数，因此不要在此之后添加其他参数
+    GIT_TAG         "v1.0.0"
 )
 
 FetchContent_MakeAvailable(manipond)

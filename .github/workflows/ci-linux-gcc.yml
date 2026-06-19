@@ -1,0 +1,17 @@
+name: CI - Linux GCC
+  
+on:
+  push:
+    branches: [ "main" ]
+    paths: [ 'library/**', 'test/**', 'CMakeLists.txt', '.github/workflows/**' ]
+  pull_request:
+    branches: [ "main" ]
+    paths: [ 'library/**', 'test/**', 'CMakeLists.txt' ]
+
+jobs:
+  specialize:
+    uses: ./.github/workflows/_compiler_template.yml
+    with:
+      os: ubuntu-latest
+      cxx_compiler: g++-14
+      display_name: "Linux / GCC 14"

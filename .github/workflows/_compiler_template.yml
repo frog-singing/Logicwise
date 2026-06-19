@@ -1,0 +1,41 @@
+name: ~Compiler Template
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      cxx_compiler:
+        required: true
+        type: string
+      display_name:
+        required: true
+        type: string
+
+jobs:
+  execute_build:
+    name: Build (${{ inputs.display_name }})
+    runs-on: ${{ inputs.os }}
+
+    steps:
+    # 现场拉取源码
+    - name: Checkout Source Code
+      uses: actions/checkout@v5
+
+    # 为 Linux 分支准备编译环境
+    - name: Install Compiler Toolchain (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ inputs.cxx_compiler }}
+
+    # CMake 预配置（自动探测系统自带的最优编译器）
+    - name: Configure CMake System
+      env:
+        CXX: ${{ inputs.cxx_compiler }}
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    # 执行编译（开启 4 线程加速）
+    - name: Compile Library Targets
+      run: cmake --build build --config Release --parallel 4

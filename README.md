@@ -8,6 +8,14 @@ English | [简体中文](README.zh-Hans.md)
 
 </div>
 
+### Compiler Support Matrix
+
+| OS / Compiler	| GCC	| Clang	| MSVC	|
+| :---			| :---:	| :---:	| :---:	|
+| **Linux**		| [![GCC 14](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-gcc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | [![Clang 18](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
+| **Windows**	| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![MSVC](https://github.com/frog-singing/Logicwise/actions/workflows/ci-windows-msvc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) |
+| **macOS**		| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![Apple Clang](https://github.com/frog-singing/Logicwise/actions/workflows/ci-macos-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
+
 <!-------------------------------------------------------------------------------->
 
 ## 🔍 Syntax Overview
