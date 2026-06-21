@@ -8,14 +8,6 @@
 
 </div>
 
-### 编译器支持矩阵
-
-| 操作系统 / 编译器	| GCC	| Clang	| MSVC	|
-| :---				| :---:	| :---:	| :---:	|
-| **Linux**		| [![GCC 14](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-gcc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | [![Clang 19](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
-| **Windows**	| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![MSVC](https://github.com/frog-singing/Logicwise/actions/workflows/ci-windows-msvc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) |
-| **macOS**		| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![Apple Clang](https://github.com/frog-singing/Logicwise/actions/workflows/ci-macos-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
-
 <!-------------------------------------------------------------------------------->
 
 ## 🔍 语法速览
@@ -53,6 +45,20 @@ rangewise<all_of, cartesian_pair>
 *声明式验证，让代码说人话。*
 
 </div>
+
+<!-------------------------------------------------------------------------------->
+
+## 🤔 设计哲学
+
+- **说人话**：通过自然的语法直接对逻辑建模，只需要你一点点的数学思维。
+
+- **正交架构**：量词、排布、范围和谓词相互独立，任意组合，灵活扩展。
+
+- **语法统一**：只需要学习一种语法，就能丝滑验证类型、值和实例。
+
+- **物种杂交**：在二部验证中，类型容器、值容器和实例容器之间的混合匹配毫无压力，打破 C++ 的物种隔离。
+
+- **零成本抽象**：纯编译期逻辑验证直接坍缩为布尔常量，不引入任何运行时开销。同时在编译期，也尽量从理论上避免额外的编译开销。
 
 <!-------------------------------------------------------------------------------->
 
@@ -165,6 +171,14 @@ int main()
 - **编译器支持**：任何支持 C\++20 的现代 C++ 编译器（MSVC、Clang、GCC）
 - **构建系统**：CMake 3.21+
 
+### 编译器支持矩阵
+
+| 操作系统 \ 编译器	| GCC	| Clang	| MSVC	|
+| :---				| :---:	| :---:	| :---:	|
+| **Linux**		| [![GCC 14](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-gcc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | [![Clang 19](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
+| **Windows**	| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![MSVC](https://github.com/frog-singing/Logicwise/actions/workflows/ci-windows-msvc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) |
+| **macOS**		| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![Apple Clang](https://github.com/frog-singing/Logicwise/actions/workflows/ci-macos-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
+
 ### 仅头文件库
 
 Logicwise 是一个仅头文件库，直接包含即可：
@@ -197,20 +211,6 @@ target_link_libraries(your_target PRIVATE logicwise::logicwise)
 Logicwise 同时依赖了 [Manipond](https://github.com/frog-singing/Manipond) 库，因此你还需要下载 Manipond 库，然后将 `Manipond/exosuit_library` 和 `Manipond/meta_library` 目录包含在你项目的包含路径中。
 
 推荐把 Manipond 放到 `Logicwise/external/Manipond` ，这是 `Logicwise/CMakeLists.txt` 中的预设路径。
-
-<!-------------------------------------------------------------------------------->
-
-## 🤔 设计哲学
-
-- **说人话**：通过自然的语法直接对逻辑建模，只需要你一点点的数学思维。
-
-- **正交架构**：量词、排布、范围和谓词相互独立，任意组合，灵活扩展。
-
-- **语法统一**：只需要学习一种语法，就能丝滑验证类型、值和实例。
-
-- **物种杂交**：在二部验证中，类型容器、值容器和实例容器之间的混合匹配毫无压力，打破 C++ 的物种隔离。
-
-- **零成本抽象**：纯编译期逻辑验证直接坍缩为布尔常量，不引入任何运行时开销。同时在编译期，也尽量从理论上避免额外的编译开销。
 
 <!-------------------------------------------------------------------------------->
 

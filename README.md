@@ -8,14 +8,6 @@ English | [简体中文](README.zh-Hans.md)
 
 </div>
 
-### Compiler Support Matrix
-
-| OS / Compiler	| GCC	| Clang	| MSVC	|
-| :---			| :---:	| :---:	| :---:	|
-| **Linux**		| [![GCC 14](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-gcc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | [![Clang 19](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
-| **Windows**	| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![MSVC](https://github.com/frog-singing/Logicwise/actions/workflows/ci-windows-msvc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) |
-| **macOS**		| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![Apple Clang](https://github.com/frog-singing/Logicwise/actions/workflows/ci-macos-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
-
 <!-------------------------------------------------------------------------------->
 
 ## 🔍 Syntax Overview
@@ -53,6 +45,28 @@ Orthogonally compose your logic:
 *Verify as you declare. Let the code speak for itself.*
 
 </div>
+
+<!-------------------------------------------------------------------------------->
+
+## 🤔 Design Philosophy
+
+- **Speak Human**:
+Directly model your logic through intuitive syntax, requiring only a fraction of mathematical thinking.
+
+- **Orthogonal Architecture**:
+Quantifiers, arrangements, ranges, and predicates are mutually independent, freely combinable, and highly extensible.
+
+- **Uniform Syntax**:
+Learn one syntax; rule them all.
+Whether you are verifying types, values, or instances, the syntax remains consistent and smooth.
+
+- **Interspecific Hybridization**:
+In bipartite verification, type containers, value containers, and instance containers can be seamlessly mixed and matched,
+breaking down the reproductive isolation of C++.
+
+- **Zero-Cost Abstraction**:
+Pure compile-time logic verification collapses directly into a boolean constant, introducing zero runtime overhead.
+Meanwhile, it theoretically minimizes unnecessary compilation overhead.
 
 <!-------------------------------------------------------------------------------->
 
@@ -165,6 +179,14 @@ int main()
 - **Compiler Support**: Any modern C++ compiler with C++20 support (MSVC, Clang, GCC)
 - **Build System**: CMake 3.21+
 
+### Compiler Support Matrix
+
+| OS / Compiler	| GCC	| Clang	| MSVC	|
+| :---			| :---:	| :---:	| :---:	|
+| **Linux**		| [![GCC 14](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-gcc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | [![Clang 19](https://github.com/frog-singing/Logicwise/actions/workflows/ci-linux-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
+| **Windows**	| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![MSVC](https://github.com/frog-singing/Logicwise/actions/workflows/ci-windows-msvc.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) |
+| **macOS**		| ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) | [![Apple Clang](https://github.com/frog-singing/Logicwise/actions/workflows/ci-macos-clang.yml/badge.svg?branch=main)](https://github.com/frog-singing/Logicwise/actions) | ![N/A](https://img.shields.io/badge/OS--Mismatch-grey?style=flat-square) |
+
 ### Header-Only Library
 
 Logicwise is a header-only library — simply include it:
@@ -199,28 +221,6 @@ Logicwise also depends on the [Manipond](https://github.com/frog-singing/Manipon
 Download Manipond and include the `Manipond/exosuit_library` and `Manipond/meta_library` directories in your project's include paths.
 
 It is recommended to place Manipond at `Logicwise/external/Manipond`, which is the default path specified in `Logicwise/CMakeLists.txt`.
-
-<!-------------------------------------------------------------------------------->
-
-## 🤔 Design Philosophy
-
-- **Speak Human**:
-Directly model your logic through intuitive syntax, requiring only a fraction of mathematical thinking.
-
-- **Orthogonal Architecture**:
-Quantifiers, arrangements, ranges, and predicates are mutually independent, freely combinable, and highly extensible.
-
-- **Uniform Syntax**:
-Learn one syntax; rule them all.
-Whether you are verifying types, values, or instances, the syntax remains consistent and smooth.
-
-- **Interspecific Hybridization**:
-In bipartite verification, type containers, value containers, and instance containers can be seamlessly mixed and matched,
-breaking down the reproductive isolation of C++.
-
-- **Zero-Cost Abstraction**:
-Pure compile-time logic verification collapses directly into a boolean constant, introducing zero runtime overhead.
-Meanwhile, it theoretically minimizes unnecessary compilation overhead.
 
 <!-------------------------------------------------------------------------------->
 
