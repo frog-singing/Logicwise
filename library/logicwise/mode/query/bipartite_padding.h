@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
-#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/trait_predicate.h>

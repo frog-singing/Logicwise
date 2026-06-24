@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
-#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/vector_like_container.h>
 #include "traversal_loop.h"
@@ -212,9 +212,9 @@ namespace logicwise::detail
 		{
 			using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-			using StoredInstanceType = ContainerTrait::stored_instance_type;
-			using StoredContainerType = ContainerTrait::stored_container_type;
-			using ExpectedContainerType = ContainerTrait::expected_container_type;
+			using StoredInstanceType    = typename ContainerTrait::stored_instance_type;
+			using StoredContainerType   = typename ContainerTrait::stored_container_type;
+			using ExpectedContainerType = typename ContainerTrait::expected_container_type;
 
 			const StoredContainerType container;
 
@@ -229,12 +229,12 @@ namespace logicwise::detail
             {
                 std::invoke(std::forward<OperationType>(operation), instance_i, instance_j);
             }
-            constexpr void execute(OperationType&& operation)
+            constexpr void execute(OperationType&& operation) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 instance_execute_loop<Arrangement, IndexTraverserType>(extent,
-                    [&] (auto&& index) {
+                    [&] (const auto& index) {
                         std::invoke(operation, container[index[0]], container[index[1]]);
                     });
             }
@@ -245,12 +245,12 @@ namespace logicwise::detail
             {
                 bool{ std::invoke(std::forward<OperationType>(operation), instance_i, instance_j) };
             }
-            constexpr void execute_until(OperationType&& operation)
+            constexpr void execute_until(OperationType&& operation) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-                    [&] (auto&& index) { return
+                    [&] (const auto& index) { return
                         std::invoke(operation, container[index[0]], container[index[1]]);
                     });
             }

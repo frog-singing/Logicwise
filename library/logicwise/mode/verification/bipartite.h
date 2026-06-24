@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
-#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/trait_predicate.h>
 #include <logicwise/semantics/vector_like_container.h>
@@ -353,15 +353,15 @@ namespace logicwise::detail
 		{
 			using ContainerTraitA = vector_like_container_trait<ContainerTypeA>;
 
-			using StoredInstanceTypeA = ContainerTraitA::stored_instance_type;
-			using StoredContainerTypeA = ContainerTraitA::stored_container_type;
-			using ExpectedContainerTypeA = ContainerTraitA::expected_container_type;
+			using StoredInstanceTypeA		= typename ContainerTraitA::stored_instance_type;
+			using StoredContainerTypeA		= typename ContainerTraitA::stored_container_type;
+			using ExpectedContainerTypeA	= typename ContainerTraitA::expected_container_type;
 
 			using ContainerTraitB = vector_like_container_trait<ContainerTypeB>;
 
-			using StoredInstanceTypeB = ContainerTraitB::stored_instance_type;
-			using StoredContainerTypeB = ContainerTraitB::stored_container_type;
-			using ExpectedContainerTypeB = ContainerTraitB::expected_container_type;
+			using StoredInstanceTypeB		= typename ContainerTraitB::stored_instance_type;
+			using StoredContainerTypeB		= typename ContainerTraitB::stored_container_type;
+			using ExpectedContainerTypeB	= typename ContainerTraitB::expected_container_type;
 
 			const StoredContainerTypeA containerA;
 			const StoredContainerTypeB containerB;
@@ -385,7 +385,7 @@ namespace logicwise::detail
 				extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 				return instance_verification_loop<Quantifier, Arrangement>(extent,
-					[&] (auto&& index) { return
+					[&] (const auto& index) { return
 						std::invoke(verifier, containerA[index[0]], containerB[index[1]]);
 					});
 			}
@@ -430,9 +430,9 @@ namespace logicwise::detail
 
 			using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-			using StoredInstanceType = ContainerTrait::stored_instance_type;
-			using StoredContainerType = ContainerTrait::stored_container_type;
-			using ExpectedContainerType = ContainerTrait::expected_container_type;
+			using StoredInstanceType	= typename ContainerTrait::stored_instance_type;
+			using StoredContainerType	= typename ContainerTrait::stored_container_type;
+			using ExpectedContainerType	= typename ContainerTrait::expected_container_type;
 
 			const StoredContainerType container;
 
@@ -484,9 +484,9 @@ namespace logicwise::detail
 
 			using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-			using StoredInstanceType = ContainerTrait::stored_instance_type;
-			using StoredContainerType = ContainerTrait::stored_container_type;
-			using ExpectedContainerType = ContainerTrait::expected_container_type;
+			using StoredInstanceType	= typename ContainerTrait::stored_instance_type;
+			using StoredContainerType	= typename ContainerTrait::stored_container_type;
+			using ExpectedContainerType	= typename ContainerTrait::expected_container_type;
 
 			const StoredContainerType container;
 

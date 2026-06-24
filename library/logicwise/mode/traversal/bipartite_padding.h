@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
-#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/vector_like_container.h>
@@ -544,10 +544,10 @@ namespace logicwise::detail
 			{
 				using ContainerTraitA = vector_like_container_trait<ContainerTypeA>;
 
-				using RawInstanceTypeA = typename ContainerTraitA::raw_instance_type;
-				using StoredInstanceTypeA = typename ContainerTraitA::stored_instance_type;
-				using StoredContainerTypeA = typename ContainerTraitA::stored_container_type;
-				using ExpectedContainerTypeA = typename ContainerTraitA::expected_container_type;
+				using RawInstanceTypeA			= typename ContainerTraitA::raw_instance_type;
+				using StoredInstanceTypeA		= typename ContainerTraitA::stored_instance_type;
+				using StoredContainerTypeA		= typename ContainerTraitA::stored_container_type;
+				using ExpectedContainerTypeA	= typename ContainerTraitA::expected_container_type;
 
 				using PaddingInstanceTraitI = padding_instance_trait<ExpectedPaddingInstanceTypeI>;
 
@@ -558,10 +558,10 @@ namespace logicwise::detail
 
 				using ContainerTraitB = vector_like_container_trait<ContainerTypeB>;
 
-				using RawInstanceTypeB = typename ContainerTraitB::raw_instance_type;
-				using StoredInstanceTypeB = typename ContainerTraitB::stored_instance_type;
-				using StoredContainerTypeB = typename ContainerTraitB::stored_container_type;
-				using ExpectedContainerTypeB = typename ContainerTraitB::expected_container_type;
+				using RawInstanceTypeB			= typename ContainerTraitB::raw_instance_type;
+				using StoredInstanceTypeB		= typename ContainerTraitB::stored_instance_type;
+				using StoredContainerTypeB		= typename ContainerTraitB::stored_container_type;
+				using ExpectedContainerTypeB	= typename ContainerTraitB::expected_container_type;
 
 				using PaddingInstanceTraitJ = padding_instance_trait<ExpectedPaddingInstanceTypeJ>;
 
@@ -594,12 +594,12 @@ namespace logicwise::detail
 				{
 					std::invoke(std::forward<OperationType>(operation), instance_i, instance_j);
 				}
-				constexpr void execute(OperationType&& operation)
+				constexpr void execute(OperationType&& operation) const
 				{
 					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 					instance_execute_loop<Arrangement, IndexTraverserType>(extent,
-						[&] (auto&& index) {
+						[&] (const auto& index) {
 							auto&& [component, padding_state] = index;
 
 							std::invoke(operation,
@@ -614,12 +614,12 @@ namespace logicwise::detail
 				{
 					bool{ std::invoke(std::forward<OperationType>(operation), instance_i, instance_j) };
 				}
-				constexpr void execute_until(OperationType&& operation)
+				constexpr void execute_until(OperationType&& operation) const
 				{
 					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 					instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-						[&] (auto&& index) {
+						[&] (const auto& index) {
 							auto&& [component, padding_state] = index;
 
 							return std::invoke(operation,
@@ -724,10 +724,10 @@ namespace logicwise::detail
 			{
 				using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-				using RawInstanceType = typename ContainerTrait::raw_instance_type;
-				using StoredInstanceType = typename ContainerTrait::stored_instance_type;
-				using StoredContainerType = typename ContainerTrait::stored_container_type;
-				using ExpectedContainerType = typename ContainerTrait::expected_container_type;
+				using RawInstanceType		= typename ContainerTrait::raw_instance_type;
+				using StoredInstanceType	= typename ContainerTrait::stored_instance_type;
+				using StoredContainerType	= typename ContainerTrait::stored_container_type;
+				using ExpectedContainerType	= typename ContainerTrait::expected_container_type;
 
 				static constexpr auto ContainerSize = static_container_size<StoredContainerType>;
 				static constexpr extent_type Extent{ List::size, ContainerSize };
@@ -759,7 +759,7 @@ namespace logicwise::detail
 					std::forward<OperationType>(operation)
 						.template operator() < PaddingTypeI > (instance_j);
 				}
-				constexpr void execute(OperationType&& operation)
+				constexpr void execute(OperationType&& operation) const
 				{
 					template_execute_loop<Arrangement, IndexTraverserType, Extent>
 						([&] <auto Index> {
@@ -781,7 +781,7 @@ namespace logicwise::detail
 					bool{ std::forward<OperationType>(operation)
 						.template operator() < PaddingTypeI > (instance_j) };
 				}
-				constexpr void execute_until(OperationType&& operation)
+				constexpr void execute_until(OperationType&& operation) const
 				{
 					template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 						([&] <auto Index> {
@@ -891,10 +891,10 @@ namespace logicwise::detail
 			{
 				using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-				using RawInstanceType = typename ContainerTrait::raw_instance_type;
-				using StoredInstanceType = typename ContainerTrait::stored_instance_type;
-				using StoredContainerType = typename ContainerTrait::stored_container_type;
-				using ExpectedContainerType = typename ContainerTrait::expected_container_type;
+				using RawInstanceType		= typename ContainerTrait::raw_instance_type;
+				using StoredInstanceType	= typename ContainerTrait::stored_instance_type;
+				using StoredContainerType	= typename ContainerTrait::stored_container_type;
+				using ExpectedContainerType	= typename ContainerTrait::expected_container_type;
 
 				static constexpr auto ContainerSize = static_container_size<StoredContainerType>;
 				static constexpr extent_type Extent{ List::size, ContainerSize };
@@ -926,7 +926,7 @@ namespace logicwise::detail
 					std::forward<OperationType>(operation)
 						.template operator() < PaddingValueI > (instance_j);
 				}
-				constexpr void execute(OperationType&& operation)
+				constexpr void execute(OperationType&& operation) const
 				{
 					template_execute_loop<Arrangement, IndexTraverserType, Extent>
 						([&] <auto Index> {
@@ -948,7 +948,7 @@ namespace logicwise::detail
 					bool{ std::forward<OperationType>(operation)
 						.template operator() < PaddingValueI > (instance_j) };
 				}
-				constexpr void execute_until(OperationType&& operation)
+				constexpr void execute_until(OperationType&& operation) const
 				{
 					template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 						([&] <auto Index> {

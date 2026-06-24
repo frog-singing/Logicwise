@@ -4,13 +4,16 @@
 
 #pragma once
 #include <logicwise/external_detail/vector_like.h>
+#include <logicwise/external_detail/list.h>
 #include <type_traits> //用于 std::is_lvalue_reference_v, std::remove_cvref_t (C++20), std::remove_cv_t,
 //std::conditional_t, std::is_array_v, std::remove_reference_t, std::remove_extent_t, std::extent_v
-#include <ranges> //用于 std::ranges，C++20标准
 #include <cstddef> //用于 std::size_t
+#include <concepts> //用于 std::move_constructible，C++20标准
+#include <utility> //用于 std::forward
+#include <ranges> //用于 std::ranges，C++20标准
 #include <span> //用于 std::span
 #include <array> //用于 std::array, std::to_array
-#include <concepts> //用于 std::move_constructible，C++20标准
+#include <tuple> //用于 std::tuple, std::apply
 
 
 //逻辑维度::细节
@@ -114,6 +117,58 @@ namespace logicwise::detail
 
                 return std::to_array(static_cast<expected_container_type>(container));
             }
+        }
+
+    };
+
+
+    template<typename... ContainerType>
+    struct multi_vector_like_container_trait
+    {
+        static constexpr std::size_t arity = sizeof...(ContainerType);
+
+        using raw_instance_type_list = type_list<
+            typename vector_like_container_trait<ContainerType>::raw_instance_type...
+        >;
+
+        using stored_instance_type_list = type_list<
+            typename vector_like_container_trait<ContainerType>::stored_instance_type...
+        >;
+
+        using stored_container_type_list = type_list<
+            typename vector_like_container_trait<ContainerType>::stored_container_type...
+        >;
+
+        using stored_container_tuple_type = typename stored_container_type_list::template apply<std::tuple>;
+
+        using expected_container_type_list = type_list<
+            typename vector_like_container_trait<ContainerType>::expected_container_type...
+        >;
+
+        static constexpr stored_container_tuple_type cast_multi_container
+            (typename vector_like_container_trait<ContainerType>::expected_container_type... container) noexcept
+        {
+            return std::make_tuple(
+                vector_like_container_trait<ContainerType>::cast_container(
+                    static_cast<typename vector_like_container_trait<ContainerType>::expected_container_type>(container)
+                )...
+            );
+        }
+
+        static constexpr stored_container_tuple_type cast_container_tuple(stored_container_tuple_type&& container_tuple) noexcept
+        {
+            return std::move(container_tuple);
+        }
+
+        static constexpr stored_container_tuple_type cast_container_tuple(auto&& container_tuple) noexcept
+        {
+            return std::apply([] (auto&&... container) {
+                return std::make_tuple(
+                    vector_like_container_trait<ContainerType>::cast_container(
+                        std::forward<decltype(container)>(container)
+                    )...
+                );
+            }, std::forward<decltype(container_tuple)>(container_tuple));
         }
 
     };

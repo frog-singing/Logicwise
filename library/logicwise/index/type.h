@@ -100,6 +100,7 @@ namespace logicwise::detail
 		[[nodiscard]] constexpr std::size_t k() const noexcept requires (Dimension >= 3) { return component[2]; }
 
 
+		/*
 		[[nodiscard]] constexpr bool empty() const noexcept
 		{
 			for (auto value : component) { if (!value) return true; }
@@ -117,6 +118,7 @@ namespace logicwise::detail
 		{
 			component.fill(0);
 		}
+		*/
 
 	};
 

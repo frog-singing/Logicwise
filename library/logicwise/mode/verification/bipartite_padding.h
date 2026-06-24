@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
-#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/trait_predicate.h>
@@ -516,10 +516,10 @@ namespace logicwise::detail
 			{
 				using ContainerTraitA = vector_like_container_trait<ContainerTypeA>;
 
-				using RawInstanceTypeA = typename ContainerTraitA::raw_instance_type;
-				using StoredInstanceTypeA = typename ContainerTraitA::stored_instance_type;
-				using StoredContainerTypeA = typename ContainerTraitA::stored_container_type;
-				using ExpectedContainerTypeA = typename ContainerTraitA::expected_container_type;
+				using RawInstanceTypeA			= typename ContainerTraitA::raw_instance_type;
+				using StoredInstanceTypeA		= typename ContainerTraitA::stored_instance_type;
+				using StoredContainerTypeA		= typename ContainerTraitA::stored_container_type;
+				using ExpectedContainerTypeA	= typename ContainerTraitA::expected_container_type;
 
 				using PaddingInstanceTraitI = padding_instance_trait<ExpectedPaddingInstanceTypeI>;
 
@@ -530,10 +530,10 @@ namespace logicwise::detail
 
 				using ContainerTraitB = vector_like_container_trait<ContainerTypeB>;
 
-				using RawInstanceTypeB = typename ContainerTraitB::raw_instance_type;
-				using StoredInstanceTypeB = typename ContainerTraitB::stored_instance_type;
-				using StoredContainerTypeB = typename ContainerTraitB::stored_container_type;
-				using ExpectedContainerTypeB = typename ContainerTraitB::expected_container_type;
+				using RawInstanceTypeB			= typename ContainerTraitB::raw_instance_type;
+				using StoredInstanceTypeB		= typename ContainerTraitB::stored_instance_type;
+				using StoredContainerTypeB		= typename ContainerTraitB::stored_container_type;
+				using ExpectedContainerTypeB	= typename ContainerTraitB::expected_container_type;
 
 				using PaddingInstanceTraitJ = padding_instance_trait<ExpectedPaddingInstanceTypeJ>;
 
@@ -571,7 +571,7 @@ namespace logicwise::detail
 					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 					return instance_verification_loop<Quantifier, Arrangement>(extent,
-						[&] (auto&& index) {
+						[&] (const auto& index) {
 							auto&& [component, padding_state] = index;
 
 							return std::invoke(verifier,
@@ -670,10 +670,10 @@ namespace logicwise::detail
 			{
 				using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-				using RawInstanceType = typename ContainerTrait::raw_instance_type;
-				using StoredInstanceType = typename ContainerTrait::stored_instance_type;
-				using StoredContainerType = typename ContainerTrait::stored_container_type;
-				using ExpectedContainerType = typename ContainerTrait::expected_container_type;
+				using RawInstanceType		= typename ContainerTrait::raw_instance_type;
+				using StoredInstanceType	= typename ContainerTrait::stored_instance_type;
+				using StoredContainerType	= typename ContainerTrait::stored_container_type;
+				using ExpectedContainerType	= typename ContainerTrait::expected_container_type;
 
 				static constexpr auto ContainerSize = static_container_size<StoredContainerType>;
 				static constexpr extent_type Extent{ List::size, ContainerSize };
@@ -809,10 +809,10 @@ namespace logicwise::detail
 			{
 				using ContainerTrait = vector_like_container_trait<ContainerType>;
 
-				using RawInstanceType = typename ContainerTrait::raw_instance_type;
-				using StoredInstanceType = typename ContainerTrait::stored_instance_type;
-				using StoredContainerType = typename ContainerTrait::stored_container_type;
-				using ExpectedContainerType = typename ContainerTrait::expected_container_type;
+				using RawInstanceType		= typename ContainerTrait::raw_instance_type;
+				using StoredInstanceType	= typename ContainerTrait::stored_instance_type;
+				using StoredContainerType	= typename ContainerTrait::stored_container_type;
+				using ExpectedContainerType	= typename ContainerTrait::expected_container_type;
 
 				static constexpr auto ContainerSize = static_container_size<StoredContainerType>;
 				static constexpr extent_type Extent{ List::size, ContainerSize };
