@@ -7,8 +7,8 @@
 #include <logicwise/arrangement/type.h>
 #include <logicwise/mode/rangewise_verification.h>
 #include <logicwise/mode/rangewise_traversal.h>
-#include <logicwise/mode/rangewise_query.h>
-#include <logicwise/mode/rangewise_view.h>
+#include <logicwise/mode/rangewise_querying.h>
+#include <logicwise/mode/rangewise_viewing.h>
 #include <logicwise/external_detail/exosuit.h>
 #include <concepts> //用于 std::same_as，C++20标准
 
@@ -39,13 +39,13 @@ namespace logicwise::detail
 	template<QueryMode Mode, typename Arrangement>
 	struct rangewise_impl<Mode, Arrangement>
 	{
-		using type = rangewise_query<Mode, Arrangement>;
+		using type = rangewise_querying<Mode, Arrangement>;
 	};
 
 	template<ViewMode Mode, typename Arrangement>
 	struct rangewise_impl<Mode, Arrangement>
 	{
-		using type = rangewise_view<Mode, Arrangement>;
+		using type = rangewise_viewing<Mode, Arrangement>;
 	};
 
 

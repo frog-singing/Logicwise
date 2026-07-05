@@ -8,10 +8,10 @@
 
 namespace logicwise::detail
 {
-	struct multipartite_viewer;
+	struct multipartite_view;
 
 	template<typename Mode, typename Arrangement>
-	class multipartite_view;
+	class multipartite_viewing;
 }
 
 
@@ -20,7 +20,7 @@ namespace logicwise::detail
 {
 	//行为模式::视图化 mode::view================================================================================
 
-	struct multipartite_viewer
+	struct multipartite_view
 	{
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 
 
 	template<typename Mode, typename Arrangement>
-	class multipartite_view : area_ahead<Mode, Arrangement>
+	class multipartite_viewing : area_ahead<Mode, Arrangement>
 	{
 
 

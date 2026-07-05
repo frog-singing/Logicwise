@@ -22,7 +22,7 @@
 namespace logicwise::detail
 {
 	template<typename Mode, typename Arrangement>
-	class elementwise_query;
+	class elementwise_querying;
 }
 
 
@@ -32,7 +32,7 @@ namespace logicwise::detail
 	//行为模式::查询 mode::query================================================================================
 
 	template<typename Mode, typename Arrangement>
-	class elementwise_query
+	class elementwise_querying
 	{
     public:
         template<typename WrapperInstance>
@@ -138,61 +138,61 @@ namespace logicwise::detail
             using List = as_type_list<TypeList>;
             static constexpr extent_type Extent{ List::size };
             static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            using ProbeTypeI = typename List::template element<ProbeIndex>;
+            using ProbeType = typename List::template element<ProbeIndex>;
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeTypeI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr std::size_t count(VerifierType&& verifier)
+            [[nodiscard]] static constexpr std::size_t count(PredicateType&& predicate)
             {
                 return template_count_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < typename List::template element<Index> > ();
+                        predicate.template operator() < typename List::template element<Index> > ();
 				    });
             }
             
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeTypeI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr std::optional<index_type> find_first_index(VerifierType&& verifier)
+            [[nodiscard]] static constexpr std::optional<index_type> find_first_index(PredicateType&& predicate)
             {
                 return template_find_first_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < typename List::template element<Index> > ();
+                        predicate.template operator() < typename List::template element<Index> > ();
 				    });
             }
             
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeTypeI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr std::optional<index_type> find_last_index(VerifierType&& verifier)
+            [[nodiscard]] static constexpr std::optional<index_type> find_last_index(PredicateType&& predicate)
             {
                 return template_find_last_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < typename List::template element<Index> > ();
+                        predicate.template operator() < typename List::template element<Index> > ();
 				    });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeTypeI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr auto find_first(VerifierType&& verifier)
+            [[nodiscard]] static constexpr auto find_first(PredicateType&& predicate)
             {
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < typename List::template element<Index> > ();
+                        predicate.template operator() < typename List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -202,17 +202,17 @@ namespace logicwise::detail
                 else { return type_element<void>{}; }
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeTypeI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr auto find_last(VerifierType&& verifier)
+            [[nodiscard]] static constexpr auto find_last(PredicateType&& predicate)
             {
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < typename List::template element<Index> > ();
+                        predicate.template operator() < typename List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -222,55 +222,55 @@ namespace logicwise::detail
                 else { return type_element<void>{}; }
             }
 
-            template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeTypeI>; }
+            template<template<typename> typename Predicate>
+                requires requires { typename Predicate<ProbeType>; }
             [[nodiscard]] static constexpr std::size_t count()
             {
-                using TraitCertificate = Verifier<ProbeTypeI>;
+                using TraitCertificate = Predicate<ProbeType>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_count_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< typename List::template element<Index> > > ();
                     });
             }
                         
-            template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeTypeI>; }
+            template<template<typename> typename Predicate>
+                requires requires { typename Predicate<ProbeType>; }
             [[nodiscard]] static constexpr std::optional<index_type> find_first_index()
             {
-                using TraitCertificate = Verifier<ProbeTypeI>;
+                using TraitCertificate = Predicate<ProbeType>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_find_first_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< typename List::template element<Index> > > ();
                     });
             }
 
-            template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeTypeI>; }
+            template<template<typename> typename Predicate>
+                requires requires { typename Predicate<ProbeType>; }
             [[nodiscard]] static constexpr std::optional<index_type> find_last_index()
             {
-                using TraitCertificate = Verifier<ProbeTypeI>;
+                using TraitCertificate = Predicate<ProbeType>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_find_last_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< typename List::template element<Index> > > ();
                     });
             }
 
-            template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeTypeI>; }
+            template<template<typename> typename Predicate>
+                requires requires { typename Predicate<ProbeType>; }
             [[nodiscard]] static constexpr auto find_first()
             {
-                using TraitCertificate = Verifier<ProbeTypeI>;
+                using TraitCertificate = Predicate<ProbeType>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< typename List::template element<Index> > > ();
                     });
 
                 if constexpr (found_index)
@@ -280,16 +280,16 @@ namespace logicwise::detail
                 else { return type_element<void>{}; }
             }
 
-            template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeTypeI>; }
+            template<template<typename> typename Predicate>
+                requires requires { typename Predicate<ProbeType>; }
             [[nodiscard]] static constexpr auto find_last()
             {
-                using TraitCertificate = Verifier<ProbeTypeI>;
+                using TraitCertificate = Predicate<ProbeType>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< typename List::template element<Index> > > ();
                     });
 
                 if constexpr (found_index)
@@ -299,52 +299,52 @@ namespace logicwise::detail
                 else { return type_element<void>{}; }
             }
 
-            template<typename VerifierType>
-            static constexpr std::size_t count(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::size_t count(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename TypeI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <typename Type>() -> bool { ... }");
 
                 return 0;
             }
 
-            template<typename VerifierType>
-            static constexpr std::optional<index_type> find_first_index(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::optional<index_type> find_first_index(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename TypeI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <typename Type>() -> bool { ... }");
 
                 return {};
             }
 
-            template<typename VerifierType>
-            static constexpr std::optional<index_type> find_last_index(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::optional<index_type> find_last_index(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename TypeI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <typename Type>() -> bool { ... }");
 
                 return {};
             }
 
-            template<typename VerifierType>
-            static constexpr auto find_first(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr auto find_first(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename TypeI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <typename Type>() -> bool { ... }");
 
                 return type_element<void>{};
             }
 
-            template<typename VerifierType>
-            static constexpr auto find_last(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr auto find_last(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename TypeI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <typename Type>() -> bool { ... }");
 
                 return type_element<void>{};
             }
@@ -361,61 +361,61 @@ namespace logicwise::detail
             using List = as_value_list<ValueList>;
             static constexpr extent_type Extent{ List::size };
             static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            static constexpr auto ProbeValueI = List::template element<ProbeIndex>;
+            static constexpr auto ProbeValue = List::template element<ProbeIndex>;
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValueI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr std::size_t count(VerifierType&& verifier)
+            [[nodiscard]] static constexpr std::size_t count(PredicateType&& predicate)
             {
                 return template_count_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < List::template element<Index> > ();
+                        predicate.template operator() < List::template element<Index> > ();
 				    });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValueI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr std::optional<index_type> find_first_index(VerifierType&& verifier)
+            [[nodiscard]] static constexpr std::optional<index_type> find_first_index(PredicateType&& predicate)
             {
                 return template_find_first_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < List::template element<Index> > ();
+                        predicate.template operator() < List::template element<Index> > ();
 				    });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValueI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr std::optional<index_type> find_last_index(VerifierType&& verifier)
+            [[nodiscard]] static constexpr std::optional<index_type> find_last_index(PredicateType&& predicate)
             {
                 return template_find_last_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < List::template element<Index> > ();
+                        predicate.template operator() < List::template element<Index> > ();
 				    });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValueI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr auto find_first(VerifierType&& verifier)
+            [[nodiscard]] static constexpr auto find_first(PredicateType&& predicate)
             {
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < List::template element<Index> > ();
+                        predicate.template operator() < List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -425,17 +425,17 @@ namespace logicwise::detail
                 else { return std::monostate{}; }
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate)
             {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValueI > () };
+                bool{ std::forward<PredicateType>(predicate)
+                    .template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr auto find_last(VerifierType&& verifier)
+            [[nodiscard]] static constexpr auto find_last(PredicateType&& predicate)
             {
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
 				    ([&] <auto Index> { return
-                        verifier.template operator() < List::template element<Index> > ();
+                        predicate.template operator() < List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -445,55 +445,55 @@ namespace logicwise::detail
                 else { return std::monostate{}; }
             }
 
-            template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValueI>; }
+            template<template<auto> typename Predicate>
+                requires requires { typename Predicate<ProbeValue>; }
             [[nodiscard]] static constexpr std::size_t count()
             {
-                using TraitCertificate = Verifier<ProbeValueI>;
+                using TraitCertificate = Predicate<ProbeValue>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_count_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< List::template element<Index> > > ();
                     });
             }
                         
-            template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValueI>; }
+            template<template<auto> typename Predicate>
+                requires requires { typename Predicate<ProbeValue>; }
             [[nodiscard]] static constexpr std::optional<index_type> find_first_index()
             {
-                using TraitCertificate = Verifier<ProbeValueI>;
+                using TraitCertificate = Predicate<ProbeValue>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_find_first_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< List::template element<Index> > > ();
                     });
             }
 
-            template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValueI>; }
+            template<template<auto> typename Predicate>
+                requires requires { typename Predicate<ProbeValue>; }
             [[nodiscard]] static constexpr std::optional<index_type> find_last_index()
             {
-                using TraitCertificate = Verifier<ProbeValueI>;
+                using TraitCertificate = Predicate<ProbeValue>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_find_last_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< List::template element<Index> > > ();
                     });
             }
 
-            template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValueI>; }
+            template<template<auto> typename Predicate>
+                requires requires { typename Predicate<ProbeValue>; }
             [[nodiscard]] static constexpr auto find_first()
             {
-                using TraitCertificate = Verifier<ProbeValueI>;
+                using TraitCertificate = Predicate<ProbeValue>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< List::template element<Index> > > ();
                     });
 
                 if constexpr (found_index)
@@ -503,16 +503,16 @@ namespace logicwise::detail
                 else { return std::monostate{}; }
             }
 
-            template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValueI>; }
+            template<template<auto> typename Predicate>
+                requires requires { typename Predicate<ProbeValue>; }
             [[nodiscard]] static constexpr auto find_last()
             {
-                using TraitCertificate = Verifier<ProbeValueI>;
+                using TraitCertificate = Predicate<ProbeValue>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
                     ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
+                        PredicateSolver.template operator() < Predicate< List::template element<Index> > > ();
                     });
 
                 if constexpr (found_index)
@@ -522,52 +522,52 @@ namespace logicwise::detail
                 else { return std::monostate{}; }
             }
 
-            template<typename VerifierType>
-            static constexpr std::size_t count(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::size_t count(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto ValueI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <auto Value>() -> bool { ... }");
 
                 return 0;
             }
 
-            template<typename VerifierType>
-            static constexpr std::optional<index_type> find_first_index(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::optional<index_type> find_first_index(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto ValueI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <auto Value>() -> bool { ... }");
 
                 return {};
             }
 
-            template<typename VerifierType>
-            static constexpr std::optional<index_type> find_last_index(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::optional<index_type> find_last_index(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto ValueI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <auto Value>() -> bool { ... }");
 
                 return {};
             }
 
-            template<typename VerifierType>
-            static constexpr auto find_first(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr auto find_first(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto ValueI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <auto Value>() -> bool { ... }");
 
                 return std::monostate{};
             }
 
-            template<typename VerifierType>
-            static constexpr auto find_last(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr auto find_last(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto ValueI>() -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] <auto Value>() -> bool { ... }");
 
                 return std::monostate{};
             }
@@ -592,68 +592,68 @@ namespace logicwise::detail
             explicit constexpr in_container(ExpectedContainerType container) noexcept
                 : container{ ContainerTrait::cast_container(static_cast<ExpectedContainerType>(container)) } {}
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate, const StoredInstanceType& instance)
             {
-                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
+                bool{ std::invoke(std::forward<PredicateType>(predicate), instance) };
             }
-            [[nodiscard]] constexpr std::size_t count(VerifierType&& verifier) const
+            [[nodiscard]] constexpr std::size_t count(PredicateType&& predicate) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 return instance_count_loop<Arrangement>(extent,
-				    [&] (const auto& index) { return
-                        std::invoke(verifier, container[index]);
+				    [&] (auto&& index) { return
+                        std::invoke(predicate, container[index]);
 				    });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate, const StoredInstanceType& instance)
             {
-                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
+                bool{ std::invoke(std::forward<PredicateType>(predicate), instance) };
             }
-            [[nodiscard]] constexpr std::optional<index_type> find_first_index(VerifierType&& verifier) const
+            [[nodiscard]] constexpr std::optional<index_type> find_first_index(PredicateType&& predicate) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 return instance_find_first_index_loop<Arrangement>(extent,
-                    [&] (const auto& index) { return
-                        std::invoke(verifier, container[index]);
+                    [&] (auto&& index) { return
+                        std::invoke(predicate, container[index]);
                     });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate, const StoredInstanceType& instance)
             {
-                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
+                bool{ std::invoke(std::forward<PredicateType>(predicate), instance) };
             }
-            [[nodiscard]] constexpr std::optional<index_type> find_last_index(VerifierType&& verifier) const
+            [[nodiscard]] constexpr std::optional<index_type> find_last_index(PredicateType&& predicate) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 return instance_find_last_index_loop<Arrangement>(extent,
-                    [&] (const auto& index) { return
-                        std::invoke(verifier, container[index]);
+                    [&] (auto&& index) { return
+                        std::invoke(predicate, container[index]);
                     });
             }
 
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate, const StoredInstanceType& instance)
             {
-                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
+                bool{ std::invoke(std::forward<PredicateType>(predicate), instance) };
             }
-            [[nodiscard]] constexpr auto find_first(VerifierType&& verifier) const
+            [[nodiscard]] constexpr auto find_first(PredicateType&& predicate) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 auto found_index = instance_find_first_index_loop<Arrangement>(extent,
-				    [&] (const auto& index) { return
-                        std::invoke(verifier, container[index]);
+				    [&] (auto&& index) { return
+                        std::invoke(predicate, container[index]);
 				    });
 
 #if defined(__cpp_lib_optional) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_23
                 //C++23
-                return found_index.transform([&] (const auto& index) -> RawInstanceType {
+                return found_index.transform([&] (auto&& index) -> RawInstanceType {
                         return container[index];
                     });
 #else
@@ -668,23 +668,23 @@ namespace logicwise::detail
 #endif
             }
                         
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
+            template<typename PredicateType>
+                requires requires(PredicateType&& predicate, const StoredInstanceType& instance)
             {
-                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
+                bool{ std::invoke(std::forward<PredicateType>(predicate), instance) };
             }
-            [[nodiscard]] constexpr auto find_last(VerifierType&& verifier) const
+            [[nodiscard]] constexpr auto find_last(PredicateType&& predicate) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
                 auto found_index = instance_find_last_index_loop<Arrangement>(extent,
-				    [&] (const auto& index) { return
-                        std::invoke(verifier, container[index]);
+				    [&] (auto&& index) { return
+                        std::invoke(predicate, container[index]);
 				    });
 
 #if defined(__cpp_lib_optional) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_23
                 //C++23
-                return found_index.transform([&] (const auto& index) -> RawInstanceType {
+                return found_index.transform([&] (auto&& index) -> RawInstanceType {
                         return container[index];
                     });
 #else
@@ -699,52 +699,52 @@ namespace logicwise::detail
 #endif
             }
 
-            template<typename VerifierType>
-            static constexpr std::size_t count(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::size_t count(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] (auto&& instance_i) -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] (auto&& instance) -> bool { ... }");
 
                 return 0;
             }
 
-            template<typename VerifierType>
-            static constexpr std::optional<index_type> find_first_index(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::optional<index_type> find_first_index(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] (auto&& instance_i) -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] (auto&& instance) -> bool { ... }");
 
                 return {};
             }
 
-            template<typename VerifierType>
-            static constexpr std::optional<index_type> find_last_index(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr std::optional<index_type> find_last_index(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] (auto&& instance_i) -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] (auto&& instance) -> bool { ... }");
 
                 return {};
             }
 
-            template<typename VerifierType>
-            static constexpr auto find_first(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr auto find_first(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] (auto&& instance_i) -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] (auto&& instance) -> bool { ... }");
 
                 return std::optional<RawInstanceType>{};
             }
 
-            template<typename VerifierType>
-            static constexpr auto find_last(VerifierType&&)
+            template<typename PredicateType>
+            static constexpr auto find_last(PredicateType&&)
             {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] (auto&& instance_i) -> bool { ... }");
+                static_assert(dependent_false_v<PredicateType>,
+                    "[logicwise] Error: Incompatible predicate signature!\n"
+                    "Expected: [] (auto&& instance) -> bool { ... }");
 
                 return std::optional<RawInstanceType>{};
             }

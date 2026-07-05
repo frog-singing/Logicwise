@@ -93,13 +93,13 @@ namespace logicwise::detail
             using List = as_type_list<TypeList>;
             static constexpr extent_type Extent{ List::size };
             static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            using ProbeTypeI = typename List::template element<ProbeIndex>;
+            using ProbeType = typename List::template element<ProbeIndex>;
 
             template<typename VerifierType>
                 requires requires(VerifierType&& verifier)
             {
                 bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeTypeI > () };
+                    .template operator() < ProbeType > () };
             }
             [[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
             {
@@ -110,10 +110,10 @@ namespace logicwise::detail
             }
 
             template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeTypeI>; }
+                requires requires { typename Verifier<ProbeType>; }
             [[nodiscard]] static constexpr bool satisfies()
             {
-                using TraitCertificate = Verifier<ProbeTypeI>;
+                using TraitCertificate = Verifier<ProbeType>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_verification_loop<Quantifier, Arrangement, Extent>
@@ -127,7 +127,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<VerifierType>,
                     "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename TypeI>() -> bool { ... }");
+                    "Expected: [] <typename Type>() -> bool { ... }");
 
                 return false;
             }
@@ -144,13 +144,13 @@ namespace logicwise::detail
             using List = as_value_list<ValueList>;
             static constexpr extent_type Extent{ List::size };
             static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            static constexpr auto ProbeValueI = List::template element<ProbeIndex>;
+            static constexpr auto ProbeValue = List::template element<ProbeIndex>;
 
             template<typename VerifierType>
 				requires requires(VerifierType && verifier)
             {
                 bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValueI > () };
+                    .template operator() < ProbeValue > () };
             }
             [[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
             {
@@ -161,10 +161,10 @@ namespace logicwise::detail
             }
 
             template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValueI>; }
+                requires requires { typename Verifier<ProbeValue>; }
             [[nodiscard]] static constexpr bool satisfies()
             {
-                using TraitCertificate = Verifier<ProbeValueI>;
+                using TraitCertificate = Verifier<ProbeValue>;
                 constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
                 return template_verification_loop<Quantifier, Arrangement, Extent>
@@ -178,7 +178,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<VerifierType>,
                     "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto ValueI>() -> bool { ... }");
+                    "Expected: [] <auto Value>() -> bool { ... }");
 
                 return false;
             }
@@ -203,16 +203,16 @@ namespace logicwise::detail
                 : container{ ContainerTrait::cast_container(static_cast<ExpectedContainerType>(container)) } {}
 
             template<typename VerifierType>
-                requires requires(VerifierType&& verifier, const StoredInstanceType& instance_i)
+                requires requires(VerifierType&& verifier, const StoredInstanceType& instance)
             {
-                bool{ std::invoke(std::forward<VerifierType>(verifier), instance_i) };
+                bool{ std::invoke(std::forward<VerifierType>(verifier), instance) };
             }
             [[nodiscard]] constexpr bool satisfies(VerifierType&& verifier) const
             {
                 extent_type extent{ std::ranges::size(container) };
 
 			    return instance_verification_loop<Quantifier, Arrangement>(extent,
-				    [&] (const auto& index) { return
+				    [&] (auto&& index) { return
                         std::invoke(verifier, container[index]);
 				    });
             }
@@ -222,7 +222,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<VerifierType>,
                     "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] (auto&& instance_i) -> bool { ... }");
+                    "Expected: [] (auto&& instance) -> bool { ... }");
 
                 return false;
             }

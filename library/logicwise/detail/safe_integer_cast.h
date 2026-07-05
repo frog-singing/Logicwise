@@ -3,13 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <version> //用于 __cpp_lib_unreachable (C++23)，C++20标准
-#include <logicwise/external_detail/cxx_standard.h>
-
 #include <concepts> //用于 std::integral，C++20标准
 #include <utility> //用于 std::cmp_greater (C++20), std::cmp_less (C++20)
 #include <limits> //用于 std::numeric_limits
 #include <cassert> //用于 assert
+#include <exception> //用于 std::terminate
 
 
 //逻辑维度::细节
@@ -21,15 +19,12 @@ namespace logicwise::detail
     [[nodiscard]] constexpr Target safe_integer_cast(Source value) noexcept
     {
         if (std::cmp_greater(value, std::numeric_limits<Target>::max()) ||
-            std::cmp_less(value, std::numeric_limits<Target>::min()))
+            std::cmp_less(value, std::numeric_limits<Target>::min())) [[unlikely]]
         {
-#if defined(__cpp_lib_unreachable) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_23
-            //C++23
-			std::unreachable();
-#endif
-            assert(false && "[logicwise] Narrowing conversion : integer cast overflow.");
-            return 0;
+            assert(false && "[logicwise] Narrowing conversion : Integer cast overflow.");
+            std::terminate();
         }
+
         return static_cast<Target>(value);
     }
 

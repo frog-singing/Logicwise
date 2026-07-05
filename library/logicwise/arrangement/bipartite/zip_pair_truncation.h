@@ -24,7 +24,7 @@ namespace logicwise::detail
 		using index_type = typename index_trait::index_type;
 		using index_integer_type = int;
 
-		static constexpr std::size_t index_count(extent_type extent)
+		static constexpr std::size_t index_count(extent_type extent) noexcept
 		{
 			return (std::min)(extent.i(), extent.j());
 		}
@@ -32,7 +32,7 @@ namespace logicwise::detail
 		struct forward_index_traverser
 		{
 			const index_integer_type min_extent;
-			index_integer_type linear_index{ 0 };
+			index_integer_type uniform_index{ 0 };
 
 			forward_index_traverser() = delete; //禁用默认构造函数
 
@@ -40,33 +40,33 @@ namespace logicwise::detail
 				: min_extent{ safe_integer_cast<index_integer_type>((std::min)(extent.i(), extent.j())) }
 			{}
 
-			constexpr bool done() const noexcept { return linear_index >= min_extent; }
+			constexpr bool done() const noexcept { return uniform_index >= min_extent; }
 
 			constexpr auto state() const noexcept
 			{
-				assert(!done() && linear_index >= 0 && "[logicwise] Accessing illegal index.");
+				assert(!done() && uniform_index >= 0 && "[logicwise] Accessing illegal index.");
 
 				return index_type
 				{
-					static_cast<std::size_t>(linear_index),
-					static_cast<std::size_t>(linear_index)
+					static_cast<std::size_t>(uniform_index),
+					static_cast<std::size_t>(uniform_index)
 				};
 			}
 
-			constexpr void step() noexcept { ++linear_index; }
+			constexpr void step() noexcept { ++uniform_index; }
 		};
 
 		struct reverse_index_traverser
 		{
-			index_integer_type linear_index;
+			index_integer_type uniform_index;
 
 			reverse_index_traverser() = delete; //禁用默认构造函数
 
 			explicit constexpr reverse_index_traverser(extent_type extent) noexcept
-				: linear_index{ safe_integer_cast<index_integer_type>((std::min)(extent.i(), extent.j())) - 1 }
+				: uniform_index{ safe_integer_cast<index_integer_type>((std::min)(extent.i(), extent.j())) - 1 }
 			{}
 
-			constexpr bool done() const noexcept { return linear_index < 0; }
+			constexpr bool done() const noexcept { return uniform_index < 0; }
 
 			constexpr auto state() const noexcept
 			{
@@ -74,12 +74,12 @@ namespace logicwise::detail
 
 				return index_type
 				{
-					static_cast<std::size_t>(linear_index),
-					static_cast<std::size_t>(linear_index)
+					static_cast<std::size_t>(uniform_index),
+					static_cast<std::size_t>(uniform_index)
 				};
 			}
 
-			constexpr void step() noexcept { --linear_index; }
+			constexpr void step() noexcept { --uniform_index; }
 		};
 
 		using fast_index_traverser = reverse_index_traverser;

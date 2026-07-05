@@ -23,7 +23,7 @@ namespace logicwise::detail
 		using index_type = typename index_trait::index_type;
 		using index_integer_type = int;
 
-		static constexpr std::size_t index_count(extent_type extent)
+		static constexpr std::size_t index_count(extent_type extent) noexcept
 		{
 			std::size_t extent_i{ extent.i() };
 			return extent_i < 2 ? 0 : extent_i * (extent_i - 1) / 2;

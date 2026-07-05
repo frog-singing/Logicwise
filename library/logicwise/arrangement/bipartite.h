@@ -8,4 +8,5 @@
 //聚合头文件
 #include "bipartite/cartesian_pair.h"
 #include "bipartite/zip_pair_truncation.h"
+#include "bipartite/zip_pair_matching.h"
 #include "bipartite/zip_pair_padding.h"

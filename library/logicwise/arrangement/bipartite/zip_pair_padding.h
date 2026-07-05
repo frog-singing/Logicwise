@@ -24,7 +24,7 @@ namespace logicwise::detail
 		using index_type = typename index_trait::index_type;
 		using index_integer_type = int;
 
-		static constexpr std::size_t index_count(extent_type extent)
+		static constexpr std::size_t index_count(extent_type extent) noexcept
 		{
 			return (std::max)(extent.i(), extent.j());
 		}
@@ -32,7 +32,7 @@ namespace logicwise::detail
 		struct forward_index_traverser
 		{
 			const index_integer_type extent_i, extent_j, max_extent;
-			index_integer_type linear_index{ 0 };
+			index_integer_type uniform_index{ 0 };
 
 			forward_index_traverser() = delete; //禁用默认构造函数
 
@@ -42,42 +42,42 @@ namespace logicwise::detail
 				, max_extent{ (std::max)(extent_i, extent_j) }
 			{}
 
-			constexpr bool done() const noexcept { return linear_index >= max_extent; }
+			constexpr bool done() const noexcept { return uniform_index >= max_extent; }
 
 			constexpr auto state() const noexcept
 			{
-				assert(!done() && linear_index >= 0 && "[logicwise] Accessing illegal index.");
+				assert(!done() && uniform_index >= 0 && "[logicwise] Accessing illegal index.");
 
 				return index_type
 				{
 					{
-						static_cast<std::size_t>(linear_index),
-						static_cast<std::size_t>(linear_index)
+						static_cast<std::size_t>(uniform_index),
+						static_cast<std::size_t>(uniform_index)
 					},
 					{
-						linear_index >= extent_i,
-						linear_index >= extent_j
+						uniform_index >= extent_i,
+						uniform_index >= extent_j
 					}
 				};
 			}
 
-			constexpr void step() noexcept { ++linear_index; }
+			constexpr void step() noexcept { ++uniform_index; }
 		};
 
 		struct reverse_index_traverser
 		{
 			const index_integer_type extent_i, extent_j;
-			index_integer_type linear_index;
+			index_integer_type uniform_index;
 
 			reverse_index_traverser() = delete; //禁用默认构造函数
 
 			explicit constexpr reverse_index_traverser(extent_type extent) noexcept
 				: extent_i{ safe_integer_cast<index_integer_type>(extent.i()) }
 				, extent_j{ safe_integer_cast<index_integer_type>(extent.j()) }
-				, linear_index{ (std::max)(extent_i, extent_j) - 1 }
+				, uniform_index{ (std::max)(extent_i, extent_j) - 1 }
 			{}
 
-			constexpr bool done() const noexcept { return linear_index < 0; }
+			constexpr bool done() const noexcept { return uniform_index < 0; }
 
 			constexpr auto state() const noexcept
 			{
@@ -86,17 +86,17 @@ namespace logicwise::detail
 				return index_type
 				{
 					{
-						static_cast<std::size_t>(linear_index),
-						static_cast<std::size_t>(linear_index)
+						static_cast<std::size_t>(uniform_index),
+						static_cast<std::size_t>(uniform_index)
 					},
 					{
-						linear_index >= extent_i,
-						linear_index >= extent_j
+						uniform_index >= extent_i,
+						uniform_index >= extent_j
 					}
 				};
 			}
 
-			constexpr void step() noexcept { --linear_index; }
+			constexpr void step() noexcept { --uniform_index; }
 		};
 
 		using fast_index_traverser = reverse_index_traverser;

@@ -227,7 +227,7 @@ namespace logicwise::detail
 				extent_type extent{ std::ranges::size(container) };
 
 				return instance_verification_loop<Quantifier, Arrangement>(extent,
-					[&] (const auto& index) { return
+					[&] (auto&& index) { return
 						std::invoke(verifier, container[index[0]], container[index[1]]);
 					});
 			}

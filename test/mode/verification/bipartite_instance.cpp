@@ -24,9 +24,9 @@ namespace logicwise::test
 	};
 
 	//a >= 0, b > 0
-	static constexpr int ceiling_division(int a, int b) noexcept { return (a + b - 1) / b; }
+	inline constexpr int ceiling_division(int a, int b) noexcept { return (a + b - 1) / b; }
 
-	static constexpr auto adventurer_beats_monsters = [] (auto&& adventurer, auto&& monsters)
+	inline constexpr auto adventurer_beats_monsters = [] (auto&& adventurer, auto&& monsters)
 		{
 			int adventurer_health{ adventurer.health };
 			if (adventurer_health <= 0) { return false; }
@@ -56,7 +56,7 @@ namespace logicwise::test
 			}
 		};
 
-	static constexpr auto adventurer_beats_adventurer = [] (auto&& adventurer1, auto&& adventurer2)
+	inline constexpr auto adventurer_beats_adventurer = [] (auto&& adventurer1, auto&& adventurer2)
 		{
 			int adventurer_1_strike_count = ceiling_division(
 				adventurer2.health,

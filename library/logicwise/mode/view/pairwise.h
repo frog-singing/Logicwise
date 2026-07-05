@@ -8,10 +8,10 @@
 
 namespace logicwise::detail
 {
-	struct pairwise_viewer;
+	struct pairwise_view;
 
 	template<typename Mode, typename Arrangement>
-	class pairwise_view;
+	class pairwise_viewing;
 }
 
 
@@ -20,7 +20,7 @@ namespace logicwise::detail
 {
 	//行为模式::视图化 mode::view================================================================================
 
-	struct pairwise_viewer
+	struct pairwise_view
 	{
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 
 
 	template<typename Mode, typename Arrangement>
-	class pairwise_view : area_ahead<Mode, Arrangement>
+	class pairwise_viewing : area_ahead<Mode, Arrangement>
 	{
 
 

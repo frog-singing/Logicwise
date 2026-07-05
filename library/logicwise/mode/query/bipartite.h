@@ -11,7 +11,7 @@ namespace logicwise::detail
 	struct bipartite_querier;
 
 	template<typename Mode, typename Arrangement>
-	class bipartite_query;
+	class bipartite_querying;
 }
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 
 
 	template<typename Mode, typename Arrangement>
-	class bipartite_query : area_ahead<Mode, Arrangement>
+	class bipartite_querying : area_ahead<Mode, Arrangement>
 	{
 
 

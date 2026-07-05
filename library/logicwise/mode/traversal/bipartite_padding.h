@@ -88,6 +88,7 @@ namespace logicwise::detail
 	private:
 		using extent_type = typename Arrangement::extent_type;
 		using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
+		using ActualIndexType = decltype(std::declval<IndexTraverserType>().state());
 
 		template<typename PaddingTypeI, typename PaddingTypeJ>
 		class pad_with_type
@@ -160,6 +161,28 @@ namespace logicwise::detail
 				}
 
 				template<typename OperationType>
+					requires requires(OperationType&& operation)
+				{
+					bool{ std::forward<OperationType>(operation)
+						.template operator() < PaddingTypeI, PaddingTypeJ > () };
+				}
+				static constexpr void execute_while(OperationType&& operation)
+				{
+					template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return operation.template operator() <
+								typename template_element_padder::template actual_type
+								<padding_state[0], PaddingTypeI, ListA, component[0]>,
+								typename template_element_padder::template actual_type
+								<padding_state[1], PaddingTypeJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<typename OperationType>
 				static constexpr void execute(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
@@ -169,6 +192,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] <typename TypeI, typename TypeJ>() -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"
@@ -250,6 +281,28 @@ namespace logicwise::detail
 				}
 
 				template<typename OperationType>
+					requires requires(OperationType&& operation)
+				{
+					bool{ std::forward<OperationType>(operation)
+						.template operator() < PaddingValueI, PaddingValueJ > () };
+				}
+				static constexpr void execute_while(OperationType&& operation)
+				{
+					template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return operation.template operator() <
+								template_element_padder::template actual_value
+								<padding_state[0], PaddingValueI, ListA, component[0]>,
+								template_element_padder::template actual_value
+								<padding_state[1], PaddingValueJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<typename OperationType>
 				static constexpr void execute(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
@@ -259,6 +312,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] <auto ValueI, auto ValueJ>() -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"
@@ -340,6 +401,28 @@ namespace logicwise::detail
 				}
 
 				template<typename OperationType>
+					requires requires(OperationType&& operation)
+				{
+					bool{ std::forward<OperationType>(operation)
+						.template operator() < PaddingTypeI, PaddingValueJ > () };
+				}
+				static constexpr void execute_while(OperationType&& operation)
+				{
+					template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return operation.template operator() <
+								typename template_element_padder::template actual_type
+								<padding_state[0], PaddingTypeI, ListA, component[0]>,
+								template_element_padder::template actual_value
+								<padding_state[1], PaddingValueJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<typename OperationType>
 				static constexpr void execute(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
@@ -349,6 +432,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] <typename TypeI, auto ValueJ>() -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"
@@ -430,6 +521,28 @@ namespace logicwise::detail
 				}
 
 				template<typename OperationType>
+					requires requires(OperationType&& operation)
+				{
+					bool{ std::forward<OperationType>(operation)
+						.template operator() < PaddingValueI, PaddingTypeJ > () };
+				}
+				static constexpr void execute_while(OperationType&& operation)
+				{
+					template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return operation.template operator() <
+								template_element_padder::template actual_value
+								<padding_state[0], PaddingValueI, ListA, component[0]>,
+								typename template_element_padder::template actual_type
+								<padding_state[1], PaddingTypeJ, ListB, component[1]>
+							> ();
+						});
+				}
+
+				template<typename OperationType>
 				static constexpr void execute(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
@@ -439,6 +552,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] <auto ValueI, typename TypeJ>() -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"
@@ -599,7 +720,7 @@ namespace logicwise::detail
 					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 					instance_execute_loop<Arrangement, IndexTraverserType>(extent,
-						[&] (const auto& index) {
+						[&] (auto&& index) {
 							auto&& [component, padding_state] = index;
 
 							std::invoke(operation,
@@ -619,7 +740,27 @@ namespace logicwise::detail
 					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
 					instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-						[&] (const auto& index) {
+						[&] (auto&& index) {
+							auto&& [component, padding_state] = index;
+
+							return std::invoke(operation,
+								padding_state[0] ? padding_instance_I : containerA[component[0]],
+								padding_state[1] ? padding_instance_J : containerB[component[1]]);
+						});
+				}
+
+				template<typename OperationType>
+					requires requires(OperationType&& operation,
+				const StoredInstanceTypeA& instance_i, const StoredInstanceTypeB& instance_j)
+				{
+					bool{ std::invoke(std::forward<OperationType>(operation), instance_i, instance_j) };
+				}
+				constexpr void execute_while(OperationType&& operation) const
+				{
+					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
+
+					instance_execute_while_loop<Arrangement, IndexTraverserType>(extent,
+						[&] (auto&& index) {
 							auto&& [component, padding_state] = index;
 
 							return std::invoke(operation,
@@ -638,6 +779,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] (auto&& instance_i, auto&& instance_j) -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"
@@ -796,6 +945,27 @@ namespace logicwise::detail
 								(padding_state[1] ? padding_instance_J : container[component[1]]);
 						});
 				}
+				template<typename OperationType>
+					requires requires(OperationType&& operation, const StoredInstanceType& instance_j)
+				{
+					bool{ std::forward<OperationType>(operation)
+						.template operator() < PaddingTypeI > (instance_j) };
+				}
+				constexpr void execute_while(OperationType&& operation) const
+				{
+					template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return operation.template operator()
+								<
+									typename template_element_padder::template actual_type
+									<padding_state[0], PaddingTypeI, List, component[0]>
+								>
+								(padding_state[1] ? padding_instance_J : container[component[1]]);
+						});
+				}
 
 				template<typename OperationType>
 				static constexpr void execute(OperationType&&)
@@ -807,6 +977,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] <typename TypeI>(auto&& instance_j) -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"
@@ -965,6 +1143,28 @@ namespace logicwise::detail
 				}
 
 				template<typename OperationType>
+					requires requires(OperationType&& operation, const StoredInstanceType& instance_j)
+				{
+					bool{ std::forward<OperationType>(operation)
+						.template operator() < PaddingValueI > (instance_j) };
+				}
+				constexpr void execute_while(OperationType&& operation) const
+				{
+					template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
+						([&] <auto Index> {
+							constexpr auto component{ Index.component };
+							constexpr auto padding_state{ Index.padding_state };
+
+							return operation.template operator()
+								<
+									template_element_padder::template actual_value
+									<padding_state[0], PaddingValueI, List, component[0]>
+								>
+								(padding_state[1] ? padding_instance_J : container[component[1]]);
+						});
+				}
+
+				template<typename OperationType>
 				static constexpr void execute(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
@@ -974,6 +1174,14 @@ namespace logicwise::detail
 
 				template<typename OperationType>
 				static constexpr void execute_until(OperationType&&)
+				{
+					static_assert(dependent_false_v<OperationType>,
+						"[logicwise] Error: Incompatible operation signature!\n"
+						"Expected: [] <auto ValueI>(auto&& instance_j) -> bool { ... }");
+				}
+
+				template<typename OperationType>
+				static constexpr void execute_while(OperationType&&)
 				{
 					static_assert(dependent_false_v<OperationType>,
 						"[logicwise] Error: Incompatible operation signature!\n"

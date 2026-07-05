@@ -38,6 +38,7 @@ namespace logicwise::arrangement
 
 	using detail::cartesian_pair; //笛卡尔积对
 	using detail::zip_pair_truncation; //截断对齐对
+	using detail::zip_pair_matching; //匹配对齐对
 	using detail::zip_pair_padding; //填充对齐对
 
 	//排布::多部 arrangement::multipartite================================================================================
@@ -46,6 +47,7 @@ namespace logicwise::arrangement
 
 	using detail::cartesian_tuple; //笛卡尔积多元组
 	using detail::zip_tuple_truncation; //截断对齐多元组
+	using detail::zip_tuple_matching; //匹配对齐多元组
 	using detail::zip_tuple_padding; //填充对齐多元组
 
 }

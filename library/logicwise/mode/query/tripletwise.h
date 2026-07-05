@@ -11,7 +11,7 @@ namespace logicwise::detail
 	struct tripletwise_querier;
 
 	template<typename Mode, typename Arrangement>
-	class tripletwise_query;
+	class tripletwise_querying;
 }
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 
 
 	template<typename Mode, typename Arrangement>
-	class tripletwise_query : area_ahead<Mode, Arrangement>
+	class tripletwise_querying : area_ahead<Mode, Arrangement>
 	{
 
 

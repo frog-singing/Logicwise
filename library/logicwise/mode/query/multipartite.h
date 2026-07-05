@@ -11,7 +11,7 @@ namespace logicwise::detail
 	struct multipartite_querier;
 
 	template<typename Mode, typename Arrangement>
-	class multipartite_query;
+	class multipartite_querying;
 }
 
 
@@ -29,7 +29,7 @@ namespace logicwise::detail
 
 
 	template<typename Mode, typename Arrangement>
-	class multipartite_query : area_ahead<Mode, Arrangement>
+	class multipartite_querying : area_ahead<Mode, Arrangement>
 	{
 
 

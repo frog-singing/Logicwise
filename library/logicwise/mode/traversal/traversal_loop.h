@@ -17,7 +17,7 @@ namespace logicwise::detail
 
 	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent,
 		typename AtomicOperationType>
-	static constexpr void template_execute_loop(AtomicOperationType&& atomic_operation)
+	constexpr void template_execute_loop(AtomicOperationType&& atomic_operation)
 	{
 		using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
 
@@ -41,7 +41,7 @@ namespace logicwise::detail
 
 	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent,
 		typename AtomicOperationType>
-	static constexpr void template_execute_until_loop(AtomicOperationType&& atomic_operation)
+	constexpr void template_execute_until_loop(AtomicOperationType&& atomic_operation)
 	{
 		using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
 
@@ -63,8 +63,32 @@ namespace logicwise::detail
 #endif
 	}
 
+	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent,
+		typename AtomicOperationType>
+	constexpr void template_execute_while_loop(AtomicOperationType&& atomic_operation)
+	{
+		using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+		//C++26
+		constexpr auto index_array = IndexSequencer::generate_index_array();
+
+		template for (constexpr auto Index : index_array)
+		{
+			if (!atomic_operation.template operator() < Index > ()) { return; }
+		}
+#else
+		//C++20
+		using index_sequence = typename IndexSequencer::index_sequence;
+
+		index_sequence::invoke([&] <auto... Index> {
+			(... && atomic_operation.template operator() < Index > ());
+		});
+#endif
+	}
+	
 	template<typename Arrangement, typename IndexTraverserType, typename AtomicOperationType>
-	static constexpr void instance_execute_loop(typename Arrangement::extent_type extent,
+	constexpr void instance_execute_loop(typename Arrangement::extent_type extent,
 		AtomicOperationType&& atomic_operation)
 	{
 		IndexTraverserType index_traverser{ extent };
@@ -77,7 +101,7 @@ namespace logicwise::detail
 	}
 
 	template<typename Arrangement, typename IndexTraverserType, typename AtomicOperationType>
-	static constexpr void instance_execute_until_loop(typename Arrangement::extent_type extent,
+	constexpr void instance_execute_until_loop(typename Arrangement::extent_type extent,
 		AtomicOperationType&& atomic_operation)
 	{
 		IndexTraverserType index_traverser{ extent };
@@ -85,6 +109,19 @@ namespace logicwise::detail
 		while (!index_traverser.done())
 		{
 			if (std::invoke(atomic_operation, index_traverser.state())) { return; }
+			index_traverser.step();
+		}
+	}
+
+	template<typename Arrangement, typename IndexTraverserType, typename AtomicOperationType>
+	constexpr void instance_execute_while_loop(typename Arrangement::extent_type extent,
+		AtomicOperationType&& atomic_operation)
+	{
+		IndexTraverserType index_traverser{ extent };
+
+		while (!index_traverser.done())
+		{
+			if (!std::invoke(atomic_operation, index_traverser.state())) { return; }
 			index_traverser.step();
 		}
 	}

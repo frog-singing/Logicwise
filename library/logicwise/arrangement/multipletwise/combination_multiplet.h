@@ -21,6 +21,7 @@ namespace logicwise::detail
 	//排布::逐多元组 arrangement::multipletwise================================================================================
 
 	//保序组合多元组
+    //主模板中 Arity 至少为 2
 	template<std::size_t Arity>
 	struct combination_multiplet_impl : multipletwise_arrangement_tag
 	{
@@ -63,12 +64,7 @@ namespace logicwise::detail
             explicit constexpr forward_index_traverser(extent_type extent) noexcept
                 : max_index{ safe_integer_cast<index_integer_type>(extent.i()) - 1 }
             {
-				//Arity 为 0 或溢出
-                if constexpr (SampleSize == 0)
-                {
-                    index_tail = max_index + 1;
-                    return;
-                }
+                //if constexpr (Arity == 0) { index_tail = max_index + 1; return; }
 
 				index_tail = SampleSize - 1;
 
@@ -87,8 +83,7 @@ namespace logicwise::detail
                 return index;
             }
 
-            //Arity >= 2 且未溢出
-			constexpr void step() noexcept requires (SampleSize >= 2)
+			constexpr void step() noexcept //requires (Arity >= 2)
             {
 				//不要用 index_tail < max_index，否则处于非法索引时 step 会导致非法状态不能被 if 快速捕获，导致无效开销
 				if (index_tail != max_index)
@@ -113,7 +108,9 @@ namespace logicwise::detail
 					index[i] = index_current;
                 }
 
-				index_tail = static_cast<index_integer_type>(index[Arity - 1]);
+                //index_current 最大为 max_index + 1，该值最大为 std::numeric_limits<index_integer_type>::max()
+                //不会导致 static_cast 溢出
+				index_tail = static_cast<index_integer_type>(index_current);
             }
         };
 
@@ -128,12 +125,7 @@ namespace logicwise::detail
             explicit constexpr reverse_index_traverser(extent_type extent) noexcept
                 : max_index{ extent.i() - 1 }
             {
-                //Arity 为 0 或溢出
-                if constexpr (SampleSize == 0)
-                {
-                    index_head = -1;
-                    return;
-                }
+                //if constexpr (Arity == 0) { index_head = -1; return; }
 
                 index_head = safe_integer_cast<index_integer_type>(extent.i()) - SampleSize;
 
@@ -155,8 +147,7 @@ namespace logicwise::detail
                 return index;
             }
 
-            //Arity >= 1 且未溢出
-            constexpr void step() noexcept requires (SampleSize >= 1)
+            constexpr void step() noexcept //requires (Arity >= 1)
             {
                 std::size_t position{ Arity - 1 };
 

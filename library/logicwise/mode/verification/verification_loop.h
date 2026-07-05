@@ -14,7 +14,7 @@ namespace logicwise::detail
 
 	template<typename Quantifier, typename Arrangement, typename Arrangement::extent_type Extent,
 		typename AtomicVerificationType>
-	static constexpr bool template_verification_loop(AtomicVerificationType&& atomic_verification)
+	constexpr bool template_verification_loop(AtomicVerificationType&& atomic_verification)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
@@ -31,7 +31,7 @@ namespace logicwise::detail
 	}
 
 	template<typename Quantifier, typename Arrangement, typename AtomicVerificationType>
-	static constexpr bool instance_verification_loop(typename Arrangement::extent_type extent,
+	constexpr bool instance_verification_loop(typename Arrangement::extent_type extent,
 		AtomicVerificationType&& atomic_verification)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
@@ -39,7 +39,7 @@ namespace logicwise::detail
 		typename Quantifier::solver quantifier_solver{};
 
 		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-			[&] (const auto& index) {
+			[&] (auto&& index) {
 				if (quantifier_solver.solved()) { return true; }
 				quantifier_solver.step(std::invoke(atomic_verification, index));
 				return false;

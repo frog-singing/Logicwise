@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include "valid_extent.h"
 #include <cstddef> //用于 std::size_t
 #include <array> //用于 std::array
 #include <utility> //用于 std::index_sequence, std::make_index_sequence
@@ -13,7 +14,8 @@ namespace logicwise::detail
 {
 	//索引 index================================================================================
 
-	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent>
+	template<typename Arrangement, typename IndexTraverserType, auto Extent>
+		requires ValidExtent<Arrangement, Extent>
 	struct index_sequencer
 	{
 		static constexpr std::size_t index_count{ Arrangement::index_count(Extent) };

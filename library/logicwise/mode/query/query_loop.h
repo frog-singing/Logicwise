@@ -15,7 +15,7 @@ namespace logicwise::detail
 	//行为模式::查询 mode::query================================================================================
 
 	template<typename Arrangement, typename Arrangement::extent_type Extent, typename AtomicVerificationType>
-	static constexpr std::size_t template_count_loop(AtomicVerificationType&& atomic_verification)
+	constexpr std::size_t template_count_loop(AtomicVerificationType&& atomic_predicate_evaluation)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
@@ -23,14 +23,14 @@ namespace logicwise::detail
 
 		template_execute_loop<Arrangement, IndexTraverserType, Extent>
 			([&] <auto Index> {
-				if (atomic_verification.template operator() < Index > ()) { ++count; }
+				if (atomic_predicate_evaluation.template operator() < Index > ()) { ++count; }
 			});
 
 		return count;
 	}
 
 	template<typename Arrangement, typename Arrangement::extent_type Extent, typename AtomicVerificationType>
-	static constexpr auto template_find_first_index_loop(AtomicVerificationType&& atomic_verification)
+	constexpr auto template_find_first_index_loop(AtomicVerificationType&& atomic_predicate_evaluation)
 	{
 		using IndexType = typename Arrangement::index_type;
 		using IndexTraverserType = typename Arrangement::forward_index_traverser;
@@ -39,7 +39,7 @@ namespace logicwise::detail
 
 		template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 			([&] <auto Index> {
-				if (atomic_verification.template operator() < Index > ())
+				if (atomic_predicate_evaluation.template operator() < Index > ())
 				{
 					found_index = Index;
 					return true;
@@ -51,7 +51,7 @@ namespace logicwise::detail
 	}
 
 	template<typename Arrangement, typename Arrangement::extent_type Extent, typename AtomicVerificationType>
-	static constexpr auto template_find_last_index_loop(AtomicVerificationType&& atomic_verification)
+	constexpr auto template_find_last_index_loop(AtomicVerificationType&& atomic_predicate_evaluation)
 	{
 		using IndexType = typename Arrangement::index_type;
 		using IndexTraverserType = typename Arrangement::reverse_index_traverser;
@@ -60,7 +60,7 @@ namespace logicwise::detail
 
 		template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 			([&] <auto Index> {
-				if (atomic_verification.template operator() < Index > ())
+				if (atomic_predicate_evaluation.template operator() < Index > ())
 				{
 					found_index = Index;
 					return true;
@@ -72,24 +72,24 @@ namespace logicwise::detail
 	}
 
 	template<typename Arrangement, typename AtomicVerificationType>
-	static constexpr std::size_t instance_count_loop(typename Arrangement::extent_type extent,
-		AtomicVerificationType&& atomic_verification)
+	constexpr std::size_t instance_count_loop(typename Arrangement::extent_type extent,
+		AtomicVerificationType&& atomic_predicate_evaluation)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
 		std::size_t count{};
 
 		instance_execute_loop<Arrangement, IndexTraverserType>(extent,
-			[&] (const auto& index) {
-				if (std::invoke(atomic_verification, index)) { ++count; }
+			[&] (auto&& index) {
+				if (std::invoke(atomic_predicate_evaluation, index)) { ++count; }
 			});
 
 		return count;
 	}
 
 	template<typename Arrangement, typename AtomicVerificationType>
-	static constexpr auto instance_find_first_index_loop(typename Arrangement::extent_type extent,
-		AtomicVerificationType&& atomic_verification)
+	constexpr auto instance_find_first_index_loop(typename Arrangement::extent_type extent,
+		AtomicVerificationType&& atomic_predicate_evaluation)
 	{
 		using IndexType = typename Arrangement::index_type;
 		using IndexTraverserType = typename Arrangement::forward_index_traverser;
@@ -97,8 +97,8 @@ namespace logicwise::detail
 		std::optional<IndexType> found_index{};
 
 		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-			[&] (const auto& index) {
-				if (std::invoke(atomic_verification, index))
+			[&] (auto&& index) {
+				if (std::invoke(atomic_predicate_evaluation, index))
 				{
 					found_index = index;
 					return true;
@@ -110,8 +110,8 @@ namespace logicwise::detail
 	}
 
 	template<typename Arrangement, typename AtomicVerificationType>
-	static constexpr auto instance_find_last_index_loop(typename Arrangement::extent_type extent,
-		AtomicVerificationType&& atomic_verification)
+	constexpr auto instance_find_last_index_loop(typename Arrangement::extent_type extent,
+		AtomicVerificationType&& atomic_predicate_evaluation)
 	{
 		using IndexType = typename Arrangement::index_type;
 		using IndexTraverserType = typename Arrangement::reverse_index_traverser;
@@ -119,8 +119,8 @@ namespace logicwise::detail
 		std::optional<IndexType> found_index{};
 
 		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
-			[&] (const auto& index) {
-				if (std::invoke(atomic_verification, index))
+			[&] (auto&& index) {
+				if (std::invoke(atomic_predicate_evaluation, index))
 				{
 					found_index = index;
 					return true;

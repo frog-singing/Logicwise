@@ -5,6 +5,7 @@
 #pragma once
 #include <cstddef> //用于 std::size_t
 #include <array> //用于 std::array
+#include <iterator> //用于 std::reverse_iterator
 
 
 namespace logicwise::detail
@@ -22,6 +23,9 @@ namespace logicwise::detail
 
 	template<std::size_t Dimension>
 	struct [[nodiscard]] Extent;
+
+	template<typename IndexType, std::size_t Size>
+	struct ViewData;
 }
 
 
@@ -72,6 +76,9 @@ namespace logicwise::detail
 	{
 		std::array<std::size_t, Dimension> component{}; //分量
 		std::array<bool, Dimension> padding_state{}; //true 表示填充
+
+		[[nodiscard]] bool operator==(const IndexPadding&) const = default;
+		[[nodiscard]] constexpr std::size_t operator[](std::size_t i) const noexcept { return component[i]; }
 	};
 
 	template<std::size_t Dimension>
@@ -121,5 +128,25 @@ namespace logicwise::detail
 		*/
 
 	};
+
+	//视图数据
+	template<typename IndexType, std::size_t MaxSize>
+	struct [[nodiscard]] ViewData
+	{
+		std::array<IndexType, MaxSize> index_array{};
+		std::size_t offset{};
+		std::size_t size{};
+
+		[[nodiscard]] constexpr IndexType operator[](std::size_t i) const noexcept { return index_array[offset + i]; }
+
+		[[nodiscard]] constexpr auto begin() const noexcept { return index_array.begin() + offset; }
+		[[nodiscard]] constexpr auto end() const noexcept { return index_array.begin() + offset + size; }
+
+		[[nodiscard]] constexpr auto rbegin() const noexcept { return std::reverse_iterator{ index_array.begin() + offset + size }; }
+		[[nodiscard]] constexpr auto rend() const noexcept { return std::reverse_iterator{ index_array.begin() + offset }; }
+	};
+
+	template<typename IndexType, std::size_t MaxSize>
+	ViewData(std::array<IndexType, MaxSize>, std::size_t, std::size_t) -> ViewData<IndexType, MaxSize>;
 
 }
