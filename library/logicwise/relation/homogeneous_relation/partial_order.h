@@ -4,7 +4,6 @@
 
 #pragma once
 #include <concepts> //用于 std::derived_from, std::same_as，C++20标准
-#include <type_traits> //用于 std::true_type
 
 
 //同质关系::偏序 homogeneous relation::partial order================================================================================
@@ -23,7 +22,7 @@ namespace logicwise::detail::typewise
 		template<typename T1, typename T2>
 		constexpr bool operator()() const { return std::derived_from<T1, T2> || std::same_as<T1, T2>; }
 
-		using is_default = std::true_type;
+		static constexpr bool is_default{ true };
 	};
 
 	inline constexpr default_partial_order_fn default_partial_order{};
@@ -39,7 +38,7 @@ namespace logicwise::detail::valuewise
 		template<auto V1, auto V2>
 		constexpr bool operator()() const { return requires { requires V1 <= V2; }; }
 
-		using is_default = std::true_type;
+		static constexpr bool is_default{ true };
 	};
 
 	inline constexpr default_partial_order_fn default_partial_order{};

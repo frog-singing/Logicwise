@@ -4,7 +4,6 @@
 
 #pragma once
 #include <logicwise/external_detail/equivalence.h>
-#include <type_traits> //用于 std::true_type
 
 
 //同质关系::等价 homogeneous relation::equivalence================================================================================
@@ -18,7 +17,7 @@ namespace logicwise::detail::typewise
 		template<typename T1, typename T2>
 		constexpr bool operator()() const { return typewise::same_as<T1, T2>; }
 
-		using is_default = std::true_type;
+		static constexpr bool is_default{ true };
 	};
 
 	inline constexpr default_equivalence_relation_fn default_equivalence_relation{};
@@ -34,7 +33,7 @@ namespace logicwise::detail::valuewise
 		template<auto V1, auto V2>
 		constexpr bool operator()() const { return valuewise::equal_to<V1, V2>; }
 
-		using is_default = std::true_type;
+		static constexpr bool is_default{ true };
 	};
 
 	inline constexpr default_equivalence_relation_fn default_equivalence_relation{};

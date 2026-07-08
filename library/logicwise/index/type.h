@@ -133,7 +133,9 @@ namespace logicwise::detail
 	template<typename IndexType, std::size_t MaxSize>
 	struct [[nodiscard]] ViewData
 	{
-		std::array<IndexType, MaxSize> index_array{};
+		using index_type = IndexType;
+
+		std::array<index_type, MaxSize> index_array{};
 		std::size_t offset{};
 		std::size_t size{};
 

@@ -182,17 +182,16 @@ namespace logicwise::detail
 				    });
             }
 
-            template<typename PredicateType>
-                requires requires(PredicateType&& predicate)
+            template<typename Predicate>
+                requires requires
             {
-                bool{ std::forward<PredicateType>(predicate)
-                    .template operator() < ProbeType > () };
+                bool{ Predicate{}.template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr auto find_first(PredicateType&& predicate)
+            [[nodiscard]] static constexpr auto find_first(Predicate&&)
             {
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
-				    ([&] <auto Index> { return
-                        predicate.template operator() < typename List::template element<Index> > ();
+				    ([] <auto Index> { return
+                        Predicate{}.template operator() < typename List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -202,17 +201,16 @@ namespace logicwise::detail
                 else { return type_element<void>{}; }
             }
 
-            template<typename PredicateType>
-                requires requires(PredicateType&& predicate)
+            template<typename Predicate>
+                requires requires
             {
-                bool{ std::forward<PredicateType>(predicate)
-                    .template operator() < ProbeType > () };
+                bool{ Predicate{}.template operator() < ProbeType > () };
             }
-            [[nodiscard]] static constexpr auto find_last(PredicateType&& predicate)
+            [[nodiscard]] static constexpr auto find_last(Predicate&&)
             {
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
-				    ([&] <auto Index> { return
-                        predicate.template operator() < typename List::template element<Index> > ();
+				    ([] <auto Index> { return
+                        Predicate{}.template operator() < typename List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -234,7 +232,7 @@ namespace logicwise::detail
                         PredicateSolver.template operator() < Predicate< typename List::template element<Index> > > ();
                     });
             }
-                        
+
             template<template<typename> typename Predicate>
                 requires requires { typename Predicate<ProbeType>; }
             [[nodiscard]] static constexpr std::optional<index_type> find_first_index()
@@ -334,7 +332,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<PredicateType>,
                     "[logicwise] Error: Incompatible predicate signature!\n"
-                    "Expected: [] <typename Type>() -> bool { ... }");
+                    "Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
 
                 return type_element<void>{};
             }
@@ -344,7 +342,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<PredicateType>,
                     "[logicwise] Error: Incompatible predicate signature!\n"
-                    "Expected: [] <typename Type>() -> bool { ... }");
+                    "Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
 
                 return type_element<void>{};
             }
@@ -405,17 +403,16 @@ namespace logicwise::detail
 				    });
             }
 
-            template<typename PredicateType>
-                requires requires(PredicateType&& predicate)
+            template<typename Predicate>
+                requires requires
             {
-                bool{ std::forward<PredicateType>(predicate)
-                    .template operator() < ProbeValue > () };
+                bool{ Predicate{}.template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr auto find_first(PredicateType&& predicate)
+            [[nodiscard]] static constexpr auto find_first(Predicate&&)
             {
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
-				    ([&] <auto Index> { return
-                        predicate.template operator() < List::template element<Index> > ();
+				    ([] <auto Index> { return
+                        Predicate{}.template operator() < List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -425,17 +422,16 @@ namespace logicwise::detail
                 else { return std::monostate{}; }
             }
 
-            template<typename PredicateType>
-                requires requires(PredicateType&& predicate)
+            template<typename Predicate>
+                requires requires
             {
-                bool{ std::forward<PredicateType>(predicate)
-                    .template operator() < ProbeValue > () };
+                bool{ Predicate{}.template operator() < ProbeValue > () };
             }
-            [[nodiscard]] static constexpr auto find_last(PredicateType&& predicate)
+            [[nodiscard]] static constexpr auto find_last(Predicate&&)
             {
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
-				    ([&] <auto Index> { return
-                        predicate.template operator() < List::template element<Index> > ();
+				    ([] <auto Index> { return
+                        Predicate{}.template operator() < List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -557,7 +553,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<PredicateType>,
                     "[logicwise] Error: Incompatible predicate signature!\n"
-                    "Expected: [] <auto Value>() -> bool { ... }");
+                    "Expected non-capturing lambda: [] <auto Value>() -> bool { ... }");
 
                 return std::monostate{};
             }
@@ -567,7 +563,7 @@ namespace logicwise::detail
             {
                 static_assert(dependent_false_v<PredicateType>,
                     "[logicwise] Error: Incompatible predicate signature!\n"
-                    "Expected: [] <auto Value>() -> bool { ... }");
+                    "Expected non-capturing lambda: [] <auto Value>() -> bool { ... }");
 
                 return std::monostate{};
             }
