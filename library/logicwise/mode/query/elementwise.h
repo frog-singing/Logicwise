@@ -185,13 +185,13 @@ namespace logicwise::detail
             template<typename Predicate>
                 requires requires
             {
-                bool{ Predicate{}.template operator() < ProbeType > () };
+                bool{ std::remove_reference_t<Predicate>{}.template operator() < ProbeType > () };
             }
             [[nodiscard]] static constexpr auto find_first(Predicate&&)
             {
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
 				    ([] <auto Index> { return
-                        Predicate{}.template operator() < typename List::template element<Index> > ();
+                        std::remove_reference_t<Predicate>{}.template operator() < typename List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -204,13 +204,13 @@ namespace logicwise::detail
             template<typename Predicate>
                 requires requires
             {
-                bool{ Predicate{}.template operator() < ProbeType > () };
+                bool{ std::remove_reference_t<Predicate>{}.template operator() < ProbeType > () };
             }
             [[nodiscard]] static constexpr auto find_last(Predicate&&)
             {
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
 				    ([] <auto Index> { return
-                        Predicate{}.template operator() < typename List::template element<Index> > ();
+                        std::remove_reference_t<Predicate>{}.template operator() < typename List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -406,13 +406,13 @@ namespace logicwise::detail
             template<typename Predicate>
                 requires requires
             {
-                bool{ Predicate{}.template operator() < ProbeValue > () };
+                bool{ std::remove_reference_t<Predicate>{}.template operator() < ProbeValue > () };
             }
             [[nodiscard]] static constexpr auto find_first(Predicate&&)
             {
                 constexpr auto found_index = template_find_first_index_loop<Arrangement, Extent>
 				    ([] <auto Index> { return
-                        Predicate{}.template operator() < List::template element<Index> > ();
+                        std::remove_reference_t<Predicate>{}.template operator() < List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)
@@ -425,13 +425,13 @@ namespace logicwise::detail
             template<typename Predicate>
                 requires requires
             {
-                bool{ Predicate{}.template operator() < ProbeValue > () };
+                bool{ std::remove_reference_t<Predicate>{}.template operator() < ProbeValue > () };
             }
             [[nodiscard]] static constexpr auto find_last(Predicate&&)
             {
                 constexpr auto found_index = template_find_last_index_loop<Arrangement, Extent>
 				    ([] <auto Index> { return
-                        Predicate{}.template operator() < List::template element<Index> > ();
+                        std::remove_reference_t<Predicate>{}.template operator() < List::template element<Index> > ();
 				    });
 
                 if constexpr (found_index)

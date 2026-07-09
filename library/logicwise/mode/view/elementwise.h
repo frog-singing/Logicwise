@@ -17,6 +17,7 @@
 #include "view_loop.h"
 #include "view_bake.h"
 #include <utility> //用于 std::forward, std::index_sequence, std::make_index_sequence
+#include <type_traits> //用于 std::remove_reference_t
 #include <functional> //用于 std::invoke
 #include <cstddef> //用于 std::size_t
 #include <variant> //用于 std::monostate
@@ -37,7 +38,17 @@ namespace logicwise::detail
 	template<typename List>
 	struct value_list_bool_solver;
 
-	struct elementwise_view;
+	struct type_list_error_reporter;
+	struct value_list_error_reporter;
+
+	template<typename List>
+	struct type_list_view_protocol;
+
+	template<typename List>
+	struct value_list_view_protocol;
+
+	template<typename ViewProtocol, auto Data>
+	struct concrete_view;
 
 	template<typename Mode, typename Arrangement>
 	class elementwise_viewing;
@@ -186,19 +197,21 @@ namespace logicwise::detail
 
 	};
 
+
 	template<typename BoolSolver>
 	struct view_adaptor
 	{
-		using index_type = typename BoolSolver::index_type;
+		using bool_solver = BoolSolver;
+		using index_type = typename bool_solver::index_type;
 
 		template<typename Predicate>
-		static constexpr auto predicate_solver{ BoolSolver::template predicate_solver<Predicate> };
+		using predicate_solver = typename bool_solver::template predicate_solver<Predicate>;
 
 		template<typename Predicate>
-		static constexpr auto predicate_with_index_solver{ BoolSolver::template predicate_with_index_solver<Predicate> };
+		using predicate_with_index_solver = typename bool_solver::template predicate_with_index_solver<Predicate>;
 
 		template<typename HomogeneousRelation>
-		static constexpr auto homogeneous_relation_solver{ BoolSolver::template homogeneous_relation_solver<HomogeneousRelation> };
+		using homogeneous_relation_solver = typename bool_solver::template homogeneous_relation_solver<HomogeneousRelation>;
 
 		//================================================================================
 
@@ -214,7 +227,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data)
 			{
-				if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+				if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 				{
 					break;
 				}
@@ -225,7 +238,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(... || [&] <auto Index> {
-					if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 					{
 						return true;
 					}
@@ -253,7 +266,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data)
 			{
-				if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+				if constexpr (predicate_solver<Predicate>::template solve<Index>())
 				{
 					break;
 				}
@@ -264,7 +277,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(... || [&] <auto Index> {
-					if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (predicate_solver<Predicate>::template solve<Index>())
 					{
 						return true;
 					}
@@ -293,7 +306,7 @@ namespace logicwise::detail
 				//C++26
 				template for (constexpr auto Index : Data)
 				{
-					if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 					{
 						break;
 					}
@@ -303,7 +316,7 @@ namespace logicwise::detail
 				//C++20
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(... || [&] <auto Index> {
-						if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+						if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 						{
 							return true;
 						}
@@ -341,7 +354,7 @@ namespace logicwise::detail
 				//C++26
 				template for (constexpr auto Index : Data)
 				{
-					if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (predicate_solver<Predicate>::template solve<Index>())
 					{
 						break;
 					}
@@ -351,7 +364,7 @@ namespace logicwise::detail
 				//C++20
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(... || [&] <auto Index> {
-						if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+						if constexpr (predicate_solver<Predicate>::template solve<Index>())
 						{
 							return true;
 						}
@@ -386,7 +399,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data | std::views::reverse)
 			{
-				if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+				if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 				{
 					break;
 				}
@@ -397,7 +410,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(... || [&] <auto Index> {
-					if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 					{
 						return true;
 					}
@@ -425,7 +438,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data | std::views::reverse)
 			{
-				if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+				if constexpr (predicate_solver<Predicate>::template solve<Index>())
 				{
 					break;
 				}
@@ -436,7 +449,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(... || [&] <auto Index> {
-					if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (predicate_solver<Predicate>::template solve<Index>())
 					{
 						return true;
 					}
@@ -467,7 +480,7 @@ namespace logicwise::detail
 				//C++26
 				template for (constexpr auto Index : Data | std::views::reverse)
 				{
-					if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 					{
 						break;
 					}
@@ -477,7 +490,7 @@ namespace logicwise::detail
 				//C++20
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(... || [&] <auto Index> {
-						if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+						if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 						{
 							return true;
 						}
@@ -515,7 +528,7 @@ namespace logicwise::detail
 				//C++26
 				template for (constexpr auto Index : Data | std::views::reverse)
 				{
-					if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (predicate_solver<Predicate>::template solve<Index>())
 					{
 						break;
 					}
@@ -525,7 +538,7 @@ namespace logicwise::detail
 				//C++20
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(... || [&] <auto Index> {
-						if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+						if constexpr (predicate_solver<Predicate>::template solve<Index>())
 						{
 							return true;
 						}
@@ -562,7 +575,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data)
 			{
-				if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+				if constexpr (predicate_solver<Predicate>::template solve<Index>())
 				{
 					next_index_array[next_size] = Index;
 					++next_size;
@@ -572,7 +585,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(..., [&] <auto Index> {
-					if constexpr (predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (predicate_solver<Predicate>::template solve<Index>())
 					{
 						next_index_array[next_size] = Index;
 						++next_size;
@@ -598,7 +611,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data)
 			{
-				if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+				if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 				{
 					next_index_array[next_size] = Index;
 					++next_size;
@@ -608,7 +621,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(..., [&] <auto Index> {
-					if constexpr (!predicate_solver<Predicate>.template operator() < Index > ())
+					if constexpr (!predicate_solver<Predicate>::template solve<Index>())
 					{
 						next_index_array[next_size] = Index;
 						++next_size;
@@ -634,7 +647,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data)
 			{
-				if constexpr (predicate_with_index_solver<Predicate>.template operator() < Index > ())
+				if constexpr (predicate_with_index_solver<Predicate>::template solve<Index>())
 				{
 					next_index_array[next_size] = Index;
 					++next_size;
@@ -644,7 +657,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(..., [&] <auto Index> {
-					if constexpr (predicate_with_index_solver<Predicate>.template operator() < Index > ())
+					if constexpr (predicate_with_index_solver<Predicate>::template solve<Index>())
 					{
 						next_index_array[next_size] = Index;
 						++next_size;
@@ -670,7 +683,7 @@ namespace logicwise::detail
 			//C++26
 			template for (constexpr auto Index : Data)
 			{
-				if constexpr (!predicate_with_index_solver<Predicate>.template operator() < Index > ())
+				if constexpr (!predicate_with_index_solver<Predicate>::template solve<Index>())
 				{
 					next_index_array[next_size] = Index;
 					++next_size;
@@ -680,7 +693,7 @@ namespace logicwise::detail
 			//C++20
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(..., [&] <auto Index> {
-					if constexpr (!predicate_with_index_solver<Predicate>.template operator() < Index > ())
+					if constexpr (!predicate_with_index_solver<Predicate>::template solve<Index>())
 					{
 						next_index_array[next_size] = Index;
 						++next_size;
@@ -716,7 +729,7 @@ namespace logicwise::detail
 					constexpr auto InnerIndex = Data[J];
 
 					if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-						.template operator() < OuterIndex, InnerIndex > ())
+						::template solve<OuterIndex, InnerIndex>())
 					{
 						should_collect = false;
 						break;
@@ -738,7 +751,7 @@ namespace logicwise::detail
 					[&] <std::size_t... J> (std::index_sequence<J...>) {
 						(... || [&] <auto InnerIndex> {
 							if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-								.template operator() < OuterIndex, InnerIndex > ())
+								::template solve<OuterIndex, InnerIndex>())
 							{
 								should_collect = false;
 								return true;
@@ -783,7 +796,7 @@ namespace logicwise::detail
 					constexpr auto InnerIndex = Data[J];
 
 					if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-						.template operator() < OuterIndex, InnerIndex > ())
+						::template solve<OuterIndex, InnerIndex>())
 					{
 						should_collect = false;
 						break;
@@ -805,7 +818,7 @@ namespace logicwise::detail
 					[&] <std::size_t... J> (std::index_sequence<J...>) {
 						(... || [&] <auto InnerIndex> {
 							if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-								.template operator() < OuterIndex, InnerIndex > ())
+								::template solve<OuterIndex, InnerIndex>())
 							{
 								should_collect = false;
 								return true;
@@ -849,7 +862,7 @@ namespace logicwise::detail
 					constexpr auto CurrentIndex{ Data[I + 1] };
 
 					if constexpr (!homogeneous_relation_solver<EquivalenceRelation>
-						.template operator() < PreviousIndex, CurrentIndex > ())
+						::template solve<PreviousIndex, CurrentIndex>())
 					{
 						next_index_array[next_size] = CurrentIndex;
 						++next_size;
@@ -863,7 +876,7 @@ namespace logicwise::detail
 						constexpr auto CurrentIndex{ Data[J + 1] };
 
 						if constexpr (!homogeneous_relation_solver<EquivalenceRelation>
-							.template operator() < PreviousIndex, CurrentIndex > ())
+							::template solve<PreviousIndex, CurrentIndex>())
 						{
 							next_index_array[next_size] = CurrentIndex;
 							++next_size;
@@ -899,7 +912,7 @@ namespace logicwise::detail
 					constexpr auto NextIndex{ Data[I + 1] };
 
 					if constexpr (!homogeneous_relation_solver<EquivalenceRelation>
-						.template operator() < CurrentIndex, NextIndex > ())
+						::template solve<CurrentIndex, NextIndex>())
 					{
 						next_index_array[next_size] = CurrentIndex;
 						++next_size;
@@ -913,7 +926,7 @@ namespace logicwise::detail
 						constexpr auto NextIndex{ Data[J + 1] };
 
 						if constexpr (!homogeneous_relation_solver<EquivalenceRelation>
-							.template operator() < CurrentIndex, NextIndex > ())
+							::template solve<CurrentIndex, NextIndex>())
 						{
 							next_index_array[next_size] = CurrentIndex;
 							++next_size;
@@ -946,7 +959,7 @@ namespace logicwise::detail
 		static constexpr auto merge_sort()
 		{
 			if constexpr (homogeneous_relation_solver<StrictWeakOrder>
-				.template operator() < Data[1], Data[0] > ())
+				::template solve<Data[1], Data[0]>())
 			{
 				return ViewData<index_type, 2>{ { Data[1], Data[0] }, 0, 2 };
 			}
@@ -985,7 +998,7 @@ namespace logicwise::detail
 				else
 				{
 					if constexpr (homogeneous_relation_solver<StrictWeakOrder>
-						.template operator() < RightData[RightCursor], LeftData[LeftCursor] > ())
+						::template solve<RightData[RightCursor], LeftData[LeftCursor]>())
 					{
 						merged_index_array[MergedSize] = RightData[RightCursor];
 						merge<LeftCursor, RightCursor + 1>(merged_index_array);
@@ -1061,7 +1074,7 @@ namespace logicwise::detail
 		static constexpr auto merge_sort_with_partial_order()
 		{
 			if constexpr (homogeneous_relation_solver<PartialOrder>
-				.template operator() < Data[0], Data[1] > ())
+				::template solve<Data[0], Data[1]>())
 			{
 				return ViewData<index_type, 2>{ { Data[0], Data[1] }, 0, 2 };
 			}
@@ -1100,7 +1113,7 @@ namespace logicwise::detail
 				else
 				{
 					if constexpr (homogeneous_relation_solver<PartialOrder>
-						.template operator() < LeftData[LeftCursor], RightData[RightCursor] > ())
+						::template solve<LeftData[LeftCursor], RightData[RightCursor]>())
 					{
 						merged_index_array[MergedSize] = LeftData[LeftCursor];
 						merge<LeftCursor + 1, RightCursor>(merged_index_array);
@@ -1171,7 +1184,7 @@ namespace logicwise::detail
 				template for (constexpr auto Index : Data)
 				{
 					if constexpr (homogeneous_relation_solver<PartialOrder>
-						.template operator() < Index, Index > ())
+						::template solve<Index, Index>())
 					{
 						reflexive_index_array[reflexive_size] = Index;
 						++reflexive_size;
@@ -1182,7 +1195,7 @@ namespace logicwise::detail
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(..., [&] <auto Index> {
 						if constexpr (homogeneous_relation_solver<PartialOrder>
-							.template operator() < Index, Index > ())
+							::template solve<Index, Index>())
 						{
 							reflexive_index_array[reflexive_size] = Index;
 							++reflexive_size;
@@ -1206,7 +1219,7 @@ namespace logicwise::detail
 			template for (constexpr auto Index : Data)
 			{
 				if constexpr (!homogeneous_relation_solver<PartialOrder>
-					.template operator() < Index, Index > ())
+					::template solve<Index, Index>())
 				{
 					sorted_index_array[irreflexive_cursor] = Index;
 					++irreflexive_cursor;
@@ -1217,7 +1230,7 @@ namespace logicwise::detail
 			[&] <std::size_t... I> (std::index_sequence<I...>) {
 				(..., [&] <auto Index> {
 					if constexpr (!homogeneous_relation_solver<PartialOrder>
-						.template operator() < Index, Index > ())
+						::template solve<Index, Index>())
 					{
 						sorted_index_array[irreflexive_cursor] = Index;
 						++irreflexive_cursor;
@@ -1269,24 +1282,67 @@ namespace logicwise::detail
 		using index_type = typename index_trait::index_type;
 
 		template<typename Predicate>
-		static constexpr auto predicate_solver = [] <auto Index> {
+		struct predicate_solver
+		{
+			template<auto Index>
+			static constexpr bool solvable = requires
+			{
+				bool{ std::remove_reference_t<Predicate>{}.template operator() <
+					typename List::template element<Index>
+				> () };
+			};
 
-			return Predicate{}.template operator() < typename List::template element<Index> > ();
+			template<auto Index>
+			static constexpr bool solve()
+			{
+				return std::remove_reference_t<Predicate>{}.template operator() <
+					typename List::template element<Index>
+				> ();
+			}
 		};
 
 		template<typename Predicate>
-		static constexpr auto predicate_with_index_solver = [] <auto Index> {
+		struct predicate_with_index_solver
+		{
+			template<auto Index>
+			static constexpr bool solvable = requires
+			{
+				bool{ std::remove_reference_t<Predicate>{}.template operator() <
+					Index,
+					typename List::template element<Index>
+				> () };
+			};
 
-			return Predicate{}.template operator() < Index, typename List::template element<Index> > ();
+			template<auto Index>
+			static constexpr bool solve()
+			{
+				return std::remove_reference_t<Predicate>{}.template operator() <
+					Index,
+					typename List::template element<Index>
+				> ();
+			}
 		};
 
 		template<typename HomogeneousRelation>
-		static constexpr auto homogeneous_relation_solver = [] <auto Index1, auto Index2> {
+		struct homogeneous_relation_solver
+		{
+			template<auto Index1, auto Index2>
+			static constexpr bool solvable = requires
+			{
+				bool{ std::remove_reference_t<HomogeneousRelation>{}.template operator() <
+					typename List::template element<Index1>,
+					typename List::template element<Index2>
+				> () };
+			};
 
-			return HomogeneousRelation{}.template operator() <
-				typename List::template element<Index1>,
-				typename List::template element<Index2>
-			> ();
+			template<auto Index1, auto Index2>
+			static constexpr bool solve()
+			{
+				return std::remove_reference_t<HomogeneousRelation>{}.template operator() <
+					typename List::template element<Index1>,
+					typename List::template element<Index2>
+				> ();
+			}
 		};
 
 	};
@@ -1298,325 +1354,230 @@ namespace logicwise::detail
 		using index_type = typename index_trait::index_type;
 
 		template<typename Predicate>
-		static constexpr auto predicate_solver = [] <auto Index> {
+		struct predicate_solver
+		{
+			template<auto Index>
+			static constexpr bool solvable = requires
+			{
+				bool{ std::remove_reference_t<Predicate>{}.template operator() <
+					List::template element<Index>
+				> () };
+			};
 
-			return Predicate{}.template operator() < List::template element<Index> > ();
+			template<auto Index>
+			static constexpr bool solve()
+			{
+				return std::remove_reference_t<Predicate>{}.template operator() <
+					List::template element<Index>
+				> ();
+			}
 		};
 
 		template<typename Predicate>
-		static constexpr auto predicate_with_index_solver = [] <auto Index> {
+		struct predicate_with_index_solver
+		{
+			template<auto Index>
+			static constexpr bool solvable = requires
+			{
+				bool{ std::remove_reference_t<Predicate>{}.template operator() <
+					Index,
+					List::template element<Index>
+				> () };
+			};
 
-			return Predicate{}.template operator() < Index, List::template element<Index> > ();
+			template<auto Index>
+			static constexpr bool solve()
+			{
+				return std::remove_reference_t<Predicate>{}.template operator() <
+					Index,
+					List::template element<Index>
+				> ();
+			}
 		};
 
 		template<typename HomogeneousRelation>
-		static constexpr auto homogeneous_relation_solver = [] <auto Index1, auto Index2> {
+		struct homogeneous_relation_solver
+		{
+			template<auto Index1, auto Index2>
+			static constexpr bool solvable = requires
+			{
+				bool{ std::remove_reference_t<HomogeneousRelation>{}.template operator() <
+					List::template element<Index1>,
+					List::template element<Index2>
+				> () };
+			};
 
-			return HomogeneousRelation{}.template operator() <
-				List::template element<Index1>,
-				List::template element<Index2>
-			> ();
+			template<auto Index1, auto Index2>
+			static constexpr bool solve()
+			{
+				return std::remove_reference_t<HomogeneousRelation>{}.template operator() <
+					List::template element<Index1>,
+					List::template element<Index2>
+				> ();
+			}
 		};
 
 	};
 	
-
-	struct elementwise_view
+	struct type_list_error_reporter
 	{
-		using index_trait = IndexTraitScalar;
-		using index_type = typename index_trait::index_type;
-
-		template<typename PreviousView, auto ViewAdaptor = non_dependent_view_adaptor::identity>
-		struct type_list_view
+		template<typename Predicate>
+		static constexpr void incompatible_non_capturing_predicate()
 		{
-			using list = typename PreviousView::list;
-			
-			struct private_data
-			{
-				static constexpr auto data{ ViewAdaptor.template operator() < PreviousView::private_data::get_data() > () };
-				static constexpr auto get_data() noexcept { return data; }
-			};
+			static_assert(dependent_false_v<Predicate>,
+				"[logicwise] Error: Incompatible predicate signature!\n"
+				"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
+		}
 
+		template<typename Predicate>
+		static constexpr void incompatible_non_capturing_predicate_with_index()
+		{
+			static_assert(dependent_false_v<Predicate>,
+				"[logicwise] Error: Incompatible predicate signature!\n"
+				"Expected non-capturing lambda: [] <auto Index, typename Type>() -> bool { ... }");
+		}
 
-			using CurrentView = type_list_view;
+		template<typename EquivalenceRelation>
+		static constexpr void incompatible_non_capturing_equivalence_relation()
+		{
+			static_assert(dependent_false_v<EquivalenceRelation>,
+				"[logicwise] Error: Incompatible equivalence relation signature!\n"
+				"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
+		}
 
+		template<typename StrictWeakOrder>
+		static constexpr void incompatible_non_capturing_strict_weak_order()
+		{
+			static_assert(dependent_false_v<StrictWeakOrder>,
+				"[logicwise] Error: Incompatible strict weak order signature!\n"
+				"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
+		}
 
-			using BoolSolver = type_list_bool_solver<list>;
-			using DependentViewAdaptor = view_adaptor<BoolSolver>;
+		template<typename PartialOrder>
+		static constexpr void incompatible_non_capturing_partial_order()
+		{
+			static_assert(dependent_false_v<PartialOrder>,
+				"[logicwise] Error: Incompatible partial order signature!\n"
+				"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
+		}
 
-			struct private_constraint
-			{
-				template<typename Predicate>
-				static constexpr bool valid_predicate_for_first_element =
-					(private_data::data.size == 0) || requires
-				{
-					bool{ BoolSolver::template predicate_solver<Predicate>
-						.template operator() < private_data::data[0] > () };
-				};
+	};
 
-				template<typename Predicate>
-				static constexpr bool valid_predicate_for_last_element =
-					(private_data::data.size == 0) || requires
-				{
-					bool{ BoolSolver::template predicate_solver<Predicate>
-						.template operator() < private_data::data[private_data::data.size - 1] > () };
-				};
+	struct value_list_error_reporter
+	{
+		template<typename Predicate>
+		static constexpr void incompatible_non_capturing_predicate()
+		{
+			static_assert(dependent_false_v<Predicate>,
+				"[logicwise] Error: Incompatible predicate signature!\n"
+				"Expected non-capturing lambda: [] <auto Value>() -> bool { ... }");
+		}
 
-				template<typename Predicate>
-				static constexpr bool valid_predicate_with_index =
-					(private_data::data.size == 0) || requires
-				{
-					bool{ BoolSolver::template predicate_with_index_solver<Predicate>
-						.template operator() < private_data::data[0] > () };
-				};
+		template<typename Predicate>
+		static constexpr void incompatible_non_capturing_predicate_with_index()
+		{
+			static_assert(dependent_false_v<Predicate>,
+				"[logicwise] Error: Incompatible predicate signature!\n"
+				"Expected non-capturing lambda: [] <auto Index, auto Value>() -> bool { ... }");
+		}
 
-				template<typename HomogeneousRelation>
-				static constexpr bool valid_homogeneous_relation =
-					(private_data::data.size == 0) || requires
-				{
-					bool{ BoolSolver::template homogeneous_relation_solver<HomogeneousRelation>
-						.template operator() < private_data::data[0], private_data::data[0] > () };
-				};
+		template<typename EquivalenceRelation>
+		static constexpr void incompatible_non_capturing_equivalence_relation()
+		{
+			static_assert(dependent_false_v<EquivalenceRelation>,
+				"[logicwise] Error: Incompatible equivalence relation signature!\n"
+				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
+		}
 
-			};
+		template<typename StrictWeakOrder>
+		static constexpr void incompatible_non_capturing_strict_weak_order()
+		{
+			static_assert(dependent_false_v<StrictWeakOrder>,
+				"[logicwise] Error: Incompatible strict weak order signature!\n"
+				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
+		}
 
+		template<typename PartialOrder>
+		static constexpr void incompatible_non_capturing_partial_order()
+		{
+			static_assert(dependent_false_v<PartialOrder>,
+				"[logicwise] Error: Incompatible partial order signature!\n"
+				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
+		}
 
-			static constexpr auto reverse() { return type_list_view < CurrentView, non_dependent_view_adaptor::reverse > {}; }
+	};
 
-			//--------------------------------------------------------------------------------
+	template<typename List>
+	struct type_list_view_protocol
+	{
+		using bool_solver = type_list_bool_solver<List>;
+		using dependent_view_adaptor = view_adaptor<bool_solver>;
+		using error_reporter = type_list_error_reporter;
 
-			template<std::size_t Count>
-			static constexpr auto take() { return type_list_view < CurrentView, non_dependent_view_adaptor::take<Count> > {}; }
-
-			template<std::size_t Count>
-			static constexpr auto drop() { return type_list_view < CurrentView, non_dependent_view_adaptor::drop<Count> > {}; }
-
-			template<std::size_t Count>
-			static constexpr auto take_last() { return type_list_view < CurrentView, non_dependent_view_adaptor::take_last<Count> > {}; }
-
-			template<std::size_t Count>
-			static constexpr auto drop_last() { return type_list_view < CurrentView, non_dependent_view_adaptor::drop_last<Count> > {}; }
-
-			template<std::size_t Start, std::size_t End>
-			static constexpr auto slice() { return type_list_view < CurrentView, non_dependent_view_adaptor::slice<Start, End> >{}; }
-
-			//--------------------------------------------------------------------------------
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
-			static constexpr auto take_while(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template take_while<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
-			static constexpr auto take_until(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template take_until<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
-			static constexpr auto drop_while(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template drop_while<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
-			static constexpr auto drop_until(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template drop_until<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
-			static constexpr auto take_last_while(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template take_last_while<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
-			static constexpr auto take_last_until(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template take_last_until<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
-			static constexpr auto drop_last_while(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template drop_last_while<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
-			static constexpr auto drop_last_until(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template drop_last_until<Predicate> > {};
-			}
-
-			//--------------------------------------------------------------------------------
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
-			static constexpr auto select(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template select<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
-			static constexpr auto remove(Predicate&&)
-			{ return type_list_view < CurrentView, DependentViewAdaptor::template remove<Predicate> > {}; }
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_with_index<Predicate>)
-			static constexpr auto select_with_index(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template select_with_index<Predicate> > {};
-			}
-
-			template<typename Predicate>
-				requires (private_constraint::template valid_predicate_with_index<Predicate>)
-			static constexpr auto remove_with_index(Predicate&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template remove_with_index<Predicate> > {};
-			}
-
-			//--------------------------------------------------------------------------------
-
-			template<typename EquivalenceRelation>
-				requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
-			static constexpr auto unique_first(EquivalenceRelation&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template unique_first<EquivalenceRelation> > {};
-			}
-
-			template<typename EquivalenceRelation>
-				requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
-			static constexpr auto unique_last(EquivalenceRelation&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template unique_last<EquivalenceRelation> > {};
-			}
-
-			template<typename EquivalenceRelation>
-				requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
-			static constexpr auto unique_adjacent_first(EquivalenceRelation&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template unique_adjacent_first<EquivalenceRelation> > {};
-			}
-
-			template<typename EquivalenceRelation>
-				requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
-			static constexpr auto unique_adjacent_last(EquivalenceRelation&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template unique_adjacent_last<EquivalenceRelation> > {};
-			}
-
-			//--------------------------------------------------------------------------------
-
-			//严格弱序关系(Strict Weak Order)需要满足反自反性(Irreflexivity)、非对称性(Asymmetry)、传递性(Transitivity)
-			//以及不可比关系的传递性(Transitivity of Incomparability)。
-			//只满足前三种性质的关系为严格偏序关系(Strict Partial Order)，它的不可比关系不一定具备传递性。
-			template<typename StrictWeakOrder>
-				requires (private_constraint::template valid_homogeneous_relation<StrictWeakOrder>)
-			static constexpr auto sort(StrictWeakOrder&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template sort<StrictWeakOrder> > {};
-			}
-
-			//--------------------------------------------------------------------------------
-
-			//偏序关系(Partial Order)原则上要求所有元素满足自反性(Reflexivity)，但是 sort_with_partial_order 会把反自反的元素按原顺序放在最后。
-			//除此之外偏序关系(Partial Order)还要满足反对称性(Antisymmetry)、传递性(Transitivity)。
-			template<typename PartialOrder>
-				requires (private_constraint::template valid_homogeneous_relation<PartialOrder>)
-			static constexpr auto sort_with_partial_order(PartialOrder&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template sort_with_partial_order<PartialOrder> > {};
-			}
-
-			template<typename PartialOrder>
-				requires (private_constraint::template valid_homogeneous_relation<PartialOrder>)
-			static constexpr auto unique_first_with_partial_order(PartialOrder&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template unique_first_with_partial_order<PartialOrder> > {};
-			}
-
-			template<typename PartialOrder>
-				requires (private_constraint::template valid_homogeneous_relation<PartialOrder>)
-			static constexpr auto unique_last_with_partial_order(PartialOrder&&)
-			{
-				return type_list_view < CurrentView, DependentViewAdaptor::template unique_last_with_partial_order<PartialOrder> > {};
-			}
-
-			//--------------------------------------------------------------------------------
-
+		template<auto Data>
+		struct materializer
+		{
 			template<template<typename...> typename TypeWrapper = type_list>
-				requires requires { private_data::data; } //用于创建非特化路径的 bake() 来提示 IDE 返回类型
 			static constexpr auto bake()
 			{
-				return [] <std::size_t... I> (std::index_sequence<I...>) {
+				return[] <std::size_t... I> (std::index_sequence<I...>) {
 					return TypeWrapper<
-						typename list::template element<private_data::data[I]>...
+						typename List::template element<Data[I]>...
 					> {};
-				}(std::make_index_sequence<private_data::data.size>{});
+				}(std::make_index_sequence<Data.size>{});
 			}
 
 			template<template<typename...> typename TypeWrapper = type_list, typename Mapping>
-				requires (private_data::data.size == 0) || requires
+				requires (Data.size == 0) || requires
 			{
-				typename decltype(Mapping{}.template operator()
-					< typename list::template element<private_data::data[0]> > ())::type;
+				typename decltype(std::remove_reference_t<Mapping>{}.template operator()
+					< typename List::template element<Data[0]> > ())::type;
 			}
 			static constexpr auto forge_into_type(Mapping&&)
 			{
-				return [] <std::size_t... I> (std::index_sequence<I...>) {
+				return[] <std::size_t... I> (std::index_sequence<I...>) {
 					return TypeWrapper<
-						typename decltype(Mapping{}.template operator()
-							< typename list::template element<private_data::data[I]> > ())::type...
+						typename decltype(std::remove_reference_t<Mapping>{}.template operator()
+							< typename List::template element<Data[I]> > ())::type...
 					> {};
-				}(std::make_index_sequence<private_data::data.size>{});
+				}(std::make_index_sequence<Data.size>{});
 			}
 
 			template<template<typename> typename Mapping, template<typename...> typename TypeWrapper = type_list>
 			static constexpr auto forge_into_type()
 			{
-				return [] <std::size_t... I> (std::index_sequence<I...>) {
+				return[] <std::size_t... I> (std::index_sequence<I...>) {
 					return TypeWrapper <
-						Mapping< typename list::template element<private_data::data[I]> >...
+						Mapping< typename List::template element<Data[I]> >...
 					> {};
-				}(std::make_index_sequence<private_data::data.size>{});
+				}(std::make_index_sequence<Data.size>{});
 			}
 
 			template<template<auto...> typename ValueWrapper = value_list, typename Mapping>
-				requires (private_data::data.size == 0) || requires
+				requires (Data.size == 0) || requires
 			{
-				Mapping{}.template operator()
-					< typename list::template element<private_data::data[0]> > ();
+				std::remove_reference_t<Mapping>{}.template operator()
+					< typename List::template element<Data[0]> > ();
 			}
 			static constexpr auto forge_into_value(Mapping&&)
 			{
-				return [] <std::size_t... I> (std::index_sequence<I...>) {
-					return ValueWrapper<
-						Mapping{}.template operator()
-							< typename list::template element<private_data::data[I]> > ()...
+				return[] <std::size_t... I> (std::index_sequence<I...>) {
+					return ValueWrapper <
+						std::remove_reference_t<Mapping>{}.template operator()
+						< typename List::template element<Data[I]> > ()...
 					> {};
-				}(std::make_index_sequence<private_data::data.size>{});
+				}(std::make_index_sequence<Data.size>{});
 			}
 
 			template<typename MappingType>
-				requires (private_data::data.size == 0) || requires(MappingType && mapping)
+				requires (Data.size == 0) || requires(MappingType && mapping)
 			{
 				std::forward<MappingType>(mapping).template operator()
-					< typename list::template element<private_data::data[0]> > ();
+					< typename List::template element<Data[0]> > ();
 			}
 			static constexpr auto forge_into_instance(MappingType&& mapping)
 			{
-				if constexpr (private_data::data.size == 0)
+				if constexpr (Data.size == 0)
 				{
 					return std::array<std::monostate, 0>{};
 				}
@@ -1625,227 +1586,13 @@ namespace logicwise::detail
 					return[&] <std::size_t... I> (std::index_sequence<I...>) {
 						return std::array{
 							mapping.template operator()
-								< typename list::template element<private_data::data[I]> > ()...
+								< typename List::template element<Data[I]> > ()...
 						};
-					}(std::make_index_sequence<private_data::data.size>{});
+					}(std::make_index_sequence<Data.size>{});
 				}
 			}
 
 			//--------------------------------------------------------------------------------
-
-			template<typename Predicate>
-			static constexpr auto take_while(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto take_until(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto drop_while(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto drop_until(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto take_last_while(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto take_last_until(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto drop_last_while(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto drop_last_until(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto select(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto remove(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto select_with_index(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <auto Index, typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename Predicate>
-			static constexpr auto remove_with_index(Predicate&&)
-			{
-				static_assert(dependent_false_v<Predicate>,
-					"[logicwise] Error: Incompatible predicate signature!\n"
-					"Expected non-capturing lambda: [] <auto Index, typename Type>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename EquivalenceRelation>
-			static constexpr auto unique_first(EquivalenceRelation&&)
-			{
-				static_assert(dependent_false_v<EquivalenceRelation>,
-					"[logicwise] Error: Incompatible equivalence relation signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename EquivalenceRelation>
-			static constexpr auto unique_last(EquivalenceRelation&&)
-			{
-				static_assert(dependent_false_v<EquivalenceRelation>,
-					"[logicwise] Error: Incompatible equivalence relation signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename EquivalenceRelation>
-			static constexpr auto unique_adjacent_first(EquivalenceRelation&&)
-			{
-				static_assert(dependent_false_v<EquivalenceRelation>,
-					"[logicwise] Error: Incompatible equivalence relation signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename EquivalenceRelation>
-			static constexpr auto unique_adjacent_last(EquivalenceRelation&&)
-			{
-				static_assert(dependent_false_v<EquivalenceRelation>,
-					"[logicwise] Error: Incompatible equivalence relation signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename StrictWeakOrder>
-			static constexpr auto sort(StrictWeakOrder&&)
-			{
-				static_assert(dependent_false_v<StrictWeakOrder>,
-					"[logicwise] Error: Incompatible strict weak order signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename PartialOrder>
-			static constexpr auto sort_with_partial_order(PartialOrder&&)
-			{
-				static_assert(dependent_false_v<PartialOrder>,
-					"[logicwise] Error: Incompatible partial order signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename PartialOrder>
-			static constexpr auto unique_first_with_partial_order(PartialOrder&&)
-			{
-				static_assert(dependent_false_v<PartialOrder>,
-					"[logicwise] Error: Incompatible partial order signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			template<typename PartialOrder>
-			static constexpr auto unique_last_with_partial_order(PartialOrder&&)
-			{
-				static_assert(dependent_false_v<PartialOrder>,
-					"[logicwise] Error: Incompatible partial order signature!\n"
-					"Expected non-capturing lambda: [] <typename Type1, typename Type2>() -> bool { ... }");
-
-				return CurrentView{};
-			}
-
-			//用于提示 IDE 返回类型
-			template<template<typename...> typename TypeWrapper = type_list>
-			static constexpr auto bake()
-			{
-#if defined(__cpp_lib_unreachable) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_23
-				//C++23
-				std::unreachable();
-#else
-				//C++20
-				static_assert(dependent_false_v<TypeWrapper<>>, "[logicwise] Error: Unreachable.");
-#endif
-				return TypeWrapper<>{};
-			}
 
 			template<template<typename...> typename TypeWrapper = type_list, typename Mapping>
 			static constexpr auto forge_into_type(Mapping&&)
@@ -1879,64 +1626,557 @@ namespace logicwise::detail
 
 		};
 
-		template<typename PreviousView, auto ViewAdaptor = non_dependent_view_adaptor::identity>
-		struct value_list_view
+	};
+
+	template<typename List>
+	struct value_list_view_protocol
+	{
+		using bool_solver = value_list_bool_solver<List>;
+		using dependent_view_adaptor = view_adaptor<bool_solver>;
+		using error_reporter = value_list_error_reporter;
+
+		template<auto Data>
+		struct materializer
 		{
-			using list = typename PreviousView::list;
-
-			struct private_data
+			template<template<auto...> typename ValueWrapper = value_list>
+			static constexpr auto bake()
 			{
-				static constexpr auto data{ ViewAdaptor.template operator() < PreviousView::private_data::get_data() > () };
-				static constexpr auto get_data() noexcept { return data; }
-			};
+				return[] <std::size_t... I> (std::index_sequence<I...>)
+				{
+					return ValueWrapper<
+						List::template element<Data[I]>...
+					> {};
+				}(std::make_index_sequence<Data.size>{});
+			}
 
-
-			using CurrentView = value_list_view;
-
-
-			using BoolSolver = value_list_bool_solver<list>;
-			using DependentViewAdaptor = view_adaptor<BoolSolver>;
-
-			struct private_constraint
+			template<template<typename...> typename TypeWrapper = type_list, typename Mapping>
+				requires (Data.size == 0) || requires
 			{
-				template<typename Predicate>
-				static constexpr bool valid_predicate_for_first_element =
-					(private_data::data.size == 0) || requires
+				typename decltype(std::remove_reference_t<Mapping>{}.template operator()
+					< List::template element<Data[0]> > ())::type;
+			}
+			static constexpr auto forge_into_type(Mapping&&)
+			{
+				return[] <std::size_t... I> (std::index_sequence<I...>)
 				{
-					bool{ BoolSolver::template predicate_solver<Predicate>
-						.template operator() < private_data::data[0] > () };
-				};
+					return TypeWrapper<
+						typename decltype(std::remove_reference_t<Mapping>{}.template operator()
+							< List::template element<Data[I]> > ())::type...
+					> {};
+				}(std::make_index_sequence<Data.size>{});
+			}
 
-				template<typename Predicate>
-				static constexpr bool valid_predicate_for_last_element =
-					(private_data::data.size == 0) || requires
+			template<template<auto> typename Mapping, template<typename...> typename TypeWrapper = type_list>
+			static constexpr auto forge_into_type()
+			{
+				return[] <std::size_t... I> (std::index_sequence<I...>)
 				{
-					bool{ BoolSolver::template predicate_solver<Predicate>
-						.template operator() < private_data::data[private_data::data.size - 1] > () };
-				};
+					return TypeWrapper <
+						Mapping< List::template element<Data[I]> >...
+					> {};
+				}(std::make_index_sequence<Data.size>{});
+			}
 
-				template<typename Predicate>
-				static constexpr bool valid_predicate_with_index =
-					(private_data::data.size == 0) || requires
+			template<template<auto...> typename ValueWrapper = value_list, typename Mapping>
+				requires (Data.size == 0) || requires
+			{
+				std::remove_reference_t<Mapping>{}.template operator()
+					< List::template element<Data[0]> > ();
+			}
+			static constexpr auto forge_into_value(Mapping&&)
+			{
+				return[] <std::size_t... I> (std::index_sequence<I...>)
 				{
-					bool{ BoolSolver::template predicate_with_index_solver<Predicate>
-						.template operator() < private_data::data[0] > () };
-				};
+					return ValueWrapper <
+						std::remove_reference_t<Mapping>{}.template operator()
+						< List::template element<Data[I]> > ()...
+					> {};
+				}(std::make_index_sequence<Data.size>{});
+			}
 
-				template<typename HomogeneousRelation>
-				static constexpr bool valid_homogeneous_relation =
-					(private_data::data.size == 0) || requires
+			template<typename MappingType>
+				requires (Data.size == 0) || requires(MappingType && mapping)
+			{
+				std::forward<MappingType>(mapping).template operator()
+					< List::template element<Data[0]> > ();
+			}
+			static constexpr auto forge_into_instance(MappingType&& mapping)
+			{
+				if constexpr (Data.size == 0)
 				{
-					bool{ BoolSolver::template homogeneous_relation_solver<HomogeneousRelation>
-						.template operator() < private_data::data[0], private_data::data[0] > () };
-				};
+					return std::array<std::monostate, 0>{};
+				}
+				else
+				{
+					return[&] <std::size_t... I> (std::index_sequence<I...>)
+					{
+						return std::array{
+							mapping.template operator()
+								< List::template element<Data[I]> > ()...
+						};
+					}(std::make_index_sequence<Data.size>{});
+				}
+			}
 
-			};
+			//--------------------------------------------------------------------------------
 
+			template<template<typename...> typename TypeWrapper = type_list, typename Mapping>
+			static constexpr auto forge_into_type(Mapping&&)
+			{
+				static_assert(dependent_false_v<Mapping>,
+					"[logicwise] Error: Incompatible mapping signature!\n"
+					"Expected non-capturing lambda: [] <auto Value>() -> std::type_identity<...> { ... }");
 
+				return TypeWrapper<>{};
+			}
 
+			template<template<auto...> typename ValueWrapper = value_list, typename Mapping>
+			static constexpr auto forge_into_value(Mapping&&)
+			{
+				static_assert(dependent_false_v<Mapping>,
+					"[logicwise] Error: Incompatible mapping signature!\n"
+					"Expected non-capturing lambda: [] <auto Value>() -> auto { ... }");
+
+				return ValueWrapper<>{};
+			}
+
+			template<typename MappingType>
+			static constexpr auto forge_into_instance(MappingType&&)
+			{
+				static_assert(dependent_false_v<MappingType>,
+					"[logicwise] Error: Incompatible mapping signature!\n"
+					"Expected: [] <auto Value>() -> auto { ... }");
+
+				return std::array<std::monostate, 0>{};
+			}
 
 		};
+
+	};
+
+
+	template<typename ViewProtocol, auto Data>
+	struct concrete_view : ViewProtocol::template materializer<Data>
+	{
+		using bool_solver				= typename ViewProtocol::bool_solver;
+		using dependent_view_adaptor	= typename ViewProtocol::dependent_view_adaptor;
+		using error_reporter			= typename ViewProtocol::error_reporter;
+
+		using CurrentView = concrete_view;
+
+		struct private_constraint
+		{
+			template<typename Predicate>
+			static constexpr bool valid_predicate_for_first_element =
+				(Data.size == 0) || requires
+			{
+				requires bool_solver::template predicate_solver<Predicate>::template solvable<Data[0]>;
+			};
+
+			template<typename Predicate>
+			static constexpr bool valid_predicate_for_last_element =
+				(Data.size == 0) || requires
+			{
+				requires bool_solver::template predicate_solver<Predicate>::template solvable<Data[Data.size - 1]>;
+			};
+
+			template<typename Predicate>
+			static constexpr bool valid_predicate_with_index =
+				(Data.size == 0) || requires
+			{
+				requires bool_solver::template predicate_with_index_solver<Predicate>::template solvable<Data[0]>;
+			};
+
+			template<typename HomogeneousRelation>
+			static constexpr bool valid_homogeneous_relation =
+				(Data.size == 0) || requires
+			{
+				requires bool_solver::template homogeneous_relation_solver<HomogeneousRelation>::template solvable<Data[0], Data[0]>;
+			};
+
+		};
+
+		//--------------------------------------------------------------------------------
+
+		static constexpr auto reverse()
+		{
+			return concrete_view < ViewProtocol, non_dependent_view_adaptor
+				::reverse.template operator() < Data > () > {};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		template<std::size_t Count>
+		static constexpr auto take()
+		{
+			return concrete_view < ViewProtocol, non_dependent_view_adaptor
+				::take<Count>.template operator() < Data > () > {};
+		}
+
+		template<std::size_t Count>
+		static constexpr auto drop()
+		{
+			return concrete_view < ViewProtocol, non_dependent_view_adaptor
+				::drop<Count>.template operator() < Data > () > {};
+		}
+
+		template<std::size_t Count>
+		static constexpr auto take_last()
+		{
+			return concrete_view < ViewProtocol, non_dependent_view_adaptor
+				::take_last<Count>.template operator() < Data > () > {};
+		}
+
+		template<std::size_t Count>
+		static constexpr auto drop_last()
+		{
+			return concrete_view < ViewProtocol, non_dependent_view_adaptor
+				::drop_last<Count>.template operator() < Data > () > {};
+		}
+
+		template<std::size_t Start, std::size_t End>
+		static constexpr auto slice()
+		{
+			return concrete_view < ViewProtocol, non_dependent_view_adaptor
+				::slice<Start, End>.template operator() < Data > () >{};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
+		static constexpr auto take_while(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template take_while<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
+		static constexpr auto take_until(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template take_until<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
+		static constexpr auto drop_while(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template drop_while<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
+		static constexpr auto drop_until(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template drop_until<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
+		static constexpr auto take_last_while(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template take_last_while<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
+		static constexpr auto take_last_until(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template take_last_until<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
+		static constexpr auto drop_last_while(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template drop_last_while<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_last_element<Predicate>)
+		static constexpr auto drop_last_until(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template drop_last_until<Predicate>.template operator() < Data > () > {};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
+		static constexpr auto select(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template select<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_for_first_element<Predicate>)
+		static constexpr auto remove(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template remove<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_with_index<Predicate>)
+		static constexpr auto select_with_index(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template select_with_index<Predicate>.template operator() < Data > () > {};
+		}
+
+		template<typename Predicate>
+			requires (private_constraint::template valid_predicate_with_index<Predicate>)
+		static constexpr auto remove_with_index(Predicate&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template remove_with_index<Predicate>.template operator() < Data > () > {};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		template<typename EquivalenceRelation>
+			requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
+		static constexpr auto unique_first(EquivalenceRelation&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template unique_first<EquivalenceRelation>.template operator() < Data > () > {};
+		}
+
+		template<typename EquivalenceRelation>
+			requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
+		static constexpr auto unique_last(EquivalenceRelation&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template unique_last<EquivalenceRelation>.template operator() < Data > () > {};
+		}
+
+		template<typename EquivalenceRelation>
+			requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
+		static constexpr auto unique_adjacent_first(EquivalenceRelation&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template unique_adjacent_first<EquivalenceRelation>.template operator() < Data > () > {};
+		}
+
+		template<typename EquivalenceRelation>
+			requires (private_constraint::template valid_homogeneous_relation<EquivalenceRelation>)
+		static constexpr auto unique_adjacent_last(EquivalenceRelation&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template unique_adjacent_last<EquivalenceRelation>.template operator() < Data > () > {};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		//严格弱序关系(Strict Weak Order)需要满足反自反性(Irreflexivity)、非对称性(Asymmetry)、传递性(Transitivity)
+		//以及不可比关系的传递性(Transitivity of Incomparability)。
+		//只满足前三种性质的关系为严格偏序关系(Strict Partial Order)，它的不可比关系不一定具备传递性。
+		template<typename StrictWeakOrder>
+			requires (private_constraint::template valid_homogeneous_relation<StrictWeakOrder>)
+		static constexpr auto sort(StrictWeakOrder&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template sort<StrictWeakOrder>.template operator() < Data > () > {};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		//偏序关系(Partial Order)原则上要求所有元素满足自反性(Reflexivity)，但是 sort_with_partial_order 会把反自反的元素按原顺序放在最后。
+		//除此之外偏序关系(Partial Order)还要满足反对称性(Antisymmetry)、传递性(Transitivity)。
+		template<typename PartialOrder>
+			requires (private_constraint::template valid_homogeneous_relation<PartialOrder>)
+		static constexpr auto sort_with_partial_order(PartialOrder&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template sort_with_partial_order<PartialOrder>.template operator() < Data > () > {};
+		}
+
+		template<typename PartialOrder>
+			requires (private_constraint::template valid_homogeneous_relation<PartialOrder>)
+		static constexpr auto unique_first_with_partial_order(PartialOrder&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template unique_first_with_partial_order<PartialOrder>.template operator() < Data > () > {};
+		}
+
+		template<typename PartialOrder>
+			requires (private_constraint::template valid_homogeneous_relation<PartialOrder>)
+		static constexpr auto unique_last_with_partial_order(PartialOrder&&)
+		{
+			return concrete_view < ViewProtocol, dependent_view_adaptor
+				::template unique_last_with_partial_order<PartialOrder>.template operator() < Data > () > {};
+		}
+
+		//--------------------------------------------------------------------------------
+
+		template<typename Predicate>
+		static constexpr auto take_while(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto take_until(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto drop_while(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto drop_until(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto take_last_while(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto take_last_until(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto drop_last_while(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto drop_last_until(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto select(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto remove(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+
+			return CurrentView{};
+		}
+
+		template<typename Predicate>
+		static constexpr auto select_with_index(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate_with_index<Predicate>();
+
+			return CurrentView{};
+		}
+		
+		template<typename Predicate>
+		static constexpr auto remove_with_index(Predicate&&)
+		{
+			error_reporter::template incompatible_non_capturing_predicate_with_index<Predicate>();
+
+			return CurrentView{};
+		}
+		
+		template<typename EquivalenceRelation>
+		static constexpr auto unique_first(EquivalenceRelation&&)
+		{
+			error_reporter::template incompatible_non_capturing_equivalence_relation<EquivalenceRelation>();
+
+			return CurrentView{};
+		}
+
+		template<typename EquivalenceRelation>
+		static constexpr auto unique_last(EquivalenceRelation&&)
+		{
+			error_reporter::template incompatible_non_capturing_equivalence_relation<EquivalenceRelation>();
+
+			return CurrentView{};
+		}
+
+		template<typename EquivalenceRelation>
+		static constexpr auto unique_adjacent_first(EquivalenceRelation&&)
+		{
+			error_reporter::template incompatible_non_capturing_equivalence_relation<EquivalenceRelation>();
+
+			return CurrentView{};
+		}
+
+		template<typename EquivalenceRelation>
+		static constexpr auto unique_adjacent_last(EquivalenceRelation&&)
+		{
+			error_reporter::template incompatible_non_capturing_equivalence_relation<EquivalenceRelation>();
+
+			return CurrentView{};
+		}
+
+		template<typename StrictWeakOrder>
+		static constexpr auto sort(StrictWeakOrder&&)
+		{
+			error_reporter::template incompatible_non_capturing_strict_weak_order<StrictWeakOrder>();
+
+			return CurrentView{};
+		}
+
+		template<typename PartialOrder>
+		static constexpr auto sort_with_partial_order(PartialOrder&&)
+		{
+			error_reporter::template incompatible_non_capturing_partial_order<PartialOrder>();
+
+			return CurrentView{};
+		}
+
+		template<typename PartialOrder>
+		static constexpr auto unique_first_with_partial_order(PartialOrder&&)
+		{
+			error_reporter::template incompatible_non_capturing_partial_order<PartialOrder>();
+
+			return CurrentView{};
+		}
+
+		template<typename PartialOrder>
+		static constexpr auto unique_last_with_partial_order(PartialOrder&&)
+		{
+			error_reporter::template incompatible_non_capturing_partial_order<PartialOrder>();
+
+			return CurrentView{};
+		}
 
 	};
 
@@ -1948,13 +2188,23 @@ namespace logicwise::detail
 		template<typewise::List WrapperInstance>
 		[[nodiscard]] static constexpr auto in()
 		{
-			return elementwise_view::type_list_view<initial_wrapper_instance_view<as_type_list<WrapperInstance>>>{};
+			using List = as_type_list<WrapperInstance>;
+
+			return concrete_view<
+					type_list_view_protocol<List>,
+					initial_view_data<List>()
+				>{};
 		}
 
 		template<valuewise::List WrapperInstance>
 		[[nodiscard]] static constexpr auto in()
 		{
-			return elementwise_view::value_list_view<initial_wrapper_instance_view<as_value_list<WrapperInstance>>>{};
+			using List = as_value_list<WrapperInstance>;
+
+			return concrete_view<
+					value_list_view_protocol<List>,
+					initial_view_data<List>()
+				>{};
 		}
 
 		template<typename WrapperInstance>
@@ -1981,21 +2231,15 @@ namespace logicwise::detail
 		using extent_type = typename Arrangement::extent_type;
 		using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
 
-		template<typename WrapperInstance>
-		struct initial_wrapper_instance_view
+		template<typename List>
+		static constexpr auto initial_view_data()
 		{
-			using list = WrapperInstance;
-
-			static constexpr extent_type Extent{ list::size };
+			constexpr extent_type Extent{ List::size };
 			using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
-			static constexpr auto IndexArray{ IndexSequencer::generate_index_array() };
+			constexpr auto IndexArray{ IndexSequencer::generate_index_array() };
 
-			struct private_data
-			{
-				static constexpr auto get_data() noexcept { return ViewData{ IndexArray, std::size_t{ 0 }, IndexArray.size() }; }
-			};
-
-		};
+			return ViewData{ IndexArray, 0, IndexArray.size() };
+		}
 
 	};
 
