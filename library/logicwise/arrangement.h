@@ -34,6 +34,17 @@ namespace logicwise::arrangement
 	using detail::linear_adjacent_triplet; //单向线性相邻三元组
 	using detail::circular_adjacent_triplet; //单向环状相邻三元组
 
+	//排布::逐多元组 arrangement::multipletwise================================================================================
+
+	//[未实现] [unimplemented]
+
+	// _multiplet<Arity>
+
+	using detail::permutation_multiplet; //全排列多元组
+	using detail::combination_multiplet; //保序组合多元组
+	using detail::linear_adjacent_multiplet; //单向线性相邻多元组
+	using detail::circular_adjacent_multiplet; //单向环状相邻多元组
+
 	//排布::二部 arrangement::bipartite================================================================================
 
 	using detail::cartesian_pair; //笛卡尔积对

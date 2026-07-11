@@ -12,8 +12,6 @@
 #include <logicwise/semantics/vector_like_container.h>
 #include <logicwise/semantics/padding/template_element_padder.h>
 #include <logicwise/semantics/padding/padding_instance_trait.h>
-#include "view_loop.h"
-#include "view_bake.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke
 #include <utility> //用于 std::forward
