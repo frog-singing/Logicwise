@@ -21,6 +21,8 @@ namespace logicwise::detail
 				"Expected non-capturing lambda: [] <auto Value>() -> bool { ... }");
 		}
 
+		//--------------------------------------------------------------------------------
+
 		template<typename Predicate>
 		static constexpr void incompatible_non_capturing_predicate_with_index()
 		{
@@ -28,6 +30,8 @@ namespace logicwise::detail
 				"[logicwise] Error: Incompatible predicate signature!\n"
 				"Expected non-capturing lambda: [] <auto Index, auto Value>() -> bool { ... }");
 		}
+
+		//--------------------------------------------------------------------------------
 
 		template<typename EquivalenceRelation>
 		static constexpr void incompatible_non_capturing_equivalence_relation()
@@ -45,11 +49,27 @@ namespace logicwise::detail
 				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
 		}
 
-		template<typename PartialOrder>
-		static constexpr void incompatible_non_capturing_partial_order()
+		template<typename PartialWeakOrder>
+		static constexpr void incompatible_non_capturing_partial_weak_order()
 		{
-			static_assert(dependent_false_v<PartialOrder>,
-				"[logicwise] Error: Incompatible partial order signature!\n"
+			static_assert(dependent_false_v<PartialWeakOrder>,
+				"[logicwise] Error: Incompatible partial weak order signature!\n"
+				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
+		}
+
+		template<typename StrictPartialOrder>
+		static constexpr void incompatible_non_capturing_strict_partial_order()
+		{
+			static_assert(dependent_false_v<StrictPartialOrder>,
+				"[logicwise] Error: Incompatible strict partial order signature!\n"
+				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
+		}
+
+		template<typename PartialPartialOrder>
+		static constexpr void incompatible_non_capturing_partial_partial_order()
+		{
+			static_assert(dependent_false_v<PartialPartialOrder>,
+				"[logicwise] Error: Incompatible partial partial order signature!\n"
 				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
 		}
 

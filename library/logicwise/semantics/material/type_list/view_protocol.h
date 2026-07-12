@@ -5,7 +5,7 @@
 #pragma once
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
-#include <logicwise/mode/view/view_adaptor.h>
+#include <logicwise/mode/view/adaptor/view_adaptor.h>
 #include "agent.h"
 #include "error_reporter.h"
 #include <utility> //用于 std::forward, std::index_sequence, std::make_index_sequence

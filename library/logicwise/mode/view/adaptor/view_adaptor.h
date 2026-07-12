@@ -858,7 +858,7 @@ namespace logicwise::detail
 				static constexpr std::size_t Size{ LeftSize + RightSize };
 
 				template<std::size_t LeftCursor, std::size_t RightCursor>
-				static constexpr void merge(std::array<index_type, Size>& merged_index_array)
+				static constexpr void merge_at(std::array<index_type, Size>& merged_index_array)
 				{
 					constexpr std::size_t MergedSize{ LeftCursor + RightCursor };
 
@@ -882,12 +882,12 @@ namespace logicwise::detail
 							::template solve<RightData[RightCursor], LeftData[LeftCursor]>())
 						{
 							merged_index_array[MergedSize] = RightData[RightCursor];
-							merge<LeftCursor, RightCursor + 1>(merged_index_array);
+							merge_at<LeftCursor, RightCursor + 1>(merged_index_array);
 						}
 						else
 						{
 							merged_index_array[MergedSize] = LeftData[LeftCursor];
-							merge<LeftCursor + 1, RightCursor>(merged_index_array);
+							merge_at<LeftCursor + 1, RightCursor>(merged_index_array);
 						}
 					}
 				}
@@ -929,7 +929,7 @@ namespace logicwise::detail
 
 				std::array<index_type, Size> merged_index_array{};
 
-				data_merger<SortedLeftData, SortedRightData>::template merge<0, 0>(merged_index_array);
+				data_merger<SortedLeftData, SortedRightData>::template merge_at<0, 0>(merged_index_array);
 
 				return ViewData{ merged_index_array, 0, Size };
 			}
@@ -943,8 +943,8 @@ namespace logicwise::detail
 
 		//================================================================================
 
-		template<typename PartialOrder>
-		struct sort_with_partial_order
+		template<typename PartialWeakOrder>
+		struct sort_with_partial_weak_order
 		{
 			template<auto Data> requires (Data.size == 0)
 			static constexpr auto merge_sort() { return ViewData<index_type, 0>{ {}, 0, 0 }; }
@@ -955,7 +955,7 @@ namespace logicwise::detail
 			template<auto Data> requires (Data.size == 2)
 			static constexpr auto merge_sort()
 			{
-				if constexpr (homogeneous_relation_solver<PartialOrder>
+				if constexpr (homogeneous_relation_solver<PartialWeakOrder>
 					::template solve<Data[0], Data[1]>())
 				{
 					return ViewData<index_type, 2>{ { Data[0], Data[1] }, 0, 2 };
@@ -974,7 +974,7 @@ namespace logicwise::detail
 				static constexpr std::size_t Size{ LeftSize + RightSize };
 
 				template<std::size_t LeftCursor, std::size_t RightCursor>
-				static constexpr void merge(std::array<index_type, Size>& merged_index_array)
+				static constexpr void merge_at(std::array<index_type, Size>& merged_index_array)
 				{
 					constexpr std::size_t MergedSize{ LeftCursor + RightCursor };
 
@@ -994,16 +994,16 @@ namespace logicwise::detail
 					}
 					else
 					{
-						if constexpr (homogeneous_relation_solver<PartialOrder>
+						if constexpr (homogeneous_relation_solver<PartialWeakOrder>
 							::template solve<LeftData[LeftCursor], RightData[RightCursor]>())
 						{
 							merged_index_array[MergedSize] = LeftData[LeftCursor];
-							merge<LeftCursor + 1, RightCursor>(merged_index_array);
+							merge_at<LeftCursor + 1, RightCursor>(merged_index_array);
 						}
 						else
 						{
 							merged_index_array[MergedSize] = RightData[RightCursor];
-							merge<LeftCursor, RightCursor + 1>(merged_index_array);
+							merge_at<LeftCursor, RightCursor + 1>(merged_index_array);
 						}
 					}
 				}
@@ -1045,7 +1045,7 @@ namespace logicwise::detail
 
 				std::array<index_type, Size> merged_index_array{};
 
-				data_merger<SortedLeftData, SortedRightData>::template merge<0, 0>(merged_index_array);
+				data_merger<SortedLeftData, SortedRightData>::template merge_at<0, 0>(merged_index_array);
 
 				return ViewData{ merged_index_array, 0, Size };
 			}
@@ -1064,7 +1064,7 @@ namespace logicwise::detail
 					//C++26
 					template for (constexpr auto Index : Data)
 					{
-						if constexpr (homogeneous_relation_solver<PartialOrder>
+						if constexpr (homogeneous_relation_solver<PartialWeakOrder>
 							::template solve<Index, Index>())
 						{
 							reflexive_index_array[reflexive_size] = Index;
@@ -1075,7 +1075,7 @@ namespace logicwise::detail
 					//C++20
 					[&] <std::size_t... I> (std::index_sequence<I...>) {
 						(..., [&] <auto Index> {
-							if constexpr (homogeneous_relation_solver<PartialOrder>
+							if constexpr (homogeneous_relation_solver<PartialWeakOrder>
 								::template solve<Index, Index>())
 							{
 								reflexive_index_array[reflexive_size] = Index;
@@ -1099,7 +1099,7 @@ namespace logicwise::detail
 				//C++26
 				template for (constexpr auto Index : Data)
 				{
-					if constexpr (!homogeneous_relation_solver<PartialOrder>
+					if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
 						::template solve<Index, Index>())
 					{
 						sorted_index_array[irreflexive_cursor] = Index;
@@ -1110,7 +1110,7 @@ namespace logicwise::detail
 				//C++20
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(..., [&] <auto Index> {
-						if constexpr (!homogeneous_relation_solver<PartialOrder>
+						if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
 							::template solve<Index, Index>())
 						{
 							sorted_index_array[irreflexive_cursor] = Index;
@@ -1133,8 +1133,8 @@ namespace logicwise::detail
 
 		//--------------------------------------------------------------------------------
 		
-		template<typename PartialOrder>
-		struct unique_first_with_partial_order
+		template<typename PartialWeakOrder>
+		struct unique_first_with_partial_weak_order
 		{
 			template<auto Data>
 			static constexpr auto adapt()
@@ -1145,8 +1145,32 @@ namespace logicwise::detail
 
 		//--------------------------------------------------------------------------------
 		
-		template<typename PartialOrder>
-		struct unique_last_with_partial_order
+		template<typename PartialWeakOrder>
+		struct unique_last_with_partial_weak_order
+		{
+			template<auto Data>
+			static constexpr auto adapt()
+			{
+				return Data;
+			}
+		};
+
+		//================================================================================
+
+		template<typename StrictPartialOrder>
+		struct sort_with_strict_partial_order
+		{
+			template<auto Data>
+			static constexpr auto adapt()
+			{
+				return Data;
+			}
+		};
+
+		//================================================================================
+
+		template<typename PartialPartialOrder>
+		struct sort_with_partial_partial_order
 		{
 			template<auto Data>
 			static constexpr auto adapt()

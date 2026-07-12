@@ -10,7 +10,7 @@
 #include <logicwise/index/index_sequencer.h>
 #include <logicwise/semantics/material/type_list/view_protocol.h>
 #include <logicwise/semantics/material/value_list/view_protocol.h>
-#include "concrete_view.h"
+#include "pipeline/concrete_view.h"
 
 
 namespace logicwise::detail
@@ -34,10 +34,10 @@ namespace logicwise::detail
 		{
 			using List = as_type_list<WrapperInstance>;
 
-			return concrete_view<
+			return typename concrete_view<
 					type_list_view_protocol<List>,
 					initial_view_data<List>()
-				>{};
+				>::view{};
 		}
 
 		template<valuewise::List WrapperInstance>
@@ -45,10 +45,10 @@ namespace logicwise::detail
 		{
 			using List = as_value_list<WrapperInstance>;
 
-			return concrete_view<
+			return typename concrete_view<
 					value_list_view_protocol<List>,
 					initial_view_data<List>()
-				>{};
+				>::view{};
 		}
 
 		template<typename WrapperInstance>
