@@ -5,8 +5,8 @@
 #pragma once
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/type.h>
-#include <logicwise/detail/extent_component_mismatch.h>
-#include <logicwise/detail/safe_integer_cast.h>
+#include <logicwise/semantics/guard/extent_component_mismatch.h>
+#include <logicwise/semantics/guard/safe_integer_cast.h>
 #include <cstddef> //用于 std::size_t
 #include <algorithm> //用于 std::min
 #include <cassert> //用于 assert

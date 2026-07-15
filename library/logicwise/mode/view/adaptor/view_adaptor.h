@@ -7,10 +7,11 @@
 #include <logicwise/external_detail/cxx_standard.h>
 
 #include <logicwise/index/type.h>
+#include <logicwise/semantics/guard/cycle_detected_in_graph.h>
 #include <utility> //用于 std::index_sequence, std::make_index_sequence
 #include <cstddef> //用于 std::size_t
 #include <array> //用于 std::array
-#include <ranges> //用于 std::views，C++20标准
+#include <ranges> //用于 std::ranges, std::views，C++20标准
 
 
 //逻辑维度::细节
@@ -128,7 +129,7 @@ namespace logicwise::detail
 			{
 				constexpr std::size_t NextOffset{ 0 };
 
-				constexpr std::size_t NextSize = [] {
+				constexpr std::size_t NextSize = []{
 
 					std::size_t next_size{ Data.size };
 
@@ -180,7 +181,7 @@ namespace logicwise::detail
 			{
 				constexpr std::size_t NextOffset{ 0 };
 
-				constexpr std::size_t NextSize = [] {
+				constexpr std::size_t NextSize = []{
 
 					std::size_t next_size{ Data.size };
 
@@ -318,7 +319,7 @@ namespace logicwise::detail
 			{
 				constexpr std::size_t NextOffset{ 0 };
 
-				constexpr std::size_t NextSize = [] {
+				constexpr std::size_t NextSize = []{
 
 					std::size_t next_size{ Data.size };
 
@@ -370,7 +371,7 @@ namespace logicwise::detail
 			{
 				constexpr std::size_t NextOffset{ 0 };
 
-				constexpr std::size_t NextSize = [] {
+				constexpr std::size_t NextSize = []{
 
 					std::size_t next_size{ Data.size };
 
@@ -596,10 +597,10 @@ namespace logicwise::detail
 
 					template for (constexpr std::size_t J : std::views::iota(0uz, I))
 					{
-						constexpr auto InnerIndex = Data[J];
+						constexpr auto RightIndex = Data[J];
 
 						if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-							::template solve<OuterIndex, InnerIndex>())
+							::template solve<OuterIndex, RightIndex>())
 						{
 							should_collect = false;
 							break;
@@ -619,9 +620,9 @@ namespace logicwise::detail
 						bool should_collect{ true };
 
 						[&] <std::size_t... J> (std::index_sequence<J...>) {
-							(... || [&] <auto InnerIndex> {
+							(... || [&] <auto RightIndex> {
 								if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-									::template solve<OuterIndex, InnerIndex>())
+									::template solve<OuterIndex, RightIndex>())
 								{
 									should_collect = false;
 									return true;
@@ -667,10 +668,10 @@ namespace logicwise::detail
 
 					template for (constexpr std::size_t J : std::views::iota(I + 1, Size) | std::views::reverse)
 					{
-						constexpr auto InnerIndex = Data[J];
+						constexpr auto RightIndex = Data[J];
 
 						if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-							::template solve<OuterIndex, InnerIndex>())
+							::template solve<OuterIndex, RightIndex>())
 						{
 							should_collect = false;
 							break;
@@ -690,9 +691,9 @@ namespace logicwise::detail
 						bool should_collect{ true };
 
 						[&] <std::size_t... J> (std::index_sequence<J...>) {
-							(... || [&] <auto InnerIndex> {
+							(... || [&] <auto RightIndex> {
 								if constexpr (homogeneous_relation_solver<EquivalenceRelation>
-									::template solve<OuterIndex, InnerIndex>())
+									::template solve<OuterIndex, RightIndex>())
 								{
 									should_collect = false;
 									return true;
@@ -900,7 +901,7 @@ namespace logicwise::detail
 				constexpr std::size_t LeftSize{ Size / 2 };
 				constexpr std::size_t RightSize{ Size - LeftSize };
 
-				constexpr auto LeftData = [] {
+				constexpr auto LeftData = []{
 
 					std::array<index_type, LeftSize> left_index_array{};
 
@@ -912,7 +913,7 @@ namespace logicwise::detail
 					return ViewData{ left_index_array, 0, LeftSize };
 				}();
 
-				constexpr auto RightData = [] {
+				constexpr auto RightData = []{
 
 					std::array<index_type, RightSize> right_index_array{};
 
@@ -1016,7 +1017,7 @@ namespace logicwise::detail
 				constexpr std::size_t LeftSize{ Size / 2 };
 				constexpr std::size_t RightSize{ Size - LeftSize };
 
-				constexpr auto LeftData = [] {
+				constexpr auto LeftData = []{
 
 					std::array<index_type, LeftSize> left_index_array{};
 
@@ -1028,7 +1029,7 @@ namespace logicwise::detail
 					return ViewData{ left_index_array, 0, LeftSize };
 				}();
 
-				constexpr auto RightData = [] {
+				constexpr auto RightData = []{
 
 					std::array<index_type, RightSize> right_index_array{};
 
@@ -1055,7 +1056,7 @@ namespace logicwise::detail
 			{
 				constexpr std::size_t Size{ Data.size };
 
-				constexpr auto ReflexiveData = [] {
+				constexpr auto ReflexiveData = []{
 
 					std::array<index_type, Size> reflexive_index_array{};
 					std::size_t reflexive_size{ 0 };
@@ -1158,19 +1159,112 @@ namespace logicwise::detail
 		//================================================================================
 
 		template<typename StrictPartialOrder>
-		struct sort_with_strict_partial_order
+		struct sort_topologically_with_strict_partial_order
 		{
 			template<auto Data>
 			static constexpr auto adapt()
 			{
-				return Data;
+				constexpr std::size_t Size{ Data.size };
+
+				std::array<std::array<bool, Size>, Size> relation_matrix{};
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr std::size_t I : std::views::iota(0uz, Size))
+				{
+					constexpr auto LeftIndex = Data[I];
+					auto& relation_matrix_row = relation_matrix[I];
+
+					template for (constexpr std::size_t J : std::views::iota(0uz, Size))
+					{
+						constexpr auto RightIndex = Data[J];
+
+						relation_matrix_row[J] =
+							homogeneous_relation_solver<StrictPartialOrder>
+							::template solve<LeftIndex, RightIndex>();
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <auto LeftIndex> {
+						auto& relation_matrix_row = relation_matrix[I];
+
+						[&] <std::size_t... J> (std::index_sequence<J...>) {
+							(..., [&] <auto RightIndex> {
+								relation_matrix_row[J] =
+									homogeneous_relation_solver<StrictPartialOrder>
+									::template solve<LeftIndex, RightIndex>();
+							}.template operator() < Data[J] > ());
+						}(std::make_index_sequence<Size>{});
+					}.template operator() < Data[I] > ());
+				}(std::make_index_sequence<Size>{});
+#endif
+
+				std::array<std::size_t, Size> predecessor_count_array{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					const auto& relation_matrix_row{ relation_matrix[i] };
+
+					for (std::size_t j{ 0 }; j < Size; ++j)
+					{
+						if (relation_matrix_row[j]) { ++predecessor_count_array[j]; }
+					}
+				}
+
+				std::size_t processed_count{ 0 };
+				std::size_t sorted_count{ 0 };
+				std::array<std::size_t, Size> position_array{};
+				std::array<index_type, Size> sorted_index_array{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					if (predecessor_count_array[i] == 0)
+					{
+						sorted_index_array[sorted_count] = Data[i];
+						position_array[sorted_count] = i;
+						++sorted_count;
+					}
+				}
+
+				while (sorted_count < Size)
+				{
+					std::size_t current_position{ position_array[processed_count] };
+					const auto& current_relation_matrix_row{ relation_matrix[current_position] };
+
+					for (std::size_t i{ 0 }; i < Size; ++i)
+					{
+						if (current_relation_matrix_row[i])
+						{
+							auto& predecessor_count{ predecessor_count_array[i] };
+							--predecessor_count;
+
+							if (predecessor_count == 0)
+							{
+								sorted_index_array[sorted_count] = Data[i];
+								position_array[sorted_count] = i;
+								++sorted_count;
+							}
+						}
+					}
+
+					++processed_count;
+
+					if (processed_count >= sorted_count) [[unlikely]]
+					{
+						cycle_detected_in_graph();
+					}
+				}
+
+				return ViewData{ sorted_index_array, 0, Size };
 			}
 		};
 
 		//================================================================================
 
 		template<typename PartialPartialOrder>
-		struct sort_with_partial_partial_order
+		struct sort_topologically_with_partial_partial_order
 		{
 			template<auto Data>
 			static constexpr auto adapt()

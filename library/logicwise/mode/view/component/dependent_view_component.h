@@ -171,21 +171,21 @@ namespace logicwise::detail
 			//严格偏序关系(Strict Partial Order)要求元素满足反自反性(Irreflexivity)、非对称性(Asymmetry)、传递性(Transitivity)。
 			template<typename StrictPartialOrder>
 				requires constraint::template valid_homogeneous_relation<StrictPartialOrder>
-			static constexpr auto sort_with_strict_partial_order(StrictPartialOrder&&)
+			static constexpr auto sort_topologically_with_strict_partial_order(StrictPartialOrder&&)
 			{
-				return new_view< typename dependent_view_adaptor::template sort_with_strict_partial_order<StrictPartialOrder> >{};
+				return new_view< typename dependent_view_adaptor::template sort_topologically_with_strict_partial_order<StrictPartialOrder> >{};
 			}
 
 			//--------------------------------------------------------------------------------
 
 			//部分偏序关系(Partial Partial Order)要求，当元素满足自反性(Reflexivity)时，
 			//需要同时满足反对称性(Antisymmetry)和传递性(Transitivity)。
-			//sort_with_partial_partial_order 会把反自反(irreflexive)的元素按原顺序放在最后。
+			//sort_topologically_with_partial_partial_order 会把反自反(irreflexive)的元素按原顺序放在最后。
 			template<typename PartialPartialOrder>
 				requires constraint::template valid_homogeneous_relation<PartialPartialOrder>
-			static constexpr auto sort_with_partial_partial_order(PartialPartialOrder&&)
+			static constexpr auto sort_topologically_with_partial_partial_order(PartialPartialOrder&&)
 			{
-				return new_view< typename dependent_view_adaptor::template sort_with_partial_partial_order<PartialPartialOrder> >{};
+				return new_view< typename dependent_view_adaptor::template sort_topologically_with_partial_partial_order<PartialPartialOrder> >{};
 			}
 
 			//================================================================================
@@ -345,7 +345,7 @@ namespace logicwise::detail
 			//--------------------------------------------------------------------------------
 
 			template<typename StrictPartialOrder>
-			static constexpr auto sort_with_strict_partial_order(StrictPartialOrder&&)
+			static constexpr auto sort_topologically_with_strict_partial_order(StrictPartialOrder&&)
 			{
 				error_reporter::template incompatible_non_capturing_strict_partial_order<StrictPartialOrder>();
 
@@ -355,7 +355,7 @@ namespace logicwise::detail
 			//--------------------------------------------------------------------------------
 
 			template<typename PartialPartialOrder>
-			static constexpr auto sort_with_partial_partial_order(PartialPartialOrder&&)
+			static constexpr auto sort_topologically_with_partial_partial_order(PartialPartialOrder&&)
 			{
 				error_reporter::template incompatible_non_capturing_partial_partial_order<PartialPartialOrder>();
 

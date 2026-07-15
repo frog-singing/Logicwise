@@ -5,7 +5,7 @@
 #pragma once
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/type.h>
-#include <logicwise/detail/safe_integer_cast.h>
+#include <logicwise/semantics/guard/safe_integer_cast.h>
 #include <logicwise/arrangement/voidwise/void.h>
 #include <logicwise/arrangement/elementwise/element.h>
 #include <logicwise/arrangement/pairwise/circular_adjacent_pair.h>

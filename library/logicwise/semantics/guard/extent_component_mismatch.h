@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
-#include <logicwise/external_detail/exosuit.h>
 #include <cassert> //用于 assert
 #include <exception> //用于 std::terminate
 

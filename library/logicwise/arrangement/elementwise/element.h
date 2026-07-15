@@ -5,7 +5,7 @@
 #pragma once
 #include <logicwise/arrangement/type.h>
 #include <logicwise/index/type.h>
-#include <logicwise/detail/safe_integer_cast.h>
+#include <logicwise/semantics/guard/safe_integer_cast.h>
 #include <cstddef> //用于 std::size_t
 #include <cassert> //用于 assert
 
