@@ -2,6 +2,8 @@
 
 # Logicwise
 
+**逻辑导向**
+
 *一个 C++ 概念工厂*
 
 [English](README.md) | 简体中文

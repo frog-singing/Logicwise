@@ -1158,11 +1158,11 @@ namespace logicwise::detail
 
 		//================================================================================
 
-		template<typename StrictPartialOrder>
-		struct sort_topologically_with_strict_partial_order
+		template<typename AcyclicRelation>
+		struct sort_topologically
 		{
 			template<auto Data>
-			static constexpr auto adapt()
+			static constexpr auto kahn_topological_sort()
 			{
 				constexpr std::size_t Size{ Data.size };
 
@@ -1172,15 +1172,15 @@ namespace logicwise::detail
 				//C++26
 				template for (constexpr std::size_t I : std::views::iota(0uz, Size))
 				{
-					constexpr auto LeftIndex = Data[I];
-					auto& relation_matrix_row = relation_matrix[I];
+					constexpr auto LeftIndex{ Data[I] };
+					auto& relation_matrix_row{ relation_matrix[I] };
 
 					template for (constexpr std::size_t J : std::views::iota(0uz, Size))
 					{
-						constexpr auto RightIndex = Data[J];
+						constexpr auto RightIndex{ Data[J] };
 
 						relation_matrix_row[J] =
-							homogeneous_relation_solver<StrictPartialOrder>
+							homogeneous_relation_solver<AcyclicRelation>
 							::template solve<LeftIndex, RightIndex>();
 					}
 				}
@@ -1188,12 +1188,12 @@ namespace logicwise::detail
 				//C++20
 				[&] <std::size_t... I> (std::index_sequence<I...>) {
 					(..., [&] <auto LeftIndex> {
-						auto& relation_matrix_row = relation_matrix[I];
+						auto& relation_matrix_row{ relation_matrix[I] };
 
 						[&] <std::size_t... J> (std::index_sequence<J...>) {
 							(..., [&] <auto RightIndex> {
 								relation_matrix_row[J] =
-									homogeneous_relation_solver<StrictPartialOrder>
+									homogeneous_relation_solver<AcyclicRelation>
 									::template solve<LeftIndex, RightIndex>();
 							}.template operator() < Data[J] > ());
 						}(std::make_index_sequence<Size>{});
@@ -1201,7 +1201,7 @@ namespace logicwise::detail
 				}(std::make_index_sequence<Size>{});
 #endif
 
-				std::array<std::size_t, Size> predecessor_count_array{};
+				std::array<std::size_t, Size> predecessor_count_map{};
 
 				for (std::size_t i{ 0 }; i < Size; ++i)
 				{
@@ -1209,41 +1209,41 @@ namespace logicwise::detail
 
 					for (std::size_t j{ 0 }; j < Size; ++j)
 					{
-						if (relation_matrix_row[j]) { ++predecessor_count_array[j]; }
+						if (relation_matrix_row[j]) { ++predecessor_count_map[j]; }
 					}
 				}
 
 				std::size_t processed_count{ 0 };
 				std::size_t sorted_count{ 0 };
-				std::array<std::size_t, Size> position_array{};
+				std::array<std::size_t, Size> processing_queue{};
 				std::array<index_type, Size> sorted_index_array{};
 
 				for (std::size_t i{ 0 }; i < Size; ++i)
 				{
-					if (predecessor_count_array[i] == 0)
+					if (predecessor_count_map[i] == 0)
 					{
 						sorted_index_array[sorted_count] = Data[i];
-						position_array[sorted_count] = i;
+						processing_queue[sorted_count] = i;
 						++sorted_count;
 					}
 				}
 
 				while (sorted_count < Size)
 				{
-					std::size_t current_position{ position_array[processed_count] };
-					const auto& current_relation_matrix_row{ relation_matrix[current_position] };
+					const auto current_element{ processing_queue[processed_count] };
+					const auto& current_relation_matrix_row{ relation_matrix[current_element] };
 
 					for (std::size_t i{ 0 }; i < Size; ++i)
 					{
 						if (current_relation_matrix_row[i])
 						{
-							auto& predecessor_count{ predecessor_count_array[i] };
+							auto& predecessor_count{ predecessor_count_map[i] };
 							--predecessor_count;
 
 							if (predecessor_count == 0)
 							{
 								sorted_index_array[sorted_count] = Data[i];
-								position_array[sorted_count] = i;
+								processing_queue[sorted_count] = i;
 								++sorted_count;
 							}
 						}
@@ -1259,6 +1259,12 @@ namespace logicwise::detail
 
 				return ViewData{ sorted_index_array, 0, Size };
 			}
+
+			template<auto Data>
+			static constexpr auto adapt()
+			{
+				return kahn_topological_sort<Data>();
+			}
 		};
 
 		//================================================================================
@@ -1267,9 +1273,277 @@ namespace logicwise::detail
 		struct sort_topologically_with_partial_partial_order
 		{
 			template<auto Data>
+			static constexpr auto kahn_topological_sort()
+			{
+				constexpr std::size_t Size{ Data.size };
+
+				std::array<std::array<bool, Size>, Size> relation_matrix{};
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr std::size_t I : std::views::iota(0uz, Size))
+				{
+					constexpr auto LeftIndex{ Data[I] };
+					auto& relation_matrix_row{ relation_matrix[I] };
+
+					template for (constexpr std::size_t J : std::views::iota(0uz, Size))
+					{
+						constexpr auto RightIndex{ Data[J] };
+
+						if constexpr (I != J)
+						{
+							relation_matrix_row[J] =
+								homogeneous_relation_solver<PartialPartialOrder>
+								::template solve<LeftIndex, RightIndex>();
+						}
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <auto LeftIndex> {
+						constexpr auto CurrentI{ I };
+						auto& relation_matrix_row{ relation_matrix[CurrentI] };
+
+						[&] <std::size_t... J> (std::index_sequence<J...>) {
+							(..., [&] <auto RightIndex> {
+								constexpr auto CurrentJ{ J };
+
+								if constexpr (CurrentI != CurrentJ)
+								{
+									relation_matrix_row[CurrentJ] =
+										homogeneous_relation_solver<PartialPartialOrder>
+										::template solve<LeftIndex, RightIndex>();
+								}
+							}.template operator() < Data[J] > ());
+						}(std::make_index_sequence<Size>{});
+					}.template operator() < Data[I] > ());
+				}(std::make_index_sequence<Size>{});
+#endif
+
+				std::array<std::size_t, Size> representative_map{};
+				std::array<std::size_t, Size> quotient_set_tail_element_map{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					representative_map[i] = i;
+					quotient_set_tail_element_map[i] = Size;
+				}
+
+				for (std::size_t i{ 0 }; i < Size - 1; ++i)
+				{
+					const auto representative{ representative_map[i] };
+					auto& relation_matrix_row{ relation_matrix[i] };
+
+					for (std::size_t j{ i + 1 }; j < Size; ++j)
+					{
+						auto& relation{ relation_matrix_row[j] };
+						auto& dual_relation{ relation_matrix[j][i] };
+
+						if (relation && dual_relation)
+						{
+							auto& representative_slot{ representative_map[j] };
+
+							if (representative_slot != representative)
+							{
+								representative_slot = representative;
+							}
+
+							relation = false;
+							dual_relation = false;
+						}
+					}
+				}
+
+				std::array<std::size_t, Size> representative_array{};
+				std::size_t representative_size{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					if (representative_map[i] == i)
+					{
+						representative_array[representative_size] = i;
+						++representative_size;
+					}
+				}
+
+				std::array<std::size_t, Size> equivalence_class_next_element_map{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					const auto representative{ representative_map[i] };
+					auto& tail_element{ quotient_set_tail_element_map[representative] };
+
+					if (tail_element < Size)
+					{
+						equivalence_class_next_element_map[tail_element] = i;
+					}
+
+					tail_element = i;
+				}
+
+				std::array<std::size_t, Size> representative_predecessor_count_array{};
+
+				for (std::size_t i{ 0 }; i < representative_size; ++i)
+				{
+					const auto representative_i{ representative_array[i] };
+					const auto& relation_matrix_row{ relation_matrix[representative_i] };
+
+					for (std::size_t j{ 0 }; j < representative_size; ++j)
+					{
+						const auto representative_j{ representative_array[j] };
+
+						if (relation_matrix_row[representative_j])
+						{
+							++representative_predecessor_count_array[j];
+						}
+					}
+				}
+
+				std::size_t processed_count{ 0 };
+				std::size_t sorted_count{ 0 };
+				std::array<std::size_t, Size> processing_queue{};
+
+				for (std::size_t i{ 0 }; i < representative_size; ++i)
+				{
+					if (representative_predecessor_count_array[i] == 0)
+					{
+						processing_queue[sorted_count] = representative_array[i];
+						++sorted_count;
+					}
+				}
+
+				while (sorted_count < representative_size)
+				{
+					const auto current_representative{ processing_queue[processed_count] };
+					const auto& current_relation_matrix_row{ relation_matrix[current_representative] };
+
+					for (std::size_t i{ 0 }; i < representative_size; ++i)
+					{
+						const auto representative_i{ representative_array[i] };
+
+						if (current_relation_matrix_row[representative_i])
+						{
+							auto& predecessor_count{ representative_predecessor_count_array[i] };
+							--predecessor_count;
+
+							if (predecessor_count == 0)
+							{
+								processing_queue[sorted_count] = representative_i;
+								++sorted_count;
+							}
+						}
+					}
+
+					++processed_count;
+
+					if (processed_count >= sorted_count) [[unlikely]]
+					{
+						cycle_detected_in_graph();
+					}
+				}
+
+				std::array<index_type, Size> sorted_index_array{};
+				std::size_t sorted_index_count{ 0 };
+
+				for (std::size_t i{ 0 }; i < representative_size; ++i)
+				{
+					const auto representative{ processing_queue[i] };
+					const auto tail_element{ quotient_set_tail_element_map[representative] };
+					auto current_element{ representative };
+
+					while (true)
+					{
+						sorted_index_array[sorted_index_count] = Data[current_element];
+						++sorted_index_count;
+
+						if (current_element == tail_element) { break; }
+
+						current_element = equivalence_class_next_element_map[current_element];
+					}
+				}
+
+				return ViewData{ sorted_index_array, 0, Size };
+			}
+
+			template<auto Data>
 			static constexpr auto adapt()
 			{
-				return Data;
+				constexpr std::size_t Size{ Data.size };
+
+				constexpr auto ReflexiveData = []{
+
+					std::array<index_type, Size> reflexive_index_array{};
+					std::size_t reflexive_size{ 0 };
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+					//C++26
+					template for (constexpr auto Index : Data)
+					{
+						if constexpr (homogeneous_relation_solver<PartialPartialOrder>
+							::template solve<Index, Index>())
+						{
+							reflexive_index_array[reflexive_size] = Index;
+							++reflexive_size;
+						}
+					}
+#else
+					//C++20
+					[&] <std::size_t... I> (std::index_sequence<I...>) {
+						(..., [&] <auto Index> {
+							if constexpr (homogeneous_relation_solver<PartialPartialOrder>
+								::template solve<Index, Index>())
+							{
+								reflexive_index_array[reflexive_size] = Index;
+								++reflexive_size;
+							}
+						}.template operator() < Data[I] > ());
+					}(std::make_index_sequence<Size>{});
+#endif
+
+					return ViewData{ reflexive_index_array, 0, reflexive_size };
+				}();
+
+				constexpr std::size_t ReflexiveSize{ ReflexiveData.size };
+
+				if constexpr (ReflexiveSize == 0) { return Data; }
+
+				std::array<index_type, Size> sorted_index_array{};
+				std::size_t irreflexive_cursor{ ReflexiveSize };
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr auto Index : Data)
+				{
+					if constexpr (!homogeneous_relation_solver<PartialPartialOrder>
+						::template solve<Index, Index>())
+					{
+						sorted_index_array[irreflexive_cursor] = Index;
+						++irreflexive_cursor;
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <auto Index> {
+						if constexpr (!homogeneous_relation_solver<PartialPartialOrder>
+							::template solve<Index, Index>())
+						{
+							sorted_index_array[irreflexive_cursor] = Index;
+							++irreflexive_cursor;
+						}
+					}.template operator() < Data[I] > ());
+				}(std::make_index_sequence<Size>{});
+#endif
+
+				constexpr auto SortedReflexiveData{ kahn_topological_sort<ReflexiveData>() };
+
+				for (std::size_t i{ 0 }; i < ReflexiveSize; ++i)
+				{
+					sorted_index_array[i] = SortedReflexiveData[i];
+				}
+
+				return ViewData{ sorted_index_array, 0, Size };
 			}
 		};
 

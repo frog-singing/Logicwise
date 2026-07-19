@@ -33,6 +33,14 @@ namespace logicwise::detail
 
 		//--------------------------------------------------------------------------------
 
+		template<typename AcyclicRelation>
+		static constexpr void incompatible_non_capturing_acyclic_relation()
+		{
+			static_assert(dependent_false_v<AcyclicRelation>,
+				"[logicwise] Error: Incompatible acyclic relation signature!\n"
+				"Expected non-capturing lambda: [] <auto Value1, auto Value2>() -> bool { ... }");
+		}
+
 		template<typename EquivalenceRelation>
 		static constexpr void incompatible_non_capturing_equivalence_relation()
 		{
