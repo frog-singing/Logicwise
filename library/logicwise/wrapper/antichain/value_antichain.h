@@ -107,9 +107,9 @@ namespace logicwise::detail
 	using as_value_antichain =
 		typename as_value_antichain_impl<std::remove_cvref_t<Range>, PartialOrder>::type;
 
-	//受信任值反链适配器
+	//值反链转换器
 	template<typename Range, auto PartialOrder>
-	struct as_trusted_value_antichain_impl
+	struct cast_into_value_antichain_impl
 	{
 		template<auto... Value>
 		using wrapper = valuewise::antichain<PartialOrder, Value...>;
@@ -118,7 +118,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto PartialOrder>
-	using as_trusted_value_antichain =
-		typename as_trusted_value_antichain_impl<Range, PartialOrder>::type;
+	using cast_into_value_antichain =
+		typename cast_into_value_antichain_impl<Range, PartialOrder>::type;
 
 }

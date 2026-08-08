@@ -43,16 +43,15 @@ namespace logicwise::detail
 			return index_array;
 		}
 
-		template<auto IndexArray = generate_index_array(), std::size_t... I>
-		static consteval auto print_index_sequence(std::index_sequence<I...>)
+		template<auto IndexArray = generate_index_array(), auto IndexCount = index_count>
+		static consteval auto bake_index_sequence()
 		{
-			return typename index_trait::template index_sequence<IndexArray[I]...>{};
+			return [] <std::size_t... I> (std::index_sequence<I...>) {
+				return typename index_trait::template index_sequence<IndexArray[I]...>{};
+			}(std::make_index_sequence<IndexCount>{});
 		}
 
-		using index_sequence = decltype
-		(
-			print_index_sequence(std::make_index_sequence<index_count>{})
-		);
+		using index_sequence = decltype(bake_index_sequence());
 
 	};
 

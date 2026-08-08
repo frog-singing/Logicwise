@@ -107,9 +107,9 @@ namespace logicwise::detail
 	using as_type_equivalence_class =
 		typename as_type_equivalence_class_impl<std::remove_cvref_t<Range>, SameAs>::type;
 
-	//受信任类型等价类适配器
+	//类型等价类转换器
 	template<typename Range, auto SameAs>
-	struct as_trusted_type_equivalence_class_impl
+	struct cast_into_type_equivalence_class_impl
 	{
 		template<typename... Type>
 		using wrapper = typewise::equivalence_class<SameAs, Type...>;
@@ -118,7 +118,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto SameAs>
-	using as_trusted_type_equivalence_class =
-		typename as_trusted_type_equivalence_class_impl<Range, SameAs>::type;
+	using cast_into_type_equivalence_class =
+		typename cast_into_type_equivalence_class_impl<Range, SameAs>::type;
 
 }

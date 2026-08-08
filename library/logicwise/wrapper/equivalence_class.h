@@ -15,10 +15,12 @@ namespace logicwise::wrapper
 	using detail::type_equivalence_class;
 	using detail::custom_type_equivalence_class;
 	using detail::as_type_equivalence_class;
+	using detail::cast_into_type_equivalence_class;
 
 	using detail::value_equivalence_class;
 	using detail::custom_value_equivalence_class;
 	using detail::as_value_equivalence_class;
+	using detail::cast_into_value_equivalence_class;
 
 }
 

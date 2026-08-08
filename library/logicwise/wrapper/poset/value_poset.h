@@ -108,9 +108,9 @@ namespace logicwise::detail
 	using as_value_poset =
 		typename as_value_poset_impl<std::remove_cvref_t<Range>, PartialOrder>::type;
 
-	//受信任值偏序集适配器
+	//值偏序集转换器
 	template<typename Range, auto PartialOrder>
-	struct as_trusted_value_poset_impl
+	struct cast_into_value_poset_impl
 	{
 		template<auto... Value>
 		using wrapper = valuewise::poset<PartialOrder, Value...>;
@@ -119,7 +119,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto PartialOrder>
-	using as_trusted_value_poset =
-		typename as_trusted_value_poset_impl<Range, PartialOrder>::type;
+	using cast_into_value_poset =
+		typename cast_into_value_poset_impl<Range, PartialOrder>::type;
 
 }

@@ -107,9 +107,9 @@ namespace logicwise::detail
 	using as_value_set =
 		typename as_value_set_impl<std::remove_cvref_t<Range>, EqualTo>::type;
 
-	//受信任值集合适配器
+	//值集合转换器
 	template<typename Range, auto EqualTo>
-	struct as_trusted_value_set_impl
+	struct cast_into_value_set_impl
 	{
 		template<auto... Value>
 		using wrapper = valuewise::set<EqualTo, Value...>;
@@ -118,7 +118,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto EqualTo>
-	using as_trusted_value_set =
-		typename as_trusted_value_set_impl<Range, EqualTo>::type;
+	using cast_into_value_set =
+		typename cast_into_value_set_impl<Range, EqualTo>::type;
 
 }

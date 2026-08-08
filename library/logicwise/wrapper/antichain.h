@@ -15,10 +15,12 @@ namespace logicwise::wrapper
 	using detail::type_antichain;
 	using detail::custom_type_antichain;
 	using detail::as_type_antichain;
+	using detail::cast_into_type_antichain;
 
 	using detail::value_antichain;
 	using detail::custom_value_antichain;
 	using detail::as_value_antichain;
+	using detail::cast_into_value_antichain;
 
 }
 

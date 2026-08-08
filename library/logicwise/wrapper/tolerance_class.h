@@ -15,10 +15,12 @@ namespace logicwise::wrapper
 	using detail::type_tolerance_class;
 	using detail::custom_type_tolerance_class;
 	using detail::as_type_tolerance_class;
+	using detail::cast_into_type_tolerance_class;
 
 	using detail::value_tolerance_class;
 	using detail::custom_value_tolerance_class;
 	using detail::as_value_tolerance_class;
+	using detail::cast_into_value_tolerance_class;
 
 }
 

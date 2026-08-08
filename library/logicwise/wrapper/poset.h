@@ -15,10 +15,12 @@ namespace logicwise::wrapper
 	using detail::type_poset;
 	using detail::custom_type_poset;
 	using detail::as_type_poset;
+	using detail::cast_into_type_poset;
 
 	using detail::value_poset;
 	using detail::custom_value_poset;
 	using detail::as_value_poset;
+	using detail::cast_into_value_poset;
 
 }
 

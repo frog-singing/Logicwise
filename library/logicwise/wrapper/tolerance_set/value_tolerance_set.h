@@ -106,9 +106,9 @@ namespace logicwise::detail
 	using as_value_tolerance_set =
 		typename as_value_tolerance_set_impl<std::remove_cvref_t<Range>, TolerantOf>::type;
 
-	//受信任值相容集适配器
+	//值相容集转换器
 	template<typename Range, auto TolerantOf>
-	struct as_trusted_value_tolerance_set_impl
+	struct cast_into_value_tolerance_set_impl
 	{
 		template<auto... Value>
 		using wrapper = valuewise::tolerance_set<TolerantOf, Value...>;
@@ -117,7 +117,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto TolerantOf>
-	using as_trusted_value_tolerance_set =
-		typename as_trusted_value_tolerance_set_impl<Range, TolerantOf>::type;
+	using cast_into_value_tolerance_set =
+		typename cast_into_value_tolerance_set_impl<Range, TolerantOf>::type;
 
 }

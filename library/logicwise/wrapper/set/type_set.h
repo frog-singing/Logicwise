@@ -107,9 +107,9 @@ namespace logicwise::detail
 	using as_type_set =
 		typename as_type_set_impl<std::remove_cvref_t<Range>, SameAs>::type;
 
-	//受信任类型集合适配器
+	//类型集合转换器
 	template<typename Range, auto SameAs>
-	struct as_trusted_type_set_impl
+	struct cast_into_type_set_impl
 	{
 		template<typename... Type>
 		using wrapper = typewise::set<SameAs, Type...>;
@@ -118,7 +118,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto SameAs>
-	using as_trusted_type_set =
-		typename as_trusted_type_set_impl<Range, SameAs>::type;
+	using cast_into_type_set =
+		typename cast_into_type_set_impl<Range, SameAs>::type;
 
 }

@@ -15,10 +15,12 @@ namespace logicwise::wrapper
 	using detail::type_chain;
 	using detail::custom_type_chain;
 	using detail::as_type_chain;
+	using detail::cast_into_type_chain;
 
 	using detail::value_chain;
 	using detail::custom_value_chain;
 	using detail::as_value_chain;
+	using detail::cast_into_value_chain;
 
 }
 

@@ -15,10 +15,12 @@ namespace logicwise::wrapper
 	using detail::type_set;
 	using detail::custom_type_set;
 	using detail::as_type_set;
+	using detail::cast_into_type_set;
 
 	using detail::value_set;
 	using detail::custom_value_set;
 	using detail::as_value_set;
+	using detail::cast_into_value_set;
 
 }
 

@@ -107,9 +107,9 @@ namespace logicwise::detail
 	using as_value_equivalence_class =
 		typename as_value_equivalence_class_impl<std::remove_cvref_t<Range>, EqualTo>::type;
 
-	//受信任值等价类适配器
+	//值等价类转换器
 	template<typename Range, auto EqualTo>
-	struct as_trusted_value_equivalence_class_impl
+	struct cast_into_value_equivalence_class_impl
 	{
 		template<auto... Value>
 		using wrapper = valuewise::equivalence_class<EqualTo, Value...>;
@@ -118,7 +118,7 @@ namespace logicwise::detail
 	};
 
 	template<typename Range, auto EqualTo>
-	using as_trusted_value_equivalence_class =
-		typename as_trusted_value_equivalence_class_impl<Range, EqualTo>::type;
+	using cast_into_value_equivalence_class =
+		typename cast_into_value_equivalence_class_impl<Range, EqualTo>::type;
 
 }
