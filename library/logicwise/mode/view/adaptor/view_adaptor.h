@@ -750,9 +750,9 @@ namespace logicwise::detail
 #else
 					//C++20
 					[&] <std::size_t... I> (std::index_sequence<I...>) {
-						(..., [&] <std::size_t J> {
-							constexpr auto PreviousIndex{ Data[J] };
-							constexpr auto CurrentIndex{ Data[J + 1] };
+						(..., [&] <std::size_t CurrentI> {
+							constexpr auto PreviousIndex{ Data[CurrentI] };
+							constexpr auto CurrentIndex{ Data[CurrentI + 1] };
 
 							if constexpr (!homogeneous_relation_solver<EquivalenceRelation>
 								::template solve<PreviousIndex, CurrentIndex>())
@@ -804,9 +804,9 @@ namespace logicwise::detail
 #else
 					//C++20
 					[&] <std::size_t... I> (std::index_sequence<I...>) {
-						(..., [&] <std::size_t J> {
-							constexpr auto CurrentIndex{ Data[J] };
-							constexpr auto NextIndex{ Data[J + 1] };
+						(..., [&] <std::size_t CurrentI> {
+							constexpr auto CurrentIndex{ Data[CurrentI] };
+							constexpr auto NextIndex{ Data[CurrentI + 1] };
 
 							if constexpr (!homogeneous_relation_solver<EquivalenceRelation>
 								::template solve<CurrentIndex, NextIndex>())
@@ -1138,9 +1138,243 @@ namespace logicwise::detail
 		struct unique_first_with_partial_weak_order
 		{
 			template<auto Data>
+			struct position_data_sorter
+			{
+				template<auto PositionData> requires (PositionData.size == 0)
+				static constexpr auto merge_sort() { return ViewData<std::size_t, 0>{ {}, 0, 0 }; }
+
+				template<auto PositionData> requires (PositionData.size == 1)
+				static constexpr auto merge_sort() { return ViewData<std::size_t, 1>{ { PositionData[0] }, 0, 1 }; }
+
+				template<auto PositionData> requires (PositionData.size == 2)
+				static constexpr auto merge_sort()
+				{
+					if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+						::template solve<Data[PositionData[0]], Data[PositionData[1]]>())
+					{
+						return ViewData<std::size_t, 2>{ { PositionData[0], PositionData[1] }, 0, 2 };
+					}
+					else
+					{
+						return ViewData<std::size_t, 2>{ { PositionData[1], PositionData[0] }, 0, 2 };
+					}
+				}
+
+				template<auto LeftPositionData, auto RightPositionData>
+				struct position_data_merger
+				{
+					static constexpr std::size_t LeftSize{ LeftPositionData.size };
+					static constexpr std::size_t RightSize{ RightPositionData.size };
+					static constexpr std::size_t Size{ LeftSize + RightSize };
+
+					template<std::size_t LeftCursor, std::size_t RightCursor>
+					static constexpr void merge_at(std::array<std::size_t, Size>& merged_position_array)
+					{
+						constexpr std::size_t MergedSize{ LeftCursor + RightCursor };
+
+						if constexpr (LeftCursor == LeftSize)
+						{
+							for (std::size_t i{ MergedSize }, j{ RightCursor }; j < RightSize; ++i, ++j)
+							{
+								merged_position_array[i] = RightPositionData[j];
+							}
+						}
+						else if constexpr (RightCursor == RightSize)
+						{
+							for (std::size_t i{ MergedSize }, j{ LeftCursor }; j < LeftSize; ++i, ++j)
+							{
+								merged_position_array[i] = LeftPositionData[j];
+							}
+						}
+						else
+						{
+							if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+								::template solve<Data[LeftPositionData[LeftCursor]], Data[RightPositionData[RightCursor]]>())
+							{
+								merged_position_array[MergedSize] = LeftPositionData[LeftCursor];
+								merge_at<LeftCursor + 1, RightCursor>(merged_position_array);
+							}
+							else
+							{
+								merged_position_array[MergedSize] = RightPositionData[RightCursor];
+								merge_at<LeftCursor, RightCursor + 1>(merged_position_array);
+							}
+						}
+					}
+				};
+
+				template<auto PositionData>
+				static constexpr auto merge_sort()
+				{
+					constexpr std::size_t Size{ PositionData.size };
+					constexpr std::size_t LeftSize{ Size / 2 };
+					constexpr std::size_t RightSize{ Size - LeftSize };
+
+					constexpr auto LeftPositionData = []{
+
+						std::array<std::size_t, LeftSize> left_position_array{};
+
+						for (std::size_t i{ 0 }; i < LeftSize; ++i)
+						{
+							left_position_array[i] = PositionData[i];
+						}
+
+						return ViewData{ left_position_array, 0, LeftSize };
+					}();
+
+					constexpr auto RightPositionData = []{
+
+						std::array<std::size_t, RightSize> right_position_array{};
+
+						for (std::size_t i{ 0 }, j{ LeftSize }; i < RightSize; ++i, ++j)
+						{
+							right_position_array[i] = PositionData[j];
+						}
+
+						return ViewData{ right_position_array, 0, RightSize };
+					}();
+
+					constexpr auto SortedLeftPositionData{ merge_sort<LeftPositionData>() };
+					constexpr auto SortedRightPositionData{ merge_sort<RightPositionData>() };
+
+					std::array<std::size_t, Size> merged_position_array{};
+
+					position_data_merger<SortedLeftPositionData, SortedRightPositionData>
+						::template merge_at<0, 0>(merged_position_array);
+
+					return ViewData{ merged_position_array, 0, Size };
+				}
+			};
+
+			template<auto Data>
 			static constexpr auto adapt()
 			{
-				return Data;
+				constexpr std::size_t Size{ Data.size };
+
+				constexpr auto ReflexivePositionData = []{
+
+					std::array<std::size_t, Size> reflexive_position_array{};
+					std::size_t reflexive_size{ 0 };
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+					//C++26
+					template for (constexpr std::size_t I : std::views::iota(0uz, Size))
+					{
+						constexpr auto Index{ Data[I] };
+
+						if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+							::template solve<Index, Index>())
+						{
+							reflexive_position_array[reflexive_size] = I;
+							++reflexive_size;
+						}
+					}
+#else
+					//C++20
+					[&] <std::size_t... I> (std::index_sequence<I...>) {
+						(..., [&] <auto Index> {
+							if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+								::template solve<Index, Index>())
+							{
+								reflexive_position_array[reflexive_size] = I;
+								++reflexive_size;
+							}
+						}.template operator() < Data[I] > ());
+					}(std::make_index_sequence<Size>{});
+#endif
+
+					return ViewData{ reflexive_position_array, 0, reflexive_size };
+				}();
+
+				constexpr std::size_t ReflexiveSize{ ReflexivePositionData.size };
+
+				if constexpr (ReflexiveSize == 0) { return Data; }
+
+				std::array<bool, Size> should_collect_map{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					should_collect_map[i] = false;
+				}
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr std::size_t I : std::views::iota(0uz, Size))
+				{
+					constexpr auto Index{ Data[I] };
+
+					if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+						::template solve<Index, Index>())
+					{
+						should_collect_map[I] = true;
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <auto Index> {
+						if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+							::template solve<Index, Index>())
+						{
+							should_collect_map[I] = true;
+						}
+					}.template operator() < Data[I] > ());
+				}(std::make_index_sequence<Size>{});
+#endif
+
+				constexpr auto SortedReflexivePositionData
+				{
+					position_data_sorter<Data>::template merge_sort<ReflexivePositionData>()
+				};
+
+				should_collect_map[SortedReflexivePositionData[0]] = true;
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr std::size_t I : std::views::iota(0uz, ReflexiveSize - 1))
+				{
+					constexpr auto PreviousIndex{ Data[SortedReflexivePositionData[I]] };
+					constexpr auto CurrentPosition{ SortedReflexivePositionData[I + 1] };
+					constexpr auto CurrentIndex{ Data[CurrentPosition] };
+
+					if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+						::template solve<CurrentIndex, PreviousIndex>())
+					{
+						should_collect_map[CurrentPosition] = true;
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <std::size_t CurrentI> {
+						constexpr auto PreviousIndex{ Data[SortedReflexivePositionData[CurrentI]] };
+						constexpr auto CurrentPosition{ SortedReflexivePositionData[CurrentI + 1] };
+						constexpr auto CurrentIndex{ Data[CurrentPosition] };
+
+						if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+							::template solve<CurrentIndex, PreviousIndex>())
+						{
+							should_collect_map[CurrentPosition] = true;
+						}
+					}.template operator() < I > ());
+				}(std::make_index_sequence<ReflexiveSize - 1>{});
+#endif
+
+				constexpr std::size_t NextOffset{ 0 };
+
+				std::array<index_type, Size> next_index_array{};
+				std::size_t next_size{ 0 };
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					if (should_collect_map[i])
+					{
+						next_index_array[next_size] = Data[i];
+						++next_size;
+					}
+				}
+
+				return ViewData{ next_index_array, NextOffset, next_size };
 			}
 		};
 
@@ -1150,9 +1384,243 @@ namespace logicwise::detail
 		struct unique_last_with_partial_weak_order
 		{
 			template<auto Data>
+			struct position_data_sorter
+			{
+				template<auto PositionData> requires (PositionData.size == 0)
+				static constexpr auto merge_sort() { return ViewData<std::size_t, 0>{ {}, 0, 0 }; }
+
+				template<auto PositionData> requires (PositionData.size == 1)
+				static constexpr auto merge_sort() { return ViewData<std::size_t, 1>{ { PositionData[0] }, 0, 1 }; }
+
+				template<auto PositionData> requires (PositionData.size == 2)
+				static constexpr auto merge_sort()
+				{
+					if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+						::template solve<Data[PositionData[0]], Data[PositionData[1]]>())
+					{
+						return ViewData<std::size_t, 2>{ { PositionData[0], PositionData[1] }, 0, 2 };
+					}
+					else
+					{
+						return ViewData<std::size_t, 2>{ { PositionData[1], PositionData[0] }, 0, 2 };
+					}
+				}
+
+				template<auto LeftPositionData, auto RightPositionData>
+				struct position_data_merger
+				{
+					static constexpr std::size_t LeftSize{ LeftPositionData.size };
+					static constexpr std::size_t RightSize{ RightPositionData.size };
+					static constexpr std::size_t Size{ LeftSize + RightSize };
+
+					template<std::size_t LeftCursor, std::size_t RightCursor>
+					static constexpr void merge_at(std::array<std::size_t, Size>& merged_position_array)
+					{
+						constexpr std::size_t MergedSize{ LeftCursor + RightCursor };
+
+						if constexpr (LeftCursor == LeftSize)
+						{
+							for (std::size_t i{ MergedSize }, j{ RightCursor }; j < RightSize; ++i, ++j)
+							{
+								merged_position_array[i] = RightPositionData[j];
+							}
+						}
+						else if constexpr (RightCursor == RightSize)
+						{
+							for (std::size_t i{ MergedSize }, j{ LeftCursor }; j < LeftSize; ++i, ++j)
+							{
+								merged_position_array[i] = LeftPositionData[j];
+							}
+						}
+						else
+						{
+							if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+								::template solve<Data[LeftPositionData[LeftCursor]], Data[RightPositionData[RightCursor]]>())
+							{
+								merged_position_array[MergedSize] = LeftPositionData[LeftCursor];
+								merge_at<LeftCursor + 1, RightCursor>(merged_position_array);
+							}
+							else
+							{
+								merged_position_array[MergedSize] = RightPositionData[RightCursor];
+								merge_at<LeftCursor, RightCursor + 1>(merged_position_array);
+							}
+						}
+					}
+				};
+
+				template<auto PositionData>
+				static constexpr auto merge_sort()
+				{
+					constexpr std::size_t Size{ PositionData.size };
+					constexpr std::size_t LeftSize{ Size / 2 };
+					constexpr std::size_t RightSize{ Size - LeftSize };
+
+					constexpr auto LeftPositionData = []{
+
+						std::array<std::size_t, LeftSize> left_position_array{};
+
+						for (std::size_t i{ 0 }; i < LeftSize; ++i)
+						{
+							left_position_array[i] = PositionData[i];
+						}
+
+						return ViewData{ left_position_array, 0, LeftSize };
+					}();
+
+					constexpr auto RightPositionData = []{
+
+						std::array<std::size_t, RightSize> right_position_array{};
+
+						for (std::size_t i{ 0 }, j{ LeftSize }; i < RightSize; ++i, ++j)
+						{
+							right_position_array[i] = PositionData[j];
+						}
+
+						return ViewData{ right_position_array, 0, RightSize };
+					}();
+
+					constexpr auto SortedLeftPositionData{ merge_sort<LeftPositionData>() };
+					constexpr auto SortedRightPositionData{ merge_sort<RightPositionData>() };
+
+					std::array<std::size_t, Size> merged_position_array{};
+
+					position_data_merger<SortedLeftPositionData, SortedRightPositionData>
+						::template merge_at<0, 0>(merged_position_array);
+
+					return ViewData{ merged_position_array, 0, Size };
+				}
+			};
+
+			template<auto Data>
 			static constexpr auto adapt()
 			{
-				return Data;
+				constexpr std::size_t Size{ Data.size };
+
+				constexpr auto ReflexivePositionData = []{
+
+					std::array<std::size_t, Size> reflexive_position_array{};
+					std::size_t reflexive_size{ 0 };
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+					//C++26
+					template for (constexpr std::size_t I : std::views::iota(0uz, Size))
+					{
+						constexpr auto Index{ Data[I] };
+
+						if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+							::template solve<Index, Index>())
+						{
+							reflexive_position_array[reflexive_size] = I;
+							++reflexive_size;
+						}
+					}
+#else
+					//C++20
+					[&] <std::size_t... I> (std::index_sequence<I...>) {
+						(..., [&] <auto Index> {
+							if constexpr (homogeneous_relation_solver<PartialWeakOrder>
+								::template solve<Index, Index>())
+							{
+								reflexive_position_array[reflexive_size] = I;
+								++reflexive_size;
+							}
+						}.template operator() < Data[I] > ());
+					}(std::make_index_sequence<Size>{});
+#endif
+
+					return ViewData{ reflexive_position_array, 0, reflexive_size };
+				}();
+
+				constexpr std::size_t ReflexiveSize{ ReflexivePositionData.size };
+
+				if constexpr (ReflexiveSize == 0) { return Data; }
+
+				std::array<bool, Size> should_collect_map{};
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					should_collect_map[i] = false;
+				}
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr std::size_t I : std::views::iota(0uz, Size))
+				{
+					constexpr auto Index{ Data[I] };
+
+					if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+						::template solve<Index, Index>())
+					{
+						should_collect_map[I] = true;
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <auto Index> {
+						if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+							::template solve<Index, Index>())
+						{
+							should_collect_map[I] = true;
+						}
+					}.template operator() < Data[I] > ());
+				}(std::make_index_sequence<Size>{});
+#endif
+
+				constexpr auto SortedReflexivePositionData
+				{
+					position_data_sorter<Data>::template merge_sort<ReflexivePositionData>()
+				};
+
+				should_collect_map[SortedReflexivePositionData[ReflexiveSize - 1]] = true;
+
+#if defined(__cpp_expansion_statements) && LOGICWISE_CXX_STANDARD >= LOGICWISE_CXX_26
+				//C++26
+				template for (constexpr std::size_t I : std::views::iota(0uz, ReflexiveSize - 1))
+				{
+					constexpr auto CurrentPosition{ SortedReflexivePositionData[I] };
+					constexpr auto CurrentIndex{ Data[CurrentPosition] };
+					constexpr auto NextIndex{ Data[SortedReflexivePositionData[I + 1]] };
+
+					if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+						::template solve<NextIndex, CurrentIndex>())
+					{
+						should_collect_map[CurrentPosition] = true;
+					}
+				}
+#else
+				//C++20
+				[&] <std::size_t... I> (std::index_sequence<I...>) {
+					(..., [&] <std::size_t CurrentI> {
+						constexpr auto CurrentPosition{ SortedReflexivePositionData[CurrentI] };
+						constexpr auto CurrentIndex{ Data[CurrentPosition] };
+						constexpr auto NextIndex{ Data[SortedReflexivePositionData[CurrentI + 1]] };
+
+						if constexpr (!homogeneous_relation_solver<PartialWeakOrder>
+							::template solve<NextIndex, CurrentIndex>())
+						{
+							should_collect_map[CurrentPosition] = true;
+						}
+					}.template operator() < I > ());
+				}(std::make_index_sequence<ReflexiveSize - 1>{});
+#endif
+
+				constexpr std::size_t NextOffset{ 0 };
+
+				std::array<index_type, Size> next_index_array{};
+				std::size_t next_size{ 0 };
+
+				for (std::size_t i{ 0 }; i < Size; ++i)
+				{
+					if (should_collect_map[i])
+					{
+						next_index_array[next_size] = Data[i];
+						++next_size;
+					}
+				}
+
+				return ViewData{ next_index_array, NextOffset, next_size };
 			}
 		};
 
