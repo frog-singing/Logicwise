@@ -8,7 +8,7 @@
 #include <logicwise/semantics/guard/safe_integer_cast.h>
 #include <logicwise/arrangement/voidwise/void.h>
 #include <logicwise/arrangement/elementwise/element.h>
-#include <logicwise/arrangement/pairwise/circular_adjacent_pair.h>
+#include <logicwise/arrangement/pairwise/combination_pair.h>
 #include <cstddef> //用于 std::size_t
 #include <algorithm> //用于 std::min, std::max
 #include <cassert> //用于 assert
@@ -51,6 +51,24 @@ namespace logicwise::detail
             }
 
             return count;
+        }
+
+        static constexpr bool valid_index(extent_type extent, index_type index) noexcept
+        {
+			std::size_t index_current{ index[0] };
+
+            for (std::size_t i{ 1 }; i < Arity; ++i)
+			{
+                std::size_t index_next{ index[i] };
+
+                if (index_current >= index_next) { return false; }
+
+                index_current = index_next;
+			}
+
+			if (index_current >= extent.i()) { return false; }
+
+            return true;
         }
 
 		struct forward_index_traverser

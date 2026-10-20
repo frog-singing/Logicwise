@@ -18,38 +18,38 @@ namespace logicwise::detail
 {
 	//范围维度 rangewise================================================================================
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	struct rangewise_impl
 	{
-		static_assert(dependent_false_v<Mode>, "[logicwise] Invalid Mode.");
+		static_assert(dependent_false_v<ModeOption>, "[logicwise] Invalid ModeOption.");
 	};
 
-	template<Quantifier Mode, typename Arrangement>
-	struct rangewise_impl<Mode, Arrangement>
+	template<Quantifier ModeOption, typename Arrangement>
+	struct rangewise_impl<ModeOption, Arrangement>
 	{
-		using type = rangewise_verification<Mode, Arrangement>;
+		using type = rangewise_verification<ModeOption, Arrangement>;
 	};
 
-	template<TraversalMode Mode, typename Arrangement>
-	struct rangewise_impl<Mode, Arrangement>
+	template<TraversalModeOption ModeOption, typename Arrangement>
+	struct rangewise_impl<ModeOption, Arrangement>
 	{
-		using type = rangewise_traversal<Mode, Arrangement>;
+		using type = rangewise_traversal<ModeOption, Arrangement>;
 	};
 
-	template<QueryMode Mode, typename Arrangement>
-	struct rangewise_impl<Mode, Arrangement>
+	template<QueryModeOption ModeOption, typename Arrangement>
+	struct rangewise_impl<ModeOption, Arrangement>
 	{
-		using type = rangewise_querying<Mode, Arrangement>;
+		using type = rangewise_querying<ModeOption, Arrangement>;
 	};
 
-	template<ViewMode Mode, typename Arrangement>
-	struct rangewise_impl<Mode, Arrangement>
+	template<ViewModeOption ModeOption, typename Arrangement>
+	struct rangewise_impl<ModeOption, Arrangement>
 	{
-		using type = rangewise_viewing<Mode, Arrangement>;
+		using type = rangewise_viewing<ModeOption, Arrangement>;
 	};
 
 
-	template<typename Mode, Arrangement TargetArrangement>
-	using rangewise = typename rangewise_impl<Mode, TargetArrangement>::type;
+	template<typename ModeOption, Arrangement TargetArrangement>
+	using rangewise = typename rangewise_impl<ModeOption, TargetArrangement>::type;
 
 }

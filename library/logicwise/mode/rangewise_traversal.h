@@ -16,43 +16,43 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::遍历 mode::traversal================================================================================
+	//模式::遍历 mode::traversal================================================================================
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	struct rangewise_traversal_impl;
 
-	template<typename Mode, ElementwiseArrangement Arrangement>
-	struct rangewise_traversal_impl<Mode, Arrangement>
+	template<typename ModeOption, ElementwiseArrangement Arrangement>
+	struct rangewise_traversal_impl<ModeOption, Arrangement>
 	{
-		using type = elementwise_traversal<Mode, Arrangement>;
+		using type = elementwise_traversal<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, PairwiseArrangement Arrangement>
-	struct rangewise_traversal_impl<Mode, Arrangement>
+	template<typename ModeOption, PairwiseArrangement Arrangement>
+	struct rangewise_traversal_impl<ModeOption, Arrangement>
 	{
-		using type = pairwise_traversal<Mode, Arrangement>;
+		using type = pairwise_traversal<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, TripletwiseArrangement Arrangement>
-	struct rangewise_traversal_impl<Mode, Arrangement>
+	template<typename ModeOption, TripletwiseArrangement Arrangement>
+	struct rangewise_traversal_impl<ModeOption, Arrangement>
 	{
-		using type = tripletwise_traversal<Mode, Arrangement>;
+		using type = tripletwise_traversal<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, BipartiteArrangement Arrangement>
-	struct rangewise_traversal_impl<Mode, Arrangement>
+	template<typename ModeOption, BipartiteArrangement Arrangement>
+	struct rangewise_traversal_impl<ModeOption, Arrangement>
 	{
-		using type = bipartite_traversal<Mode, Arrangement>;
+		using type = bipartite_traversal<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, MultipartiteArrangement Arrangement>
-	struct rangewise_traversal_impl<Mode, Arrangement>
+	template<typename ModeOption, MultipartiteArrangement Arrangement>
+	struct rangewise_traversal_impl<ModeOption, Arrangement>
 	{
-		using type = multipartite_traversal<Mode, Arrangement>;
+		using type = multipartite_traversal<ModeOption, Arrangement>;
 	};
 
 
-	template<typename Mode, typename Arrangement>
-	using rangewise_traversal = typename rangewise_traversal_impl<Mode, Arrangement>::type;
+	template<typename ModeOption, typename Arrangement>
+	using rangewise_traversal = typename rangewise_traversal_impl<ModeOption, Arrangement>::type;
 
 }

@@ -31,15 +31,40 @@ namespace logicwise::detail
 			return true;
 		}();
 
+		static constexpr bool valid_extent(extent_type extent) noexcept
+		{
+			return extent.i() == extent.j();
+		}
+
 		static constexpr void verify_extent(extent_type extent) noexcept
 		{
-			if (extent.i() != extent.j()) [[unlikely]] { extent_component_mismatch(); }
+			if (!valid_extent(extent)) [[unlikely]] { extent_component_mismatch(); }
 		}
 
 		static constexpr std::size_t index_count(extent_type extent) noexcept
 		{
 			verify_extent(extent);
 			return extent.i();
+		}
+
+		static constexpr auto unrank(extent_type extent, std::size_t scalar_index) noexcept
+		{
+			assert(valid_extent(extent) && "[logicwise] Extent component mismatch.");
+			assert(scalar_index < index_count(extent) && "[logicwise] Scalar index out of range.");
+
+			return index_type
+			{
+				scalar_index,
+				scalar_index
+			};
+		}
+
+		static constexpr bool valid_index(extent_type extent, index_type index) noexcept
+		{
+			assert(valid_extent(extent) && "[logicwise] Extent component mismatch.");
+
+			std::size_t index_i{ index[0] }, index_j{ index[1] };
+			return index_i < extent.i() && index_i == index_j;
 		}
 
 		struct forward_index_traverser

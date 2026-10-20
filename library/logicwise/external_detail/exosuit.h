@@ -14,6 +14,7 @@ namespace logicwise::detail
 
 	//模板依赖静态断言组件，用于报错
 	using manipond::exosuit::dependent_false_v;
+	using manipond::exosuit::valuewise_dependent_false_v;
 
 	using manipond::exosuit::area_ahead;
 	using manipond::exosuit::explore_later;

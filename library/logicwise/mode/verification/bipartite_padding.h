@@ -12,7 +12,7 @@
 #include <logicwise/semantics/vector_like_container.h>
 #include <logicwise/semantics/padding/template_element_padder.h>
 #include <logicwise/semantics/padding/padding_instance_trait.h>
-#include "verification_loop.h"
+#include "executor/verification_loop.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke
 #include <utility> //用于 std::forward
@@ -28,7 +28,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::verification================================================================================
+	//模式::验证 mode::verification================================================================================
 
 	//(PaddingElementI, PaddingElementJ) 必须是合法组合
 
@@ -123,7 +123,7 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 				{
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -144,7 +144,7 @@ namespace logicwise::detail
 					using TraitCertificate = Verifier<PaddingTypeI, PaddingTypeJ>;
 					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -206,7 +206,7 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 				{
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -227,7 +227,7 @@ namespace logicwise::detail
 					using TraitCertificate = Verifier<PaddingValueI, PaddingValueJ>;
 					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -289,7 +289,7 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 				{
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -310,7 +310,7 @@ namespace logicwise::detail
 					using TraitCertificate = Verifier<PaddingTypeI, PaddingValueJ>;
 					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -372,7 +372,7 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 				{
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -393,7 +393,7 @@ namespace logicwise::detail
 					using TraitCertificate = Verifier<PaddingValueI, PaddingTypeJ>;
 					constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -570,7 +570,7 @@ namespace logicwise::detail
 				{
 					extent_type extent{ std::ranges::size(containerA), std::ranges::size(containerB) };
 
-					return instance_verification_loop<Quantifier, Arrangement>(extent,
+					return instance_satisfies_loop<Quantifier, Arrangement>(extent,
 						[&] (auto&& index) {
 							auto&& [component, padding_state] = index;
 
@@ -707,7 +707,7 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] constexpr bool satisfies(VerifierType&& verifier) const
 				{
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };
@@ -846,7 +846,7 @@ namespace logicwise::detail
 				}
 				[[nodiscard]] constexpr bool satisfies(VerifierType&& verifier) const
 				{
-					return template_verification_loop<Quantifier, Arrangement, Extent>
+					return template_satisfies_loop<Quantifier, Arrangement, Extent>
 						([&] <auto Index> {
 							constexpr auto component{ Index.component };
 							constexpr auto padding_state{ Index.padding_state };

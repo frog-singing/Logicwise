@@ -11,7 +11,7 @@
 #include <logicwise/semantics/vector_like_container.h>
 #include <logicwise/semantics/padding/template_element_padder.h>
 #include <logicwise/semantics/padding/padding_instance_trait.h>
-#include "traversal_loop.h"
+#include "executor/traversal_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
 #include <ranges> //用于 std::ranges，C++20标准
@@ -19,7 +19,7 @@
 
 namespace logicwise::detail
 {
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class bipartite_traversal;
 }
 
@@ -27,12 +27,12 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::遍历 mode::traversal================================================================================
+	//模式::遍历 mode::traversal================================================================================
 
 	//(PaddingElementI, PaddingElementJ) 必须是合法组合
 
-	template<typename Mode, ArrangementWithPadding Arrangement>
-	class bipartite_traversal<Mode, Arrangement>
+	template<typename ModeOption, ArrangementWithPadding Arrangement>
+	class bipartite_traversal<ModeOption, Arrangement>
 	{
 	public:
 		template<typename TypeA, typename TypeB>
@@ -87,7 +87,7 @@ namespace logicwise::detail
 
 	private:
 		using extent_type = typename Arrangement::extent_type;
-		using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
+		using IndexTraverserType = typename ModeOption::template index_traverser<Arrangement>;
 		using ActualIndexType = decltype(std::declval<IndexTraverserType>().state());
 
 		template<typename PaddingTypeI, typename PaddingTypeJ>

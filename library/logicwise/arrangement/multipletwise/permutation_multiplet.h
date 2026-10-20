@@ -8,7 +8,7 @@
 #include <logicwise/semantics/guard/safe_integer_cast.h>
 #include <logicwise/arrangement/voidwise/void.h>
 #include <logicwise/arrangement/elementwise/element.h>
-#include <logicwise/arrangement/pairwise/circular_adjacent_pair.h>
+#include <logicwise/arrangement/pairwise/permutation_pair.h>
 #include <cstddef> //用于 std::size_t
 #include <cassert> //用于 assert
 #include <concepts> //用于 std::integral，C++20标准

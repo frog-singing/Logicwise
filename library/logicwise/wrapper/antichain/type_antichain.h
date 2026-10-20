@@ -9,7 +9,7 @@
 #include <logicwise/arrangement.h>
 #include <logicwise/relation/homogeneous_relation.h>
 #include <logicwise/semantics/identity_guard.h>
-#include "tag.h"
+#include "type.h"
 #include <concepts> //用于 std::derived_from，C++20标准
 #include <type_traits> //用于 std::remove_cvref_t (C++20)
 

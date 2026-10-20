@@ -22,7 +22,7 @@ Which translates as:
 
 > Rangewise, all of the cartesian pairs between range A and range B satisfy the given predicate P.
 > 
-> ∀x ∈ A, ∀y ∈ B, P(x, y)  
+> ∀x ∈ A, ∀y ∈ B, P(x, y)
 
 Or:
 

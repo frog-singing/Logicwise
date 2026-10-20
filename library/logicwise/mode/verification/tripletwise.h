@@ -18,7 +18,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::verification================================================================================
+	//模式::验证 mode::verification================================================================================
 
 	struct tripletwise_verifier
 	{

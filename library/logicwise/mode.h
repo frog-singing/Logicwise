@@ -6,11 +6,12 @@
 #include "mode/type.h"
 
 
+//模式选项 mode option================================================================================
+
 //逻辑维度::量词
 namespace logicwise::quantifier
 {
-	//行为模式::验证 mode::verification================================================================================
-
+	//验证 verify
 	using detail::quantifier_tag;
 	using detail::Quantifier;
 
@@ -31,23 +32,17 @@ namespace logicwise::quantifier
 
 }
 
-
-//逻辑维度::行为模式
+//逻辑维度::模式
 namespace logicwise::mode
 {
-	//行为模式 mode================================================================================
-
-	//遍历
+	//遍历 traverse
 	using detail::for_each;
 	using detail::in_reverse_for_each;
 
-
-	//[未实现] [unimplemented]
-
-	//查询
+	//查询 query
 	using detail::query;
 
-	//视图化
+	//视图化 view
 	using detail::view;
 	using detail::in_reverse_view;
 

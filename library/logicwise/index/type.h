@@ -22,7 +22,7 @@ namespace logicwise::detail
 	struct IndexTraitPadding;
 
 	template<std::size_t Dimension>
-	struct [[nodiscard]] Extent;
+	struct Extent;
 
 	template<typename IndexType, std::size_t Size>
 	struct ViewData;
@@ -43,6 +43,9 @@ namespace logicwise::detail
 		template<index_type... Index>
 		struct index_sequence
 		{
+			template<template<index_type...> typename Wrapper>
+			using apply = Wrapper<Index...>;
+
 			template<typename Invocable>
 			static constexpr decltype(auto) invoke(Invocable&& invocable)
 			{
@@ -121,7 +124,7 @@ namespace logicwise::detail
 			return volume;
 		}
 
-		constexpr void zero() noexcept 
+		constexpr void zero() noexcept
 		{
 			component.fill(0);
 		}
@@ -139,13 +142,32 @@ namespace logicwise::detail
 		std::size_t offset{};
 		std::size_t size{};
 
-		[[nodiscard]] constexpr IndexType operator[](std::size_t i) const noexcept { return index_array[offset + i]; }
+		[[nodiscard]] constexpr index_type operator[](std::size_t i) const noexcept { return index_array[offset + i]; }
 
 		[[nodiscard]] constexpr auto begin() const noexcept { return index_array.begin() + offset; }
 		[[nodiscard]] constexpr auto end() const noexcept { return index_array.begin() + offset + size; }
 
 		[[nodiscard]] constexpr auto rbegin() const noexcept { return std::reverse_iterator{ index_array.begin() + offset + size }; }
 		[[nodiscard]] constexpr auto rend() const noexcept { return std::reverse_iterator{ index_array.begin() + offset }; }
+
+		template<std::size_t NewMaxSize>
+		[[nodiscard]] static constexpr auto make_index_array() noexcept
+		{
+			return std::array<index_type, NewMaxSize>{};
+		}
+
+		template<std::size_t NewMaxSize>
+		[[nodiscard]] static constexpr auto make_index_array(index_type first_index) noexcept
+		{
+			return std::array<index_type, NewMaxSize>{ first_index };
+		}
+
+		template<std::size_t NewMaxSize>
+		[[nodiscard]] static constexpr auto make_view_data(std::array<index_type, NewMaxSize> index_array,
+			std::size_t offset, std::size_t size) noexcept
+		{
+			return ViewData<index_type, NewMaxSize>{index_array, offset, size};
+		}
 	};
 
 	template<typename IndexType, std::size_t MaxSize>

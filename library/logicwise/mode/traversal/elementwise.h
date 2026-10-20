@@ -8,7 +8,15 @@
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/vector_like_container.h>
-#include "traversal_loop.h"
+
+#include <logicwise/semantics/material/elementwise/type_list/traversal_protocol.h>
+#include <logicwise/semantics/material/elementwise/value_list/traversal_protocol.h>
+#include <logicwise/semantics/material/elementwise/vector_like_container/traversal_protocol.h>
+#include "workshop/concrete_template_traversal.h"
+#include "workshop/instance_traversal.h"
+
+
+#include "executor/traversal_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
 #include <ranges> //用于 std::ranges，C++20标准
@@ -16,7 +24,7 @@
 
 namespace logicwise::detail
 {
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class elementwise_traversal;
 }
 
@@ -24,23 +32,54 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::遍历 mode::traversal================================================================================
+	//模式::遍历 mode::traversal================================================================================
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class elementwise_traversal
 	{
+    private:
+        using IndexTraverserType = typename ModeOption::template index_traverser<Arrangement>;
+
     public:
-        template<typename WrapperInstance>
-            requires typewise::List<WrapperInstance> || valuewise::List<WrapperInstance>
-        [[nodiscard]] static constexpr auto in()
+        template<typewise::List WrapperInstance>
+        static constexpr auto in()
         {
-            return in_wrapper<WrapperInstance>{};
+            using List = as_type_list<WrapperInstance>;
+
+            return typename concrete_template_traversal<
+                type_list_traversal_protocol<List>,
+                Arrangement,
+                IndexTraverserType
+            >::traversal{};
+        }
+
+        template<valuewise::List WrapperInstance>
+        static constexpr auto in()
+        {
+            using List = as_value_list<WrapperInstance>;
+
+            return typename concrete_template_traversal<
+                value_list_traversal_protocol<List>,
+                Arrangement,
+                IndexTraverserType
+            >::traversal{};
         }
 
         template<VectorLike ContainerType>
         [[nodiscard]] static constexpr auto in(ContainerType&& container)
         {
             return in_container<ContainerType>{ std::forward<ContainerType>(container) };
+        }
+
+        // traversal 具有 [[nodiscard]]
+        template<VectorLike ContainerType>
+        static constexpr auto in_refactoring(ContainerType&& container)
+        {
+            return typename instance_traversal<
+                vector_like_container_traversal_protocol<ContainerType>,
+                Arrangement,
+                IndexTraverserType
+            >::traversal{ std::forward<ContainerType>(container) };
         }
 
         template<typename WrapperInstance>
@@ -66,313 +105,7 @@ namespace logicwise::detail
 
 	private:
 		using extent_type = typename Arrangement::extent_type;
-		using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
         using ActualIndexType = decltype(std::declval<IndexTraverserType>().state());
-
-        template<typename WrapperInstance>
-        struct in_wrapper
-        {
-            static constexpr void execute                   (auto&&) noexcept {}
-            static constexpr void execute_with_index        (auto&&) noexcept {}
-            static constexpr void execute_until             (auto&&) noexcept {}
-            static constexpr void execute_until_with_index  (auto&&) noexcept {}
-            static constexpr void execute_while             (auto&&) noexcept {}
-            static constexpr void execute_while_with_index  (auto&&) noexcept {}
-
-        };
-
-        template<typewise::List TypeList>
-            requires TraversableExtent <
-                Arrangement,
-                extent_type{ as_type_list<TypeList>::size }
-            >
-        struct in_wrapper<TypeList>
-        {
-            using List = as_type_list<TypeList>;
-			static constexpr extent_type Extent{ List::size };
-            static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            using ProbeType = typename List::template element<ProbeIndex>;
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                std::forward<OperationType>(operation)
-                    .template operator() < ProbeType > ();
-            }
-            static constexpr void execute(OperationType&& operation)
-            {
-				template_execute_loop<Arrangement, IndexTraverserType, Extent>
-					([&] <auto Index> {
-                        operation.template operator() < typename List::template element<Index> > ();
-				    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                std::forward<OperationType>(operation)
-                    .template operator() < ProbeIndex, ProbeType > ();
-            }
-            static constexpr void execute_with_index(OperationType&& operation)
-            {
-				template_execute_loop<Arrangement, IndexTraverserType, Extent>
-					([&] <auto Index> {
-                        operation.template operator() < Index, typename List::template element<Index> > ();
-				    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeType > () };
-            }
-            static constexpr void execute_until(OperationType&& operation)
-            {
-                template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
-					([&] <auto Index> { return
-                        operation.template operator() < typename List::template element<Index> > ();
-				    });
-            }
-            
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeIndex, ProbeType > () };
-            }
-            static constexpr void execute_until_with_index(OperationType&& operation)
-            {
-                template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
-					([&] <auto Index> { return
-                        operation.template operator() < Index, typename List::template element<Index> > ();
-				    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeType > () };
-            }
-            static constexpr void execute_while(OperationType&& operation)
-            {
-                template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
-					([&] <auto Index> { return
-                        operation.template operator() < typename List::template element<Index> > ();
-				    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeIndex, ProbeType > () };
-            }
-            static constexpr void execute_while_with_index(OperationType&& operation)
-            {
-                template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
-					([&] <auto Index> { return
-                        operation.template operator() < Index, typename List::template element<Index> > ();
-				    });
-            }
-
-            template<typename OperationType>
-            static constexpr void execute(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <typename Type>() { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_with_index(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Index, typename Type>() { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_until(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <typename Type>() -> bool { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_until_with_index(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Index, typename Type>() -> bool { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_while(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <typename Type>() -> bool { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_while_with_index(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Index, typename Type>() -> bool { ... }");
-            }
-
-        };
-
-        template<valuewise::List ValueList>
-            requires TraversableExtent <
-                Arrangement,
-                extent_type{ as_value_list<ValueList>::size }
-            >
-        struct in_wrapper<ValueList>
-        {
-            using List = as_value_list<ValueList>;
-            static constexpr extent_type Extent{ List::size };
-            static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            static constexpr auto ProbeValue = List::template element<ProbeIndex>;
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                std::forward<OperationType>(operation)
-                    .template operator() < ProbeValue > ();
-            }
-            static constexpr void execute(OperationType&& operation)
-            {
-                template_execute_loop<Arrangement, IndexTraverserType, Extent>
-                    ([&] <auto Index> {
-                        operation.template operator() < List::template element<Index> > ();
-                    });
-            }
-            
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                std::forward<OperationType>(operation)
-                    .template operator() < ProbeIndex, ProbeValue > ();
-            }
-            static constexpr void execute_with_index(OperationType&& operation)
-            {
-                template_execute_loop<Arrangement, IndexTraverserType, Extent>
-                    ([&] <auto Index> {
-                        operation.template operator() < Index, List::template element<Index> > ();
-                    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeValue > () };
-            }
-            static constexpr void execute_until(OperationType&& operation)
-            {
-                template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
-                    ([&] <auto Index> { return
-                        operation.template operator() < List::template element<Index> > ();
-                    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeIndex, ProbeValue > () };
-            }
-            static constexpr void execute_until_with_index(OperationType&& operation)
-            {
-                template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
-                    ([&] <auto Index> { return
-                        operation.template operator() < Index, List::template element<Index> > ();
-                    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeValue > () };
-            }
-            static constexpr void execute_while(OperationType&& operation)
-            {
-                template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
-                    ([&] <auto Index> { return
-                        operation.template operator() < List::template element<Index> > ();
-                    });
-            }
-
-            template<typename OperationType>
-                requires requires(OperationType&& operation)
-            {
-                bool{ std::forward<OperationType>(operation)
-                    .template operator() < ProbeIndex, ProbeValue > () };
-            }
-            static constexpr void execute_while_with_index(OperationType&& operation)
-            {
-                template_execute_while_loop<Arrangement, IndexTraverserType, Extent>
-                    ([&] <auto Index> { return
-                        operation.template operator() < Index, List::template element<Index> > ();
-                    });
-            }
-
-            template<typename OperationType>
-            static constexpr void execute(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Value>() { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_with_index(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Index, auto Value>() { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_until(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Value>() -> bool { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_until_with_index(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Index, auto Value>() -> bool { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_while(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Value>() -> bool { ... }");
-            }
-
-            template<typename OperationType>
-            static constexpr void execute_while_with_index(OperationType&&)
-            {
-                static_assert(dependent_false_v<OperationType>,
-                    "[logicwise] Error: Incompatible operation signature!\n"
-                    "Expected: [] <auto Index, auto Value>() -> bool { ... }");
-            }
-
-        };
-
 
         template<typename ContainerType>
         struct in_container

@@ -10,7 +10,7 @@ namespace logicwise::detail
 {
 	struct bipartite_view;
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class bipartite_viewing;
 }
 
@@ -18,7 +18,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::视图化 mode::view================================================================================
+	//模式::视图 mode::view================================================================================
 
 	struct bipartite_view
 	{
@@ -28,8 +28,8 @@ namespace logicwise::detail
 
 
 
-	template<typename Mode, typename Arrangement>
-	class bipartite_viewing : area_ahead<Mode, Arrangement>
+	template<typename ModeOption, typename Arrangement>
+	class bipartite_viewing : area_ahead<ModeOption, Arrangement>
 	{
 
 

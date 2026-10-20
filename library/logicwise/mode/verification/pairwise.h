@@ -9,7 +9,7 @@
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/trait_predicate.h>
 #include <logicwise/semantics/vector_like_container.h>
-#include "verification_loop.h"
+#include "executor/verification_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
 #include <ranges> //用于 std::ranges，C++20标准
@@ -25,7 +25,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::verification================================================================================
+	//模式::验证 mode::verification================================================================================
 
 	template<typename Quantifier, typename Arrangement>
 	class pairwise_verification
@@ -104,7 +104,7 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 			{
-				return template_verification_loop<Quantifier, Arrangement, Extent>
+				return template_satisfies_loop<Quantifier, Arrangement, Extent>
 					([&] <auto Index> { return
 						verifier.template operator() <
 							typename List::template element<Index[0]>,
@@ -120,7 +120,7 @@ namespace logicwise::detail
 				using TraitCertificate = Verifier<ProbeTypeI, ProbeTypeJ>;
 				constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-				return template_verification_loop<Quantifier, Arrangement, Extent>
+				return template_satisfies_loop<Quantifier, Arrangement, Extent>
 					([&] <auto Index> { return
 						PredicateSolver.template operator() < Verifier<
 							typename List::template element<Index[0]>,
@@ -162,7 +162,7 @@ namespace logicwise::detail
 			}
 			[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 			{
-				return template_verification_loop<Quantifier, Arrangement, Extent>
+				return template_satisfies_loop<Quantifier, Arrangement, Extent>
 					([&] <auto Index> { return
 						verifier.template operator() <
 							List::template element<Index[0]>,
@@ -178,7 +178,7 @@ namespace logicwise::detail
 				using TraitCertificate = Verifier<ProbeValueI, ProbeValueJ>;
 				constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
 
-				return template_verification_loop<Quantifier, Arrangement, Extent>
+				return template_satisfies_loop<Quantifier, Arrangement, Extent>
 					([&] <auto Index> { return
 						PredicateSolver.template operator() < Verifier<
 							List::template element<Index[0]>,
@@ -226,7 +226,7 @@ namespace logicwise::detail
 			{
 				extent_type extent{ std::ranges::size(container) };
 
-				return instance_verification_loop<Quantifier, Arrangement>(extent,
+				return instance_satisfies_loop<Quantifier, Arrangement>(extent,
 					[&] (auto&& index) { return
 						std::invoke(verifier, container[index[0]], container[index[1]]);
 					});

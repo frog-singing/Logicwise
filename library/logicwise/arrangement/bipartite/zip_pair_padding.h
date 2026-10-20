@@ -29,6 +29,25 @@ namespace logicwise::detail
 			return (std::max)(extent.i(), extent.j());
 		}
 
+		static constexpr auto unrank(extent_type extent, std::size_t scalar_index) noexcept
+		{
+			assert(scalar_index < index_count(extent) && "[logicwise] Scalar index out of range.");
+
+			return index_type
+			{
+				{
+					scalar_index,
+					scalar_index
+				},
+				{
+					scalar_index >= extent.i(),
+					scalar_index >= extent.j()
+				}
+			};
+		}
+
+		//虚拟排布不提供 valid_index 方法
+
 		struct forward_index_traverser
 		{
 			const index_integer_type extent_i, extent_j, max_extent;

@@ -10,7 +10,7 @@ namespace logicwise::detail
 {
 	struct pairwise_querier;
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class pairwise_querying;
 }
 
@@ -18,7 +18,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::查询 mode::query================================================================================
+	//模式::查询 mode::query================================================================================
 
 	struct pairwise_querier
 	{
@@ -28,8 +28,8 @@ namespace logicwise::detail
 
 
 
-	template<typename Mode, typename Arrangement>
-	class pairwise_querying : area_ahead<Mode, Arrangement>
+	template<typename ModeOption, typename Arrangement>
+	class pairwise_querying : area_ahead<ModeOption, Arrangement>
 	{
 
 

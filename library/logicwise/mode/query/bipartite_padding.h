@@ -12,7 +12,7 @@
 #include <logicwise/semantics/vector_like_container.h>
 #include <logicwise/semantics/padding/template_element_padder.h>
 #include <logicwise/semantics/padding/padding_instance_trait.h>
-#include "query_loop.h"
+#include "executor/query_loop.h"
 #include <ranges> //用于 std::ranges，C++20标准
 #include <functional> //用于 std::invoke
 #include <utility> //用于 std::forward
@@ -20,7 +20,7 @@
 
 namespace logicwise::detail
 {
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class bipartite_querying;
 }
 
@@ -28,16 +28,16 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::查询 mode::query================================================================================
+	//模式::查询 mode::query================================================================================
 
 	//(PaddingElementI, PaddingElementJ) 必须是合法组合
 
-	template<typename Mode, ArrangementWithPadding Arrangement>
-	class bipartite_querying<Mode, Arrangement> : area_ahead<Mode, Arrangement>
+	template<typename ModeOption, ArrangementWithPadding Arrangement>
+	class bipartite_querying<ModeOption, Arrangement> : area_ahead<ModeOption, Arrangement>
 	{
 
 
-		// : area_ahead<Mode, Arrangement>
+		// : area_ahead<ModeOption, Arrangement>
 
 
 	};

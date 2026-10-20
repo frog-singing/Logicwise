@@ -8,14 +8,14 @@
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/index/type.h>
 #include <logicwise/index/index_sequencer.h>
-#include <logicwise/semantics/material/type_list/view_protocol.h>
-#include <logicwise/semantics/material/value_list/view_protocol.h>
-#include "pipeline/concrete_view.h"
+#include <logicwise/semantics/material/elementwise/type_list/view_protocol.h>
+#include <logicwise/semantics/material/elementwise/value_list/view_protocol.h>
+#include "workshop/concrete_template_view.h"
 
 
 namespace logicwise::detail
 {
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class elementwise_viewing;
 }
 
@@ -23,32 +23,32 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::视图化 mode::view================================================================================
+	//模式::视图 mode::view================================================================================
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class elementwise_viewing
 	{
 	public:
 		template<typewise::List WrapperInstance>
-		[[nodiscard]] static constexpr auto in()
+		static constexpr auto in()
 		{
 			using List = as_type_list<WrapperInstance>;
 
-			return typename concrete_view<
-					type_list_view_protocol<List>,
-					initial_view_data<List>()
-				>::view{};
+			return typename concrete_template_view<
+				type_list_view_protocol<List>,
+				initial_view_data<List>()
+			>::view{};
 		}
 
 		template<valuewise::List WrapperInstance>
-		[[nodiscard]] static constexpr auto in()
+		static constexpr auto in()
 		{
 			using List = as_value_list<WrapperInstance>;
 
-			return typename concrete_view<
-					value_list_view_protocol<List>,
-					initial_view_data<List>()
-				>::view{};
+			return typename concrete_template_view<
+				value_list_view_protocol<List>,
+				initial_view_data<List>()
+			>::view{};
 		}
 
 		template<typename WrapperInstance>
@@ -65,7 +65,7 @@ namespace logicwise::detail
 		static constexpr auto in(ContainerType&&)
 		{
 			static_assert(dependent_false_v<ContainerType>,
-				"[logicwise] Container view not supported.");
+				"[logicwise] Instance view not supported.");
 
 			return false;
 		}
@@ -73,7 +73,7 @@ namespace logicwise::detail
 
 	private:
 		using extent_type = typename Arrangement::extent_type;
-		using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
+		using IndexTraverserType = typename ModeOption::template index_traverser<Arrangement>;
 
 		template<typename List>
 		static constexpr auto initial_view_data()

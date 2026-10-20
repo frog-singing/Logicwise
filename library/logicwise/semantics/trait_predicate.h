@@ -11,6 +11,7 @@ namespace logicwise::detail
 {
     //语义 semantics================================================================================
 
+	//此处 predicate 泛指所有谓词，不限制为一元谓词
     template<typename TraitCertificate>
 	inline constexpr auto trait_predicate_solver = [] <typename TraitInstance> {
 

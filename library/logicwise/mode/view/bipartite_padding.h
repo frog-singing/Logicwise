@@ -19,7 +19,7 @@
 
 namespace logicwise::detail
 {
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class bipartite_viewing;
 }
 
@@ -27,16 +27,16 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::视图化 mode::view================================================================================
+	//模式::视图 mode::view================================================================================
 
 	//(PaddingElementI, PaddingElementJ) 必须是合法组合
 
-	template<typename Mode, ArrangementWithPadding Arrangement>
-	class bipartite_viewing<Mode, Arrangement> : area_ahead<Mode, Arrangement>
+	template<typename ModeOption, ArrangementWithPadding Arrangement>
+	class bipartite_viewing<ModeOption, Arrangement> : area_ahead<ModeOption, Arrangement>
 	{
 
 
-		// : area_ahead<Mode, Arrangement>
+		// : area_ahead<ModeOption, Arrangement>
 
 
 	};

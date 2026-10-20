@@ -40,6 +40,9 @@ namespace logicwise::detail
 		using index_integer_type = int;
 
 
+		//虚拟排布不提供 valid_index 方法
+
+
 		//使用 const extent_type&
 		//使用 const index_type&
 	};

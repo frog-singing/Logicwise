@@ -10,7 +10,7 @@ namespace logicwise::detail
 {
 	struct tripletwise_traverser;
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class tripletwise_traversal;
 }
 
@@ -18,7 +18,7 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::遍历 mode::traversal================================================================================
+	//模式::遍历 mode::traversal================================================================================
 
 	struct tripletwise_traverser
 	{
@@ -28,8 +28,8 @@ namespace logicwise::detail
 
 
 
-	template<typename Mode, typename Arrangement>
-	class tripletwise_traversal : area_ahead<Mode, Arrangement>
+	template<typename ModeOption, typename Arrangement>
+	class tripletwise_traversal : area_ahead<ModeOption, Arrangement>
 	{
 
 

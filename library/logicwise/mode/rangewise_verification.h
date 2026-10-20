@@ -16,7 +16,7 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::verification================================================================================
+	//模式::验证 mode::verification================================================================================
 
 	template<typename Quantifier, typename Arrangement>
 	struct rangewise_verification_impl;

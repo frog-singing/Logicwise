@@ -8,7 +8,7 @@
 #include <logicwise/external_detail/vector_like.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/vector_like_container.h>
-#include "traversal_loop.h"
+#include "executor/traversal_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
 #include <ranges> //用于 std::ranges，C++20标准
@@ -16,7 +16,7 @@
 
 namespace logicwise::detail
 {
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class bipartite_traversal;
 }
 
@@ -24,9 +24,9 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::遍历 mode::traversal================================================================================
+	//模式::遍历 mode::traversal================================================================================
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	class bipartite_traversal
 	{
 	public:
@@ -87,7 +87,7 @@ namespace logicwise::detail
 
 	private:
 		using extent_type = typename Arrangement::extent_type;
-		using IndexTraverserType = typename Mode::template index_traverser<Arrangement>;
+		using IndexTraverserType = typename ModeOption::template index_traverser<Arrangement>;
 		using ActualIndexType = decltype(std::declval<IndexTraverserType>().state());
 
 		template<typename WrapperInstanceA, typename WrapperInstanceB>

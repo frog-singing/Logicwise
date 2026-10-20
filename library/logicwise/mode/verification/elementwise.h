@@ -9,7 +9,15 @@
 #include <logicwise/index/sampler.h>
 #include <logicwise/semantics/trait_predicate.h>
 #include <logicwise/semantics/vector_like_container.h>
-#include "verification_loop.h"
+
+#include <logicwise/semantics/material/elementwise/type_list/verification_protocol.h>
+#include <logicwise/semantics/material/elementwise/value_list/verification_protocol.h>
+#include <logicwise/semantics/material/elementwise/vector_like_container/verification_protocol.h>
+#include "workshop/concrete_template_verification.h"
+#include "workshop/instance_verification.h"
+
+
+#include "executor/verification_loop.h"
 #include <utility> //用于 std::forward
 #include <functional> //用于 std::invoke
 #include <ranges> //用于 std::ranges，C++20标准
@@ -25,23 +33,51 @@ namespace logicwise::detail
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::验证 mode::verification================================================================================
+	//模式::验证 mode::verification================================================================================
 
     template<typename Quantifier, typename Arrangement>
 	class elementwise_verification
 	{
     public:
-        template<typename WrapperInstance>
-            requires typewise::List<WrapperInstance> || valuewise::List<WrapperInstance>
-        [[nodiscard]] static constexpr auto in()
+        template<typewise::List WrapperInstance>
+        static constexpr auto in()
         {
-            return in_wrapper<WrapperInstance>{};
+            using List = as_type_list<WrapperInstance>;
+
+            return typename concrete_template_verification<
+                type_list_verification_protocol<List>,
+                Quantifier,
+                Arrangement
+            >::verification{};
+        }
+
+        template<valuewise::List WrapperInstance>
+        static constexpr auto in()
+        {
+            using List = as_value_list<WrapperInstance>;
+
+            return typename concrete_template_verification<
+                value_list_verification_protocol<List>,
+                Quantifier,
+                Arrangement
+            >::verification{};
         }
 
         template<VectorLike ContainerType>
         [[nodiscard]] static constexpr auto in(ContainerType&& container)
         {
             return in_container<ContainerType>{ std::forward<ContainerType>(container) };
+        }
+
+        // verification 具有 [[nodiscard]]
+        template<VectorLike ContainerType>
+        static constexpr auto in_refactoring(ContainerType&& container)
+        {
+            return typename instance_verification<
+                vector_like_container_verification_protocol<ContainerType>,
+                Quantifier,
+                Arrangement
+            >::verification{ std::forward<ContainerType>(container) };
         }
 
         template<typename WrapperInstance>
@@ -68,124 +104,6 @@ namespace logicwise::detail
     private:
         using extent_type = typename Arrangement::extent_type;
 
-        template<typename WrapperInstance>
-        struct in_wrapper
-        {
-            static constexpr bool verification_result{ typename Quantifier::solver{}.result() };
-
-            [[nodiscard]] static constexpr bool satisfies(auto&&) noexcept { return verification_result; }
-
-            template<template<typename> typename>
-            [[nodiscard]] static constexpr bool satisfies() noexcept { return verification_result; }
-
-            template<template<auto> typename>
-            [[nodiscard]] static constexpr bool satisfies() noexcept { return verification_result; }
-
-        };
-
-        template<typewise::List TypeList>
-            requires TraversableExtent <
-                Arrangement,
-                extent_type{ as_type_list<TypeList>::size }
-            >
-        struct in_wrapper<TypeList>
-        {
-            using List = as_type_list<TypeList>;
-            static constexpr extent_type Extent{ List::size };
-            static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            using ProbeType = typename List::template element<ProbeIndex>;
-
-            template<typename VerifierType>
-                requires requires(VerifierType&& verifier)
-            {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeType > () };
-            }
-            [[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
-            {
-                return template_verification_loop<Quantifier, Arrangement, Extent>
-				    ([&] <auto Index> { return
-                        verifier.template operator() < typename List::template element<Index> > ();
-				    });
-            }
-
-            template<template<typename> typename Verifier>
-                requires requires { typename Verifier<ProbeType>; }
-            [[nodiscard]] static constexpr bool satisfies()
-            {
-                using TraitCertificate = Verifier<ProbeType>;
-                constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
-
-                return template_verification_loop<Quantifier, Arrangement, Extent>
-                    ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< typename List::template element<Index> > > ();
-                    });
-            }
-
-            template<typename VerifierType>
-            static constexpr bool satisfies(VerifierType&&)
-            {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <typename Type>() -> bool { ... }");
-
-                return false;
-            }
-
-        };
-
-        template<valuewise::List ValueList>
-            requires TraversableExtent <
-                Arrangement,
-                extent_type{ as_value_list<ValueList>::size }
-            >
-        struct in_wrapper<ValueList>
-        {
-            using List = as_value_list<ValueList>;
-            static constexpr extent_type Extent{ List::size };
-            static constexpr auto ProbeIndex = probe_index<Arrangement, Extent>;
-            static constexpr auto ProbeValue = List::template element<ProbeIndex>;
-
-            template<typename VerifierType>
-				requires requires(VerifierType && verifier)
-            {
-                bool{ std::forward<VerifierType>(verifier)
-                    .template operator() < ProbeValue > () };
-            }
-            [[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
-            {
-                return template_verification_loop<Quantifier, Arrangement, Extent>
-                    ([&] <auto Index> { return
-                        verifier.template operator() < List::template element<Index> > ();
-                    });
-            }
-
-            template<template<auto> typename Verifier>
-                requires requires { typename Verifier<ProbeValue>; }
-            [[nodiscard]] static constexpr bool satisfies()
-            {
-                using TraitCertificate = Verifier<ProbeValue>;
-                constexpr auto PredicateSolver{ trait_predicate_solver<TraitCertificate> };
-
-                return template_verification_loop<Quantifier, Arrangement, Extent>
-                    ([&] <auto Index> { return
-                        PredicateSolver.template operator() < Verifier< List::template element<Index> > > ();
-                    });
-            }
-
-            template<typename VerifierType>
-            static constexpr bool satisfies(VerifierType&&)
-            {
-                static_assert(dependent_false_v<VerifierType>,
-                    "[logicwise] Error: Incompatible verifier signature!\n"
-                    "Expected: [] <auto Value>() -> bool { ... }");
-
-                return false;
-            }
-
-        };
-
-
         template<typename ContainerType>
         struct in_container
         {
@@ -211,7 +129,7 @@ namespace logicwise::detail
             {
                 extent_type extent{ std::ranges::size(container) };
 
-			    return instance_verification_loop<Quantifier, Arrangement>(extent,
+			    return instance_satisfies_loop<Quantifier, Arrangement>(extent,
 				    [&] (auto&& index) { return
                         std::invoke(verifier, container[index]);
 				    });

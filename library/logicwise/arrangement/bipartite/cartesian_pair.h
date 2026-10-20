@@ -28,6 +28,24 @@ namespace logicwise::detail
 			return extent.i() * extent.j();
 		}
 
+		static constexpr auto unrank(extent_type extent, std::size_t scalar_index) noexcept
+		{
+			assert(scalar_index < index_count(extent) && "[logicwise] Scalar index out of range.");
+
+			std::size_t extent_j{ extent.j() };
+
+			return index_type
+			{
+				scalar_index / extent_j,
+				scalar_index % extent_j
+			};
+		}
+
+		static constexpr bool valid_index(extent_type extent, index_type index) noexcept
+		{
+			return index[0] < extent.i() && index[1] < extent.j();
+		}
+
 		struct forward_index_traverser
 		{
 			const index_integer_type extent_j, extent_i;

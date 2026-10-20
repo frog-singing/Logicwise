@@ -16,43 +16,43 @@
 //逻辑维度::细节
 namespace logicwise::detail
 {
-	//行为模式::查询 mode::query================================================================================
+	//模式::查询 mode::query================================================================================
 
-	template<typename Mode, typename Arrangement>
+	template<typename ModeOption, typename Arrangement>
 	struct rangewise_querying_impl;
 
-	template<typename Mode, ElementwiseArrangement Arrangement>
-	struct rangewise_querying_impl<Mode, Arrangement>
+	template<typename ModeOption, ElementwiseArrangement Arrangement>
+	struct rangewise_querying_impl<ModeOption, Arrangement>
 	{
-		using type = elementwise_querying<Mode, Arrangement>;
+		using type = elementwise_querying<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, PairwiseArrangement Arrangement>
-	struct rangewise_querying_impl<Mode, Arrangement>
+	template<typename ModeOption, PairwiseArrangement Arrangement>
+	struct rangewise_querying_impl<ModeOption, Arrangement>
 	{
-		using type = pairwise_querying<Mode, Arrangement>;
+		using type = pairwise_querying<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, TripletwiseArrangement Arrangement>
-	struct rangewise_querying_impl<Mode, Arrangement>
+	template<typename ModeOption, TripletwiseArrangement Arrangement>
+	struct rangewise_querying_impl<ModeOption, Arrangement>
 	{
-		using type = tripletwise_querying<Mode, Arrangement>;
+		using type = tripletwise_querying<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, BipartiteArrangement Arrangement>
-	struct rangewise_querying_impl<Mode, Arrangement>
+	template<typename ModeOption, BipartiteArrangement Arrangement>
+	struct rangewise_querying_impl<ModeOption, Arrangement>
 	{
-		using type = bipartite_querying<Mode, Arrangement>;
+		using type = bipartite_querying<ModeOption, Arrangement>;
 	};
 
-	template<typename Mode, MultipartiteArrangement Arrangement>
-	struct rangewise_querying_impl<Mode, Arrangement>
+	template<typename ModeOption, MultipartiteArrangement Arrangement>
+	struct rangewise_querying_impl<ModeOption, Arrangement>
 	{
-		using type = multipartite_querying<Mode, Arrangement>;
+		using type = multipartite_querying<ModeOption, Arrangement>;
 	};
 
 
-	template<typename Mode, typename Arrangement>
-	using rangewise_querying = typename rangewise_querying_impl<Mode, Arrangement>::type;
+	template<typename ModeOption, typename Arrangement>
+	using rangewise_querying = typename rangewise_querying_impl<ModeOption, Arrangement>::type;
 
 }

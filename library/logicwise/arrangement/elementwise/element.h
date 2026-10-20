@@ -40,6 +40,13 @@ namespace logicwise::detail
             return extent.i();
         }
 
+        static constexpr auto unrank(extent_type extent, std::size_t scalar_index) noexcept
+        {
+            assert(scalar_index < index_count(extent) && "[logicwise] Scalar index out of range.");
+
+            return index_type{ scalar_index };
+        }
+
         struct forward_index_traverser
         {
             const index_integer_type extent_i;
@@ -97,11 +104,30 @@ namespace logicwise::detail
 	};
 
     //单个元素
-    struct element : base_element<IndexTraitScalar>, elementwise_arrangement_tag {};
+    struct element : base_element<IndexTraitScalar>, elementwise_arrangement_tag
+    {
+        static constexpr bool valid_index(extent_type extent, index_type index) noexcept
+        {
+            return index < extent.i();
+        }
+    };
 
 	//逐多元组元素
-	struct multipletwise_element : base_element<IndexTrait1D>, multipletwise_arrangement_tag {};
+	struct multipletwise_element : base_element<IndexTrait1D>, multipletwise_arrangement_tag
+    {
+        static constexpr bool valid_index(extent_type extent, index_type index) noexcept
+        {
+			return index[0] < extent.i();
+        }
+    };
 
     //多部元素
-	struct multipartite_element : base_element<IndexTrait1D>, multipartite_arrangement_tag {};
+	struct multipartite_element : base_element<IndexTrait1D>, multipartite_arrangement_tag
+    {
+        static constexpr bool valid_index(extent_type extent, index_type index) noexcept
+        {
+			return index[0] < extent.i();
+        }
+    };
+
 }

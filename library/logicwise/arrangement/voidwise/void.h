@@ -35,18 +35,27 @@ namespace logicwise::detail
 			return 0;
 		}
 
+		static constexpr bool valid_index(extent_type, index_type) noexcept
+		{
+			return false;
+		}
+
 		struct default_index_traverser
 		{
 			explicit constexpr default_index_traverser(extent_type) noexcept {}
 			constexpr bool done() const noexcept { return true; }
-			constexpr auto state() const noexcept { return index_type{}; }
+			constexpr auto state() const noexcept
+			{
+				assert(false && "[logicwise] Accessing illegal index.");
+				return index_type{};
+			}
 			constexpr void step() noexcept {}
 		};
 
-		using forward_index_traverser = default_index_traverser;
-		using reverse_index_traverser = default_index_traverser;
-		using fast_index_traverser = default_index_traverser;
-		using light_index_traverser = default_index_traverser;
+		using forward_index_traverser	= default_index_traverser;
+		using reverse_index_traverser	= default_index_traverser;
+		using fast_index_traverser		= default_index_traverser;
+		using light_index_traverser		= default_index_traverser;
 
 	};
 

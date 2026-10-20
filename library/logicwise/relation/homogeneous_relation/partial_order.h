@@ -14,7 +14,7 @@ namespace logicwise::detail::typewise
 	//默认的偏序关系
 	struct default_partial_order_fn
 	{
-		//非类类型在 std::derived_from 中不具备自反性，即 std::derived_from<int, int> == false 
+		//非类类型在 std::derived_from 中不具备自反性，即 std::derived_from<int, int> == false
 		//而考虑到非类类型与其他类型在继承意义下不具备可比性，因此可以显式补上 || std::same_as<T1, T2>
 		//即在继承意义下，非类类型的偏序关系退化为等价关系和不可比关系
 		//注意对于类类型，std::derived_from<T1, T2> && std::derived_from<T2, T1> 并不能严格导出 std::same_as<T1, T2>
