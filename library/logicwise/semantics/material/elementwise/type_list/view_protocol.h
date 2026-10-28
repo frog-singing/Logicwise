@@ -8,7 +8,7 @@
 #include <logicwise/mode/view/adaptor/template_view_adaptor.h>
 #include "agent.h"
 #include "error_reporter.h"
-#include <utility> //用于 std::forward, std::index_sequence, std::make_index_sequence
+#include <utility> //用于 std::index_sequence, std::make_index_sequence, std::forward
 #include <type_traits> //用于 std::remove_reference_t
 #include <cstddef> //用于 std::size_t
 #include <variant> //用于 std::monostate
@@ -39,6 +39,18 @@ namespace logicwise::detail
 						typename List::template element<Data[I]>...
 					>{};
 				}(std::make_index_sequence<Data.size>{});
+			}
+
+			//只能用于 decltype
+			//for decltype only
+			template<template<typename...> typename TypeWrapper = type_list>
+			[[nodiscard]] static constexpr auto bake_for_decltype()
+			{
+				return [] <std::size_t... I> (std::index_sequence<I...>) ->
+					TypeWrapper<
+						typename List::template element<Data[I]>...
+					>
+				{ /*不安全 unsafe*/ }(std::make_index_sequence<Data.size>{});
 			}
 
 			template<template<typename...> typename TypeWrapper = type_list, typename Mapping>
@@ -122,6 +134,25 @@ namespace logicwise::detail
 				}(std::make_index_sequence<Data.size>{});
 			}
 
+			template<template<typename...> typename TypeWrapper, typename MappingType>
+				requires (Data.size == 0) || requires(MappingType && mapping)
+			{
+				std::forward<MappingType>(mapping).template operator()
+					< typename List::template element<Data[0]> > ();
+			}
+			[[nodiscard]] static constexpr auto forge_into_instance(MappingType&& mapping)
+			{
+				return [&] <std::size_t... I> (std::index_sequence<I...>) {
+					return TypeWrapper<
+						typename List::template element<Data[I]>...
+					>
+					{
+						mapping.template operator()
+							< typename List::template element<Data[I]> > ()...
+					};
+				}(std::make_index_sequence<Data.size>{});
+			}
+
 			//--------------------------------------------------------------------------------
 
 			template<template<typename...> typename TypeWrapper = type_list, typename Mapping>
@@ -162,6 +193,16 @@ namespace logicwise::detail
 					"Expected: [] <typename Type>() -> auto { ... }");
 
 				return ContainerType{};
+			}
+
+			template<template<typename...> typename TypeWrapper, typename MappingType>
+			[[nodiscard]] static constexpr auto forge_into_instance(MappingType&& mapping)
+			{
+				static_assert(dependent_false_v<MappingType>,
+					"[logicwise] Error: Incompatible mapping signature!\n"
+					"Expected: [] <typename Type>() -> auto { ... }");
+
+				return TypeWrapper<>{};
 			}
 
 		};
@@ -224,7 +265,6 @@ namespace logicwise::detail
 				//================================================================================
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto take_while()
 				{
 					return new_view< typename view_adaptor::template take_while<
@@ -233,7 +273,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto take_until()
 				{
 					return new_view< typename view_adaptor::template take_until<
@@ -242,7 +281,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto drop_while()
 				{
 					return new_view< typename view_adaptor::template drop_while<
@@ -251,7 +289,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto drop_until()
 				{
 					return new_view< typename view_adaptor::template drop_until<
@@ -260,7 +297,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto take_last_while()
 				{
 					return new_view< typename view_adaptor::template take_last_while<
@@ -269,7 +305,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto take_last_until()
 				{
 					return new_view< typename view_adaptor::template take_last_until<
@@ -278,7 +313,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto drop_last_while()
 				{
 					return new_view< typename view_adaptor::template drop_last_while<
@@ -287,7 +321,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto drop_last_until()
 				{
 					return new_view< typename view_adaptor::template drop_last_until<
@@ -298,7 +331,6 @@ namespace logicwise::detail
 				//--------------------------------------------------------------------------------
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto select()
 				{
 					return new_view< typename view_adaptor::template select<
@@ -307,7 +339,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				static constexpr auto remove()
 				{
 					return new_view< typename view_adaptor::template remove<
@@ -318,7 +349,6 @@ namespace logicwise::detail
 				//--------------------------------------------------------------------------------
 
 				template<template<typename, typename> typename EquivalenceRelation>
-					requires material_agent::template solvable_trait_homogeneous_relation<EquivalenceRelation, probe_index, probe_index>
 				static constexpr auto unique_first()
 				{
 					return new_view< typename view_adaptor::template unique_first<
@@ -327,7 +357,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename, typename> typename EquivalenceRelation>
-					requires material_agent::template solvable_trait_homogeneous_relation<EquivalenceRelation, probe_index, probe_index>
 				static constexpr auto unique_last()
 				{
 					return new_view< typename view_adaptor::template unique_last<
@@ -336,7 +365,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename, typename> typename EquivalenceRelation>
-					requires material_agent::template solvable_trait_homogeneous_relation<EquivalenceRelation, probe_index, probe_index>
 				static constexpr auto unique_adjacent_first()
 				{
 					return new_view< typename view_adaptor::template unique_adjacent_first<
@@ -345,7 +373,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename, typename> typename EquivalenceRelation>
-					requires material_agent::template solvable_trait_homogeneous_relation<EquivalenceRelation, probe_index, probe_index>
 				static constexpr auto unique_adjacent_last()
 				{
 					return new_view< typename view_adaptor::template unique_adjacent_last<
@@ -356,7 +383,6 @@ namespace logicwise::detail
 				//--------------------------------------------------------------------------------
 
 				template<template<typename, typename> typename StrictWeakOrder>
-					requires material_agent::template solvable_trait_homogeneous_relation<StrictWeakOrder, probe_index, probe_index>
 				static constexpr auto sort()
 				{
 					return new_view< typename view_adaptor::template sort<
@@ -367,7 +393,6 @@ namespace logicwise::detail
 				//--------------------------------------------------------------------------------
 
 				template<template<typename, typename> typename PartialWeakOrder>
-					requires material_agent::template solvable_trait_homogeneous_relation<PartialWeakOrder, probe_index, probe_index>
 				static constexpr auto sort_with_partial_weak_order()
 				{
 					return new_view< typename view_adaptor::template sort_with_partial_weak_order<
@@ -376,7 +401,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename, typename> typename PartialWeakOrder>
-					requires material_agent::template solvable_trait_homogeneous_relation<PartialWeakOrder, probe_index, probe_index>
 				static constexpr auto unique_first_with_partial_weak_order()
 				{
 					return new_view< typename view_adaptor::template unique_first_with_partial_weak_order<
@@ -385,7 +409,6 @@ namespace logicwise::detail
 				}
 
 				template<template<typename, typename> typename PartialWeakOrder>
-					requires material_agent::template solvable_trait_homogeneous_relation<PartialWeakOrder, probe_index, probe_index>
 				static constexpr auto unique_last_with_partial_weak_order()
 				{
 					return new_view< typename view_adaptor::template unique_last_with_partial_weak_order<
@@ -396,7 +419,6 @@ namespace logicwise::detail
 				//--------------------------------------------------------------------------------
 
 				template<template<typename, typename> typename AcyclicRelation>
-					requires material_agent::template solvable_trait_homogeneous_relation<AcyclicRelation, probe_index, probe_index>
 				static constexpr auto sort_topologically()
 				{
 					return new_view< typename view_adaptor::template sort_topologically<
@@ -407,7 +429,6 @@ namespace logicwise::detail
 				//--------------------------------------------------------------------------------
 
 				template<template<typename, typename> typename PartialPartialOrder>
-					requires material_agent::template solvable_trait_homogeneous_relation<PartialPartialOrder, probe_index, probe_index>
 				static constexpr auto sort_topologically_with_partial_partial_order()
 				{
 					return new_view< typename view_adaptor::template sort_topologically_with_partial_partial_order<

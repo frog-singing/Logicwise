@@ -31,7 +31,7 @@ namespace logicwise::detail::valuewise
 	template<typename Range, auto EqualTo>
 	concept EquivalenceClassWitness =
 		rangewise<all_of, linear_adjacent_pair>
-		::template in<Range>()
+		::in<Range>()
 		.satisfies(EqualTo);
 
 	template<typename Range, auto EqualTo = try_to_trust_existing_relation>

@@ -61,10 +61,8 @@ namespace logicwise::detail
 			template<typename Arrangement>
 			static constexpr auto execute()
 			{
-				constexpr auto found_index = template_find_first_index_loop<Arrangement, extent>
-					([] <auto Index> { return
-						PredicateSolver::template solve<Index>();
-					});
+				constexpr auto found_index =
+					template_find_first_index_loop<Arrangement, extent>(PredicateSolver{});
 
 				if constexpr (found_index)
 				{
@@ -80,10 +78,8 @@ namespace logicwise::detail
 			template<typename Arrangement>
 			static constexpr auto execute()
 			{
-				constexpr auto found_index = template_find_last_index_loop<Arrangement, extent>
-					([] <auto Index> { return
-						PredicateSolver::template solve<Index>();
-					});
+				constexpr auto found_index =
+					template_find_last_index_loop<Arrangement, extent>(PredicateSolver{});
 
 				if constexpr (found_index)
 				{

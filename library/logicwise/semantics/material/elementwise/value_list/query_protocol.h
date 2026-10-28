@@ -81,16 +81,12 @@ namespace logicwise::detail
 			using basic_core	= typename QueryWorkshop::basic_core;
 			using extent_trait	= typename QueryWorkshop::extent_trait;
 
-			template<typename Executor>
-			static constexpr auto execute_query()
+			template<typename Executor, typename... Argument>
+			static constexpr auto execute_query(Argument&&... argument)
 			{
-				return QueryWorkshop::template execute_query<Executor>();
-			}
-
-			template<typename Executor, typename PredicateSolverType>
-			static constexpr auto execute_query(PredicateSolverType&& predicate_solver)
-			{
-				return QueryWorkshop::template execute_query<Executor>(std::forward<PredicateSolverType>(predicate_solver));
+				return QueryWorkshop::template execute_query<Executor>(
+					std::forward<Argument>(argument)...
+				);
 			}
 
 			//--------------------------------------------------------------------------------
@@ -110,37 +106,27 @@ namespace logicwise::detail
 				//================================================================================
 
 				template<template<auto> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				[[nodiscard]] static constexpr std::size_t count()
 				{
 					return execute_query< typename query_executor::count >
-						([] <auto Index> { return
-							trait_predicate_solver<Predicate, probe_index>::template solve<Index>();
-						});
+						(trait_predicate_solver<Predicate, probe_index>{});
 				}
 				
 				template<template<auto> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				[[nodiscard]] static constexpr std::optional<index_type> find_first_index()
 				{
 					return execute_query< typename query_executor::find_first_index >
-						([] <auto Index> { return
-							trait_predicate_solver<Predicate, probe_index>::template solve<Index>();
-						});
+						(trait_predicate_solver<Predicate, probe_index>{});
 				}
 
 				template<template<auto> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				[[nodiscard]] static constexpr std::optional<index_type> find_last_index()
 				{
 					return execute_query< typename query_executor::find_last_index >
-						([] <auto Index> { return
-							trait_predicate_solver<Predicate, probe_index>::template solve<Index>();
-						});
+						(trait_predicate_solver<Predicate, probe_index>{});
 				}
 
 				template<template<auto> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				[[nodiscard]] static constexpr auto find_first()
 				{
 					return execute_query< typename query_executor::template find_first<
@@ -149,7 +135,6 @@ namespace logicwise::detail
 				}
 
 				template<template<auto> typename Predicate>
-					requires material_agent::template solvable_trait_predicate<Predicate, probe_index>
 				[[nodiscard]] static constexpr auto find_last()
 				{
 					return execute_query< typename query_executor::template find_last<

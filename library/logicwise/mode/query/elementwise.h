@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <version> //用于 __cpp_lib_optional (C++17)，C++20标准
+#include <logicwise/external_detail/cxx_standard.h>
+
 #include <logicwise/external_detail/exosuit.h>
 #include <logicwise/external_detail/list.h>
 #include <logicwise/external_detail/vector_like.h>
@@ -11,8 +14,8 @@
 #include <logicwise/semantics/material/elementwise/type_list/query_protocol.h>
 #include <logicwise/semantics/material/elementwise/value_list/query_protocol.h>
 #include <logicwise/semantics/material/elementwise/vector_like_container/query_protocol.h>
-#include "workshop/concrete_template_query.h"
-#include "workshop/instance_query.h"
+#include "workshop/template_query_workshop.h"
+#include "workshop/instance_query_workshop.h"
 
 
 #include "executor/query_loop.h"
@@ -44,7 +47,7 @@ namespace logicwise::detail
         {
             using List = as_type_list<WrapperInstance>;
 
-            return typename concrete_template_query<
+            return typename template_query_workshop<
                 type_list_query_protocol<List>,
                 Arrangement
             >::query{};
@@ -55,7 +58,7 @@ namespace logicwise::detail
         {
             using List = as_value_list<WrapperInstance>;
 
-            return typename concrete_template_query<
+            return typename template_query_workshop<
                 value_list_query_protocol<List>,
                 Arrangement
             >::query{};
@@ -71,7 +74,7 @@ namespace logicwise::detail
         template<VectorLike ContainerType>
         static constexpr auto in_refactoring(ContainerType&& container)
         {
-            return typename instance_query<
+            return typename instance_query_workshop<
                 vector_like_container_query_protocol<ContainerType>,
                 Arrangement
             >::query{ std::forward<ContainerType>(container) };

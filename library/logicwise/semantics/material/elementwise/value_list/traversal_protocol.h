@@ -53,11 +53,11 @@ namespace logicwise::detail
 		{
 			template<template<typename Accumulator, auto Value> typename Combinator>
 			using alias_to_type_combinator_folder =
-				material_agent::template alias_to_type_combinator_folder<Combinator>;
+				typename material_agent::template alias_to_type_combinator_folder<Combinator>;
 
 			template<template<auto Index, typename Accumulator, auto Value> typename Combinator>
 			using alias_to_type_combinator_with_index_folder =
-				material_agent::template alias_to_type_combinator_with_index_folder<Combinator>;
+				typename material_agent::template alias_to_type_combinator_with_index_folder<Combinator>;
 
 			//--------------------------------------------------------------------------------
 
@@ -109,6 +109,30 @@ namespace logicwise::detail
 						InitialAccumulator,
 						alias_to_type_combinator_with_index_folder<ToTypeCombinator>
 					> >();
+				}
+
+				//================================================================================
+
+				template<
+					typename InitialAccumulator,
+					template<typename Accumulator, auto Value> typename ToTypeCombinator
+				>
+				static constexpr auto fold()
+				{
+					error_reporter::template unable_to_initiate_fold<InitialAccumulator>();
+
+					return type_element<InitialAccumulator>{};
+				}
+
+				template<
+					typename InitialAccumulator,
+					template<auto Index, typename Accumulator, auto Value> typename ToTypeCombinator
+				>
+				static constexpr auto fold_with_index()
+				{
+					error_reporter::template unable_to_initiate_fold<InitialAccumulator>();
+
+					return type_element<InitialAccumulator>{};
 				}
 
 			};

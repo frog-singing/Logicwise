@@ -20,21 +20,21 @@ namespace logicwise::detail::valuewise
     template<auto Value, typename Range, auto EqualTo = default_equivalence_relation>
     concept BelongsTo =
         rangewise<at_least<1>, element>
-        ::template in<Range>()
+        ::in<Range>()
         .satisfies([] <auto Element> { return EqualTo.template operator() < Value, Element > (); });
 
     //唯一存在于（同时满足属于）
     template<auto Value, typename Range, auto EqualTo = default_equivalence_relation>
     concept UniqueIn =
         rangewise<exactly<1>, element>
-        ::template in<Range>()
+        ::in<Range>()
         .satisfies([] <auto Element> { return EqualTo.template operator() < Value, Element > (); });
 
     //不重复存在于
     template<auto Value, typename Range, auto EqualTo = default_equivalence_relation>
     concept UnrepeatedIn =
         rangewise<at_most<1>, element>
-        ::template in<Range>()
+        ::in<Range>()
         .satisfies([] <auto Element> { return EqualTo.template operator() < Value, Element > (); });
 
     //--------------------------------------------------------------------------------
@@ -43,21 +43,21 @@ namespace logicwise::detail::valuewise
     template<typename SubRange, typename SuperRange, auto EqualTo = default_equivalence_relation>
     concept SubRangeOf =
         rangewise<all_of, element>
-        ::template in<SubRange>()
+        ::in<SubRange>()
         .satisfies([] <auto Element> { return BelongsTo<Element, SuperRange, EqualTo>; });
 
     //被唯一包含于（同时满足子范围）
     template<typename TargetRange, typename SourceRange, auto EqualTo = default_equivalence_relation>
     concept UniquelyContainedIn =
         rangewise<all_of, element>
-        ::template in<TargetRange>()
+        ::in<TargetRange>()
         .satisfies([] <auto Element> { return UniqueIn<Element, SourceRange, EqualTo>; });
 
     //被不重复包含于
     template<typename TargetRange, typename SourceRange, auto EqualTo = default_equivalence_relation>
     concept UnrepeatedlyContainedIn =
         rangewise<all_of, element>
-        ::template in<TargetRange>()
+        ::in<TargetRange>()
         .satisfies([] <auto Element> { return UnrepeatedIn<Element, SourceRange, EqualTo>; });
 
     //--------------------------------------------------------------------------------

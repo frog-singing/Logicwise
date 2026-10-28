@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/semantics/tag.h>
 #include <logicwise/semantics/resolve_core.h>
-#include <logicwise/mode/verification/component/template_verification_constraint_component.h>
+#include <logicwise/mode/verification/component/template_verification_constraint.h>
 #include <logicwise/mode/verification/component/template_verification_component.h>
-#include "type.h"
 #include <utility> //用于 std::forward
 
 
@@ -16,11 +16,9 @@ namespace logicwise::detail
 	//模式::验证 mode::verification================================================================================
 
 	template<typename VerificationProtocol, typename Quantifier, typename Arrangement>
-	struct concrete_template_verification : concrete_template_verification_workshop_tag
+	struct template_verification_workshop
 	{
 		//前向声明
-		struct constraint;
-		struct basic_core;
 		struct verification;
 
 		//--------------------------------------------------------------------------------
@@ -32,37 +30,36 @@ namespace logicwise::detail
 		static constexpr bool default_verification_result{ typename Quantifier::solver{}.result() };
 		using extent_trait = typename material_agent::template extent_trait<Arrangement>;
 
-		template<typename Executor, typename PredicateSolverType>
-		static constexpr auto execute_verification(PredicateSolverType&& predicate_solver)
+		template<typename Executor, typename... Argument>
+		static constexpr auto execute_verification(Argument&&... argument)
 		{
-			return Executor::template execute<Quantifier, Arrangement>
-				(std::forward<PredicateSolverType>(predicate_solver));
+			return Executor::template execute<Quantifier, Arrangement>(
+				std::forward<Argument>(argument)...
+			);
 		}
 
 		//--------------------------------------------------------------------------------
 
-		using ConstraintComponent = template_verification_constraint_component<material_agent, Arrangement>;
-
-		struct constraint
-			: ConstraintComponent::component
-			, ConstraintComponent::component_with_index
-		{};
+		using constraint = typename template_verification_constraint<material_agent, Arrangement>::constraint;
 
 		//--------------------------------------------------------------------------------
 
-		using VerificationComponent = template_verification_component<concrete_template_verification>;
-
-		struct basic_core
-			: VerificationComponent::component
-			, VerificationComponent::component_with_index
-		{};
+		using basic_core = resolve_basic_core<
+			material_agent,
+			template_verification_component<template_verification_workshop>
+		>;
 
 		//--------------------------------------------------------------------------------
 
 		struct [[nodiscard]] verification
-			: resolve_core<VerificationProtocol, concrete_template_verification>
-			, concrete_template_verification_product_tag
-		{};
+			: resolve_core<VerificationProtocol, template_verification_workshop>
+		{
+			using role_tag				= product_role_tag;
+			using mode_tag				= verification_mode_tag;
+			using material_domain_tag	= template_material_domain_tag;
+			using organization_form_tag	= typename material_agent::organization_form_tag;
+			using material_feeding_tag	= typename material_agent::material_feeding_tag;
+		};
 
 	};
 

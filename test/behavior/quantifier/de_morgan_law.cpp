@@ -22,7 +22,7 @@ namespace logicwise::test
 	inline constexpr auto logical_conjunction = [] <valuewise::List PredicateList> { return
 		[] <typename Variable> { return
 			rangewise<all_of, element> // all_of: ∀
-			::template in<PredicateList>()
+			::in<PredicateList>()
 			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
@@ -30,7 +30,7 @@ namespace logicwise::test
 	inline constexpr auto logical_disjunction = [] <valuewise::List PredicateList> { return
 		[] <typename Variable> { return
 			rangewise<any_of, element> // any_of: ∃
-			::template in<PredicateList>()
+			::in<PredicateList>()
 			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
@@ -38,7 +38,7 @@ namespace logicwise::test
 	inline constexpr auto logical_conjunction_of_negation = [] <valuewise::List PredicateList> { return
 		[] <typename Variable> { return
 			rangewise<none_of, element> // none_of: ∀¬
-			::template in<PredicateList>()
+			::in<PredicateList>()
 			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};
@@ -46,7 +46,7 @@ namespace logicwise::test
 	inline constexpr auto logical_disjunction_of_negation = [] <valuewise::List PredicateList> { return
 		[] <typename Variable> { return
 			rangewise<not_every, element> // not_every: ∃¬
-			::template in<PredicateList>()
+			::in<PredicateList>()
 			.satisfies([] <auto Predicate> { return Predicate.template operator() < Variable > (); });
 		};
 	};

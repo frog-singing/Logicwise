@@ -6,7 +6,7 @@
 #include <logicwise/external_detail/exosuit.h>
 
 
-#include <utility> //用于 std::forward, std::move, std::declval
+#include <utility> //用于 std::forward
 
 
 namespace logicwise::detail

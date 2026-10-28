@@ -16,8 +16,8 @@ namespace logicwise::detail
 	//模式::遍历 mode::traversal================================================================================
 
 	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent,
-		typename AtomicOperationType>
-	constexpr void template_execute_loop(AtomicOperationType&& atomic_operation)
+		typename OperationExecutorType>
+	constexpr void template_execute_loop(OperationExecutorType&& operation_executor)
 	{
 		using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
 
@@ -27,21 +27,21 @@ namespace logicwise::detail
 
 		template for (constexpr auto Index : index_array)
 		{
-			atomic_operation.template operator() < Index > ();
+			operation_executor.template operator() < Index > ();
 		}
 #else
 		//C++20
 		using index_sequence = typename IndexSequencer::index_sequence;
 
 		index_sequence::invoke([&] <auto... Index> {
-			(..., atomic_operation.template operator() < Index > ());
+			(..., operation_executor.template operator() < Index > ());
 		});
 #endif
 	}
 
 	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent,
-		typename AtomicOperationType>
-	constexpr void template_execute_until_loop(AtomicOperationType&& atomic_operation)
+		typename PredicateSolverType>
+	constexpr void template_execute_until_loop(PredicateSolverType&& predicate_solver)
 	{
 		using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
 
@@ -51,21 +51,21 @@ namespace logicwise::detail
 
 		template for (constexpr auto Index : index_array)
 		{
-			if (atomic_operation.template operator() < Index > ()) { return; }
+			if (predicate_solver.template operator() < Index > ()) { return; }
 		}
 #else
 		//C++20
 		using index_sequence = typename IndexSequencer::index_sequence;
 
 		index_sequence::invoke([&] <auto... Index> {
-			(... || atomic_operation.template operator() < Index > ());
+			(... || predicate_solver.template operator() < Index > ());
 		});
 #endif
 	}
 
 	template<typename Arrangement, typename IndexTraverserType, typename Arrangement::extent_type Extent,
-		typename AtomicOperationType>
-	constexpr void template_execute_while_loop(AtomicOperationType&& atomic_operation)
+		typename PredicateSolverType>
+	constexpr void template_execute_while_loop(PredicateSolverType&& predicate_solver)
 	{
 		using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, Extent>;
 
@@ -75,53 +75,53 @@ namespace logicwise::detail
 
 		template for (constexpr auto Index : index_array)
 		{
-			if (!atomic_operation.template operator() < Index > ()) { return; }
+			if (!predicate_solver.template operator() < Index > ()) { return; }
 		}
 #else
 		//C++20
 		using index_sequence = typename IndexSequencer::index_sequence;
 
 		index_sequence::invoke([&] <auto... Index> {
-			(... && atomic_operation.template operator() < Index > ());
+			(... && predicate_solver.template operator() < Index > ());
 		});
 #endif
 	}
 	
-	template<typename Arrangement, typename IndexTraverserType, typename AtomicOperationType>
+	template<typename Arrangement, typename IndexTraverserType, typename OperationExecutorType>
 	constexpr void instance_execute_loop(typename Arrangement::extent_type extent,
-		AtomicOperationType&& atomic_operation)
+		OperationExecutorType&& operation_executor)
 	{
 		IndexTraverserType index_traverser{ extent };
 
 		while (!index_traverser.done())
 		{
-			std::invoke(atomic_operation, index_traverser.state());
+			std::invoke(operation_executor, index_traverser.state());
 			index_traverser.step();
 		}
 	}
 
-	template<typename Arrangement, typename IndexTraverserType, typename AtomicOperationType>
+	template<typename Arrangement, typename IndexTraverserType, typename PredicateSolverType>
 	constexpr void instance_execute_until_loop(typename Arrangement::extent_type extent,
-		AtomicOperationType&& atomic_operation)
+		PredicateSolverType&& predicate_solver)
 	{
 		IndexTraverserType index_traverser{ extent };
 
 		while (!index_traverser.done())
 		{
-			if (std::invoke(atomic_operation, index_traverser.state())) { return; }
+			if (std::invoke(predicate_solver, index_traverser.state())) { return; }
 			index_traverser.step();
 		}
 	}
 
-	template<typename Arrangement, typename IndexTraverserType, typename AtomicOperationType>
+	template<typename Arrangement, typename IndexTraverserType, typename PredicateSolverType>
 	constexpr void instance_execute_while_loop(typename Arrangement::extent_type extent,
-		AtomicOperationType&& atomic_operation)
+		PredicateSolverType&& predicate_solver)
 	{
 		IndexTraverserType index_traverser{ extent };
 
 		while (!index_traverser.done())
 		{
-			if (!std::invoke(atomic_operation, index_traverser.state())) { return; }
+			if (!std::invoke(predicate_solver, index_traverser.state())) { return; }
 			index_traverser.step();
 		}
 	}

@@ -13,7 +13,7 @@ namespace logicwise::detail
 	//模式::验证 mode::verification================================================================================
 
 	template<typename VerificationProtocol, typename Quantifier, typename Arrangement>
-	struct instance_verification : instance_verification_workshop_tag
+	struct instance_verification_workshop : instance_verification_workshop_tag
 	{
 
 

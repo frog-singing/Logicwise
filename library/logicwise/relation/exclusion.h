@@ -20,7 +20,7 @@ namespace logicwise::detail
 	template<typename A, typename B, auto RelatesTo>
 	concept IrrelevantRangeTo =
 		rangewise<none_of, cartesian_pair>
-		::template between<A, B>()
+		::between<A, B>()
 		.satisfies(RelatesTo);
 
 }

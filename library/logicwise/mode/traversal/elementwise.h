@@ -12,8 +12,8 @@
 #include <logicwise/semantics/material/elementwise/type_list/traversal_protocol.h>
 #include <logicwise/semantics/material/elementwise/value_list/traversal_protocol.h>
 #include <logicwise/semantics/material/elementwise/vector_like_container/traversal_protocol.h>
-#include "workshop/concrete_template_traversal.h"
-#include "workshop/instance_traversal.h"
+#include "workshop/template_traversal_workshop.h"
+#include "workshop/instance_traversal_workshop.h"
 
 
 #include "executor/traversal_loop.h"
@@ -46,7 +46,7 @@ namespace logicwise::detail
         {
             using List = as_type_list<WrapperInstance>;
 
-            return typename concrete_template_traversal<
+            return typename template_traversal_workshop<
                 type_list_traversal_protocol<List>,
                 Arrangement,
                 IndexTraverserType
@@ -58,7 +58,7 @@ namespace logicwise::detail
         {
             using List = as_value_list<WrapperInstance>;
 
-            return typename concrete_template_traversal<
+            return typename template_traversal_workshop<
                 value_list_traversal_protocol<List>,
                 Arrangement,
                 IndexTraverserType
@@ -75,7 +75,7 @@ namespace logicwise::detail
         template<VectorLike ContainerType>
         static constexpr auto in_refactoring(ContainerType&& container)
         {
-            return typename instance_traversal<
+            return typename instance_traversal_workshop<
                 vector_like_container_traversal_protocol<ContainerType>,
                 Arrangement,
                 IndexTraverserType

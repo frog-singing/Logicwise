@@ -15,7 +15,7 @@ namespace logicwise::detail
 	template<typename TraversalWorkshop>
 	struct template_traversal_component
 	{
-		struct component
+		struct elementwise
 		{
 			static constexpr void execute(auto&&) noexcept {}
             static constexpr void execute_until(auto&&) noexcept {}
@@ -27,10 +27,11 @@ namespace logicwise::detail
 			template<auto Accumulator>
 			[[nodiscard]] static constexpr auto fold(auto&&) noexcept { return Accumulator; }
 
+			[[nodiscard]] static constexpr auto fold(auto&& accumulator, auto&&) noexcept { return accumulator; }
+
 		};
 
-		//需要 constraint 提供对应的 component_with_index 内容
-		struct component_with_index
+		struct elementwise_with_index
 		{
 			static constexpr void execute_with_index(auto&&) noexcept {}
 			static constexpr void execute_until_with_index(auto&&) noexcept {}
@@ -41,6 +42,40 @@ namespace logicwise::detail
 
 			template<auto Accumulator>
 			[[nodiscard]] static constexpr auto fold_with_index(auto&&) noexcept { return Accumulator; }
+
+			[[nodiscard]] static constexpr auto fold_with_index(auto&& accumulator, auto&&) noexcept { return accumulator; }
+
+		};
+
+		struct rangewise
+		{
+			static constexpr void rangewise_execute(auto&&) noexcept {}
+			static constexpr void rangewise_execute_until(auto&&) noexcept {}
+			static constexpr void rangewise_execute_while(auto&&) noexcept {}
+
+			template<typename Accumulator>
+			[[nodiscard]] static constexpr auto rangewise_fold(auto&&) noexcept { return type_element<Accumulator>{}; }
+
+			template<auto Accumulator>
+			[[nodiscard]] static constexpr auto rangewise_fold(auto&&) noexcept { return Accumulator; }
+
+			[[nodiscard]] static constexpr auto rangewise_fold(auto&& accumulator, auto&&) noexcept { return accumulator; }
+
+		};
+
+		struct rangewise_with_index
+		{
+			static constexpr void rangewise_execute_with_index(auto&&) noexcept {}
+			static constexpr void rangewise_execute_until_with_index(auto&&) noexcept {}
+			static constexpr void rangewise_execute_while_with_index(auto&&) noexcept {}
+
+			template<typename Accumulator>
+			[[nodiscard]] static constexpr auto rangewise_fold_with_index(auto&&) noexcept { return type_element<Accumulator>{}; }
+
+			template<auto Accumulator>
+			[[nodiscard]] static constexpr auto rangewise_fold_with_index(auto&&) noexcept { return Accumulator; }
+
+			[[nodiscard]] static constexpr auto rangewise_fold_with_index(auto&& accumulator, auto&&) noexcept { return accumulator; }
 
 		};
 
@@ -55,71 +90,75 @@ namespace logicwise::detail
 		using traversal_executor	= typename TraversalWorkshop::traversal_executor;
 		using error_reporter		= typename TraversalWorkshop::error_reporter;
 
-		template<typename Executor>
-		static constexpr auto execute_traversal()
+		template<typename Executor, typename... Argument>
+		static constexpr auto execute_traversal(Argument&&... argument)
 		{
-			return TraversalWorkshop::template execute_traversal<Executor>();
+			return TraversalWorkshop::template execute_traversal<Executor>(
+				std::forward<Argument>(argument)...
+			);
 		}
 
-		template<typename Executor, typename OperationExecutorType>
-		static constexpr auto execute_traversal(OperationExecutorType&& operation_executor)
-		{
-			return TraversalWorkshop::template execute_traversal<Executor>
-				(std::forward<OperationExecutorType>(operation_executor));
-		}
+		//--------------------------------------------------------------------------------
+
+		using computation_operator = typename material_agent::computation_operator;
 
 		//================================================================================
 
-		struct component
+		struct elementwise
 		{
 			template<typename OperationType>
-				requires constraint::template valid_operation_type<OperationType>
+				requires constraint::elementwise::template valid_operation<OperationType>
 			static constexpr void execute(OperationType&& operation)
 			{
 				execute_traversal< typename traversal_executor::execute >
-					([&] <auto Index> {
-						material_agent::template execute_operation<Index>(operation);
-					});
+					(typename computation_operator::elementwise::operation_executor{ operation });
 			}
 
 			template<typename OperationType>
-				requires constraint::template valid_predicate_type<OperationType>
+				requires constraint::elementwise::template valid_predicate<OperationType>
 			static constexpr void execute_until(OperationType&& operation)
 			{
 				execute_traversal< typename traversal_executor::execute_until >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate<Index>(operation);
-					});
+					(typename computation_operator::elementwise::instance_predicate_solver{ operation });
 			}
 
 			template<typename OperationType>
-				requires constraint::template valid_predicate_type<OperationType>
+				requires constraint::elementwise::template valid_predicate<OperationType>
 			static constexpr void execute_while(OperationType&& operation)
 			{
 				execute_traversal< typename traversal_executor::execute_while >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate<Index>(operation);
-					});
+					(typename computation_operator::elementwise::instance_predicate_solver{ operation });
 			}
 
 			template<typename Accumulator, typename ToTypeCombinator>
-				requires constraint::template valid_to_type_combinator<Accumulator, ToTypeCombinator>
+				requires constraint::elementwise::template valid_to_type_combinator<Accumulator, ToTypeCombinator>
 			[[nodiscard]] static constexpr auto fold(ToTypeCombinator&&)
 			{
 				return execute_traversal< typename traversal_executor::template fold_into_type<
 					Accumulator,
-					typename material_agent::template to_type_combinator_folder<ToTypeCombinator>
+					typename computation_operator::elementwise::template to_type_combinator_folder<ToTypeCombinator>
 				> >();
 			}
 
 			template<auto Accumulator, typename ToValueCombinator>
-				requires constraint::template valid_to_value_combinator<Accumulator, ToValueCombinator>
+				requires constraint::elementwise::template valid_to_value_combinator<Accumulator, ToValueCombinator>
 			[[nodiscard]] static constexpr auto fold(ToValueCombinator&&)
 			{
 				return execute_traversal< typename traversal_executor::template fold_into_value<
 					Accumulator,
-					typename material_agent::template to_value_combinator_folder<ToValueCombinator>
+					typename computation_operator::elementwise::template to_value_combinator_folder<ToValueCombinator>
 				> >();
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+				requires constraint::elementwise::template valid_to_instance_combinator<AccumulatorType, ToInstanceCombinatorType>
+			[[nodiscard]] static constexpr auto fold(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&& to_instance_combinator)
+			{
+				return execute_traversal< typename traversal_executor::fold_into_instance >(
+					std::forward<AccumulatorType>(accumulator),
+					typename computation_operator::elementwise::to_instance_combinator_folder{ to_instance_combinator }
+				);
 			}
 
 			//================================================================================
@@ -127,25 +166,25 @@ namespace logicwise::detail
 			template<typename OperationType>
 			static constexpr void execute(OperationType&&)
 			{
-				error_reporter::template incompatible_operation<OperationType>();
+				error_reporter::elementwise::template incompatible_operation<OperationType>();
 			}
 
 			template<typename OperationType>
 			static constexpr void execute_until(OperationType&&)
 			{
-				error_reporter::template incompatible_predicate_operation<OperationType>();
+				error_reporter::elementwise::template incompatible_predicate_operation<OperationType>();
 			}
 
 			template<typename OperationType>
 			static constexpr void execute_while(OperationType&&)
 			{
-				error_reporter::template incompatible_predicate_operation<OperationType>();
+				error_reporter::elementwise::template incompatible_predicate_operation<OperationType>();
 			}
 
 			template<typename Accumulator, typename ToTypeCombinator>
 			static constexpr auto fold(ToTypeCombinator&&)
 			{
-				error_reporter::template incompatible_to_type_combinator<ToTypeCombinator>();
+				error_reporter::elementwise::template incompatible_to_type_combinator<ToTypeCombinator>();
 
 				return type_element<Accumulator>{};
 			}
@@ -153,64 +192,77 @@ namespace logicwise::detail
 			template<auto Accumulator, typename ToValueCombinator>
 			static constexpr auto fold(ToValueCombinator&&)
 			{
-				error_reporter::template incompatible_to_value_combinator<ToValueCombinator>();
+				error_reporter::elementwise::template incompatible_to_value_combinator<ToValueCombinator>();
 
 				return Accumulator;
 			}
 
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+			static constexpr auto fold(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&&)
+			{
+				error_reporter::elementwise::template incompatible_to_instance_combinator<ToInstanceCombinatorType>();
+
+				return accumulator;
+			}
+
 		};
 
-		//需要 constraint 提供对应的 component_with_index 内容
-		struct component_with_index
+		struct elementwise_with_index
 		{
 			template<typename OperationType>
-				requires constraint::template valid_operation_with_index_type<OperationType>
+				requires constraint::elementwise_with_index::template valid_operation<OperationType>
 			static constexpr void execute_with_index(OperationType&& operation)
 			{
 				execute_traversal< typename traversal_executor::execute >
-					([&] <auto Index> {
-						material_agent::template execute_operation_with_index<Index>(operation);
-					});
+					(typename computation_operator::elementwise_with_index::operation_executor{ operation });
 			}
 
 			template<typename OperationType>
-				requires constraint::template valid_predicate_with_index_type<OperationType>
+				requires constraint::elementwise_with_index::template valid_predicate<OperationType>
 			static constexpr void execute_until_with_index(OperationType&& operation)
 			{
 				execute_traversal< typename traversal_executor::execute_until >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate_with_index<Index>(operation);
-					});
+					(typename computation_operator::elementwise_with_index::instance_predicate_solver{ operation });
 			}
 
 			template<typename OperationType>
-				requires constraint::template valid_predicate_with_index_type<OperationType>
+				requires constraint::elementwise_with_index::template valid_predicate<OperationType>
 			static constexpr void execute_while_with_index(OperationType&& operation)
 			{
 				execute_traversal< typename traversal_executor::execute_while >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate_with_index<Index>(operation);
-					});
+					(typename computation_operator::elementwise_with_index::instance_predicate_solver{ operation });
 			}
 
 			template<typename Accumulator, typename ToTypeCombinator>
-				requires constraint::template valid_to_type_combinator_with_index<Accumulator, ToTypeCombinator>
+				requires constraint::elementwise_with_index::template valid_to_type_combinator<Accumulator, ToTypeCombinator>
 			[[nodiscard]] static constexpr auto fold_with_index(ToTypeCombinator&&)
 			{
 				return execute_traversal< typename traversal_executor::template fold_into_type<
 					Accumulator,
-					typename material_agent::template to_type_combinator_with_index_folder<ToTypeCombinator>
+					typename computation_operator::elementwise_with_index::template to_type_combinator_folder<ToTypeCombinator>
 				> >();
 			}
 
 			template<auto Accumulator, typename ToValueCombinator>
-				requires constraint::template valid_to_value_combinator_with_index<Accumulator, ToValueCombinator>
+				requires constraint::elementwise_with_index::template valid_to_value_combinator<Accumulator, ToValueCombinator>
 			[[nodiscard]] static constexpr auto fold_with_index(ToValueCombinator&&)
 			{
 				return execute_traversal< typename traversal_executor::template fold_into_value<
 					Accumulator,
-					typename material_agent::template to_value_combinator_with_index_folder<ToValueCombinator>
+					typename computation_operator::elementwise_with_index::template to_value_combinator_folder<ToValueCombinator>
 				> >();
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+				requires constraint::elementwise_with_index::template valid_to_instance_combinator<AccumulatorType, ToInstanceCombinatorType>
+			[[nodiscard]] static constexpr auto fold_with_index(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&& to_instance_combinator)
+			{
+				return execute_traversal< typename traversal_executor::fold_into_instance >(
+					std::forward<AccumulatorType>(accumulator),
+					typename computation_operator::elementwise_with_index::to_instance_combinator_folder{ to_instance_combinator }
+				);
 			}
 
 			//================================================================================
@@ -218,25 +270,25 @@ namespace logicwise::detail
 			template<typename OperationType>
 			static constexpr void execute_with_index(OperationType&&)
 			{
-				error_reporter::template incompatible_operation_with_index<OperationType>();
+				error_reporter::elementwise_with_index::template incompatible_operation<OperationType>();
 			}
 
 			template<typename OperationType>
 			static constexpr void execute_until_with_index(OperationType&&)
 			{
-				error_reporter::template incompatible_predicate_operation_with_index<OperationType>();
+				error_reporter::elementwise_with_index::template incompatible_predicate_operation<OperationType>();
 			}
 
 			template<typename OperationType>
 			static constexpr void execute_while_with_index(OperationType&&)
 			{
-				error_reporter::template incompatible_predicate_operation_with_index<OperationType>();
+				error_reporter::elementwise_with_index::template incompatible_predicate_operation<OperationType>();
 			}
 
 			template<typename Accumulator, typename ToTypeCombinator>
 			static constexpr auto fold_with_index(ToTypeCombinator&&)
 			{
-				error_reporter::template incompatible_to_type_combinator_with_index<ToTypeCombinator>();
+				error_reporter::elementwise_with_index::template incompatible_to_type_combinator<ToTypeCombinator>();
 
 				return type_element<Accumulator>{};
 			}
@@ -244,9 +296,226 @@ namespace logicwise::detail
 			template<auto Accumulator, typename ToValueCombinator>
 			static constexpr auto fold_with_index(ToValueCombinator&&)
 			{
-				error_reporter::template incompatible_to_value_combinator_with_index<ToValueCombinator>();
+				error_reporter::elementwise_with_index::template incompatible_to_value_combinator<ToValueCombinator>();
 
 				return Accumulator;
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+			static constexpr auto fold_with_index(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&&)
+			{
+				error_reporter::elementwise_with_index::template incompatible_to_instance_combinator<ToInstanceCombinatorType>();
+
+				return accumulator;
+			}
+
+		};
+
+		struct rangewise
+		{
+			template<typename OperationType>
+				requires constraint::rangewise::template valid_operation<OperationType>
+			static constexpr void rangewise_execute(OperationType&& operation)
+			{
+				execute_traversal< typename traversal_executor::execute >
+					(typename computation_operator::rangewise::operation_executor{ operation });
+			}
+
+			template<typename OperationType>
+				requires constraint::rangewise::template valid_predicate<OperationType>
+			static constexpr void rangewise_execute_until(OperationType&& operation)
+			{
+				execute_traversal< typename traversal_executor::execute_until >
+					(typename computation_operator::rangewise::instance_predicate_solver{ operation });
+			}
+
+			template<typename OperationType>
+				requires constraint::rangewise::template valid_predicate<OperationType>
+			static constexpr void rangewise_execute_while(OperationType&& operation)
+			{
+				execute_traversal< typename traversal_executor::execute_while >
+					(typename computation_operator::rangewise::instance_predicate_solver{ operation });
+			}
+
+			template<typename Accumulator, typename ToTypeCombinator>
+				requires constraint::rangewise::template valid_to_type_combinator<Accumulator, ToTypeCombinator>
+			[[nodiscard]] static constexpr auto rangewise_fold(ToTypeCombinator&&)
+			{
+				return execute_traversal< typename traversal_executor::template fold_into_type<
+					Accumulator,
+					typename computation_operator::rangewise::template to_type_combinator_folder<ToTypeCombinator>
+				> >();
+			}
+
+			template<auto Accumulator, typename ToValueCombinator>
+				requires constraint::rangewise::template valid_to_value_combinator<Accumulator, ToValueCombinator>
+			[[nodiscard]] static constexpr auto rangewise_fold(ToValueCombinator&&)
+			{
+				return execute_traversal< typename traversal_executor::template fold_into_value<
+					Accumulator,
+					typename computation_operator::rangewise::template to_value_combinator_folder<ToValueCombinator>
+				> >();
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+				requires constraint::rangewise::template valid_to_instance_combinator<AccumulatorType, ToInstanceCombinatorType>
+			[[nodiscard]] static constexpr auto rangewise_fold(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&& to_instance_combinator)
+			{
+				return execute_traversal< typename traversal_executor::fold_into_instance >(
+					std::forward<AccumulatorType>(accumulator),
+					typename computation_operator::rangewise::to_instance_combinator_folder{ to_instance_combinator }
+				);
+			}
+
+			//================================================================================
+
+			template<typename OperationType>
+			static constexpr void rangewise_execute(OperationType&&)
+			{
+				error_reporter::rangewise::template incompatible_operation<OperationType>();
+			}
+
+			template<typename OperationType>
+			static constexpr void rangewise_execute_until(OperationType&&)
+			{
+				error_reporter::rangewise::template incompatible_predicate_operation<OperationType>();
+			}
+
+			template<typename OperationType>
+			static constexpr void rangewise_execute_while(OperationType&&)
+			{
+				error_reporter::rangewise::template incompatible_predicate_operation<OperationType>();
+			}
+
+			template<typename Accumulator, typename ToTypeCombinator>
+			static constexpr auto rangewise_fold(ToTypeCombinator&&)
+			{
+				error_reporter::rangewise::template incompatible_to_type_combinator<ToTypeCombinator>();
+
+				return type_element<Accumulator>{};
+			}
+
+			template<auto Accumulator, typename ToValueCombinator>
+			static constexpr auto rangewise_fold(ToValueCombinator&&)
+			{
+				error_reporter::rangewise::template incompatible_to_value_combinator<ToValueCombinator>();
+
+				return Accumulator;
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+			static constexpr auto rangewise_fold(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&&)
+			{
+				error_reporter::rangewise::template incompatible_to_instance_combinator<ToInstanceCombinatorType>();
+
+				return accumulator;
+			}
+
+		};
+
+		struct rangewise_with_index
+		{
+			template<typename OperationType>
+				requires constraint::rangewise_with_index::template valid_operation<OperationType>
+			static constexpr void rangewise_execute_with_index(OperationType&& operation)
+			{
+				execute_traversal< typename traversal_executor::execute >
+					(typename computation_operator::rangewise_with_index::operation_executor{ operation });
+			}
+
+			template<typename OperationType>
+				requires constraint::rangewise_with_index::template valid_predicate<OperationType>
+			static constexpr void rangewise_execute_until_with_index(OperationType&& operation)
+			{
+				execute_traversal< typename traversal_executor::execute_until >
+					(typename computation_operator::rangewise_with_index::instance_predicate_solver{ operation });
+			}
+
+			template<typename OperationType>
+				requires constraint::rangewise_with_index::template valid_predicate<OperationType>
+			static constexpr void rangewise_execute_while_with_index(OperationType&& operation)
+			{
+				execute_traversal< typename traversal_executor::execute_while >
+					(typename computation_operator::rangewise_with_index::instance_predicate_solver{ operation });
+			}
+
+			template<typename Accumulator, typename ToTypeCombinator>
+				requires constraint::rangewise_with_index::template valid_to_type_combinator<Accumulator, ToTypeCombinator>
+			[[nodiscard]] static constexpr auto rangewise_fold_with_index(ToTypeCombinator&&)
+			{
+				return execute_traversal< typename traversal_executor::template fold_into_type<
+					Accumulator,
+					typename computation_operator::rangewise_with_index::template to_type_combinator_folder<ToTypeCombinator>
+				> >();
+			}
+
+			template<auto Accumulator, typename ToValueCombinator>
+				requires constraint::rangewise_with_index::template valid_to_value_combinator<Accumulator, ToValueCombinator>
+			[[nodiscard]] static constexpr auto rangewise_fold_with_index(ToValueCombinator&&)
+			{
+				return execute_traversal< typename traversal_executor::template fold_into_value<
+					Accumulator,
+					typename computation_operator::rangewise_with_index::template to_value_combinator_folder<ToValueCombinator>
+				> >();
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+				requires constraint::rangewise_with_index::template valid_to_instance_combinator<AccumulatorType, ToInstanceCombinatorType>
+			[[nodiscard]] static constexpr auto rangewise_fold_with_index(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&& to_instance_combinator)
+			{
+				return execute_traversal< typename traversal_executor::fold_into_instance >(
+					std::forward<AccumulatorType>(accumulator),
+					typename computation_operator::rangewise_with_index::to_instance_combinator_folder{ to_instance_combinator }
+				);
+			}
+
+			//================================================================================
+
+			template<typename OperationType>
+			static constexpr void rangewise_execute_with_index(OperationType&&)
+			{
+				error_reporter::rangewise_with_index::template incompatible_operation<OperationType>();
+			}
+
+			template<typename OperationType>
+			static constexpr void rangewise_execute_until_with_index(OperationType&&)
+			{
+				error_reporter::rangewise_with_index::template incompatible_predicate_operation<OperationType>();
+			}
+
+			template<typename OperationType>
+			static constexpr void rangewise_execute_while_with_index(OperationType&&)
+			{
+				error_reporter::rangewise_with_index::template incompatible_predicate_operation<OperationType>();
+			}
+
+			template<typename Accumulator, typename ToTypeCombinator>
+			static constexpr auto rangewise_fold_with_index(ToTypeCombinator&&)
+			{
+				error_reporter::rangewise_with_index::template incompatible_to_type_combinator<ToTypeCombinator>();
+
+				return type_element<Accumulator>{};
+			}
+
+			template<auto Accumulator, typename ToValueCombinator>
+			static constexpr auto rangewise_fold_with_index(ToValueCombinator&&)
+			{
+				error_reporter::rangewise_with_index::template incompatible_to_value_combinator<ToValueCombinator>();
+
+				return Accumulator;
+			}
+
+			template<typename AccumulatorType, typename ToInstanceCombinatorType>
+			static constexpr auto rangewise_fold_with_index(
+				AccumulatorType&& accumulator, ToInstanceCombinatorType&&)
+			{
+				error_reporter::rangewise_with_index::template incompatible_to_instance_combinator<ToInstanceCombinatorType>();
+
+				return accumulator;
 			}
 
 		};

@@ -9,7 +9,7 @@
 //std::conditional_t, std::is_array_v, std::remove_reference_t, std::remove_extent_t, std::extent_v
 #include <cstddef> //用于 std::size_t
 #include <concepts> //用于 std::move_constructible，C++20标准
-#include <utility> //用于 std::forward
+#include <utility> //用于 std::forward, std::move
 #include <ranges> //用于 std::ranges，C++20标准
 #include <span> //用于 std::span
 #include <array> //用于 std::array, std::to_array

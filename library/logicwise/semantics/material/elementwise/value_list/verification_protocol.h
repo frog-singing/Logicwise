@@ -76,13 +76,10 @@ namespace logicwise::detail
 				//================================================================================
 
 				template<template<auto> typename Verifier>
-					requires material_agent::template solvable_trait_predicate<Verifier, probe_index>
 				[[nodiscard]] static constexpr bool satisfies()
 				{
 					return execute_verification< typename verification_executor::satisfies >
-						([] <auto Index> { return
-							trait_predicate_solver<Verifier, probe_index>::template solve<Index>();
-						});
+						(trait_predicate_solver<Verifier, probe_index>{});
 				}
 
 			};

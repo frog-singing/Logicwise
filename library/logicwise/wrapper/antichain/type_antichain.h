@@ -31,7 +31,7 @@ namespace logicwise::detail::typewise
 	template<typename Range, auto PartialOrder>
 	concept AntichainWitness =
 		rangewise<all_of, combination_pair>
-		::template in<Range>()
+		::in<Range>()
 		.satisfies(partial_order_induction<PartialOrder>::incomparability_relation);
 
 	template<typename Range, auto PartialOrder = try_to_trust_existing_relation>

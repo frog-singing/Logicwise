@@ -16,6 +16,7 @@ namespace logicwise::detail
 	struct mode_option_role_tag : role_tag {};		//模式选项角色
 	//struct arrangement_role_tag : role_tag {};	//排布角色
 	//struct wrapper_role_tag : role_tag {};		//包装器角色
+	struct material_agent_role_tag : role_tag {};	//物料代理角色
 	struct protocol_role_tag : role_tag {};			//协议角色
 	struct workshop_role_tag : role_tag {};			//车间角色
 	struct product_role_tag : role_tag {};			//产品角色

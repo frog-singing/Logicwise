@@ -31,7 +31,7 @@ namespace logicwise::detail::typewise
 	template<typename Range, auto SameAs>
 	concept SetWitness =
 		rangewise<none_of, combination_pair>
-		::template in<Range>()
+		::in<Range>()
 		.satisfies(SameAs);
 
 	template<typename Range, auto SameAs = try_to_trust_existing_relation>

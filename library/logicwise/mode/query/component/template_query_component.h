@@ -29,14 +29,8 @@ namespace logicwise::detail
 
 		//================================================================================
 
-		struct component
+		struct elementwise
 		{
-			[[nodiscard]] static constexpr std::size_t count(auto&&) noexcept { return 0; }
-			[[nodiscard]] static constexpr std::optional<index_type> find_first_index(auto&&) noexcept { return {}; }
-			[[nodiscard]] static constexpr std::optional<index_type> find_last_index(auto&&) noexcept { return {}; }
-			[[nodiscard]] static constexpr auto find_first(auto&&) noexcept { return null_object; }
-			[[nodiscard]] static constexpr auto find_last(auto&&) noexcept { return null_object; }
-
 			//不提供 get<ScalarIndex>()
 
 			template<std::size_t ScalarIndex>
@@ -47,10 +41,17 @@ namespace logicwise::detail
 				return null_object;
 			}
 
+			//--------------------------------------------------------------------------------
+
+			[[nodiscard]] static constexpr std::size_t count(auto&&) noexcept { return 0; }
+			[[nodiscard]] static constexpr std::optional<index_type> find_first_index(auto&&) noexcept { return {}; }
+			[[nodiscard]] static constexpr std::optional<index_type> find_last_index(auto&&) noexcept { return {}; }
+			[[nodiscard]] static constexpr auto find_first(auto&&) noexcept { return null_object; }
+			[[nodiscard]] static constexpr auto find_last(auto&&) noexcept { return null_object; }
+
 		};
 
-		//需要 constraint 提供对应的 component_with_index 内容
-		struct component_with_index
+		struct elementwise_with_index
 		{
 			template<std::size_t ScalarIndex>
 			static constexpr index_type index_at()
@@ -62,8 +63,7 @@ namespace logicwise::detail
 
 			//不提供 lookup<Index>()
 
-			template<auto Index>
-				requires constraint::template index_with_valid_type<Index>
+			template<index_type Index>
 			static constexpr auto try_lookup()
 			{
 				static_assert(valuewise_dependent_false_v<Index>, "[logicwise] Index out of range.");
@@ -74,6 +74,7 @@ namespace logicwise::detail
 			//================================================================================
 
 			template<auto Index>
+				requires (!constraint::elementwise_with_index::template index_with_valid_type<Index>)
 			static constexpr auto try_lookup()
 			{
 				error_reporter::template incompatible_index<Index>();
@@ -82,6 +83,18 @@ namespace logicwise::detail
 			}
 
 		};
+
+		struct rangewise
+		{
+			[[nodiscard]] static constexpr std::size_t rangewise_count(auto&&) noexcept { return 0; }
+			[[nodiscard]] static constexpr std::optional<index_type> rangewise_find_first_index(auto&&) noexcept { return {}; }
+			[[nodiscard]] static constexpr std::optional<index_type> rangewise_find_last_index(auto&&) noexcept { return {}; }
+			[[nodiscard]] static constexpr auto rangewise_find_first(auto&&) noexcept { return null_object; }
+			[[nodiscard]] static constexpr auto rangewise_find_last(auto&&) noexcept { return null_object; }
+
+		};
+
+		struct rangewise_with_index {};
 
 	};
 
@@ -95,79 +108,24 @@ namespace logicwise::detail
 		using default_content	= typename QueryWorkshop::default_content;
 		using error_reporter	= typename QueryWorkshop::error_reporter;
 
-		template<typename Executor>
-		static constexpr auto execute_query()
+		template<typename Executor, typename... Argument>
+		static constexpr auto execute_query(Argument&&... argument)
 		{
-			return QueryWorkshop::template execute_query<Executor>();
-		}
-
-		template<typename Executor, typename PredicateSolverType>
-		static constexpr auto execute_query(PredicateSolverType&& predicate_solver)
-		{
-			return QueryWorkshop::template execute_query<Executor>
-				(std::forward<PredicateSolverType>(predicate_solver));
+			return QueryWorkshop::template execute_query<Executor>(
+				std::forward<Argument>(argument)...
+			);
 		}
 
 		//--------------------------------------------------------------------------------
 
-		using index_type = typename material_agent::index_type;
+		using index_type			= typename material_agent::index_type;
+		using computation_operator	= typename material_agent::computation_operator;
 		static constexpr auto null_object = default_content::null_object;
-
-		template<typename Predicate>
-		using predicate_solver = typename material_agent::template predicate_solver<Predicate>;
 
 		//================================================================================
 
-		struct component
+		struct elementwise
 		{
-			template<typename PredicateType>
-				requires constraint::template valid_predicate_type<PredicateType>
-			[[nodiscard]] static constexpr std::size_t count(PredicateType&& predicate)
-			{
-				return execute_query< typename query_executor::count >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate<Index>(predicate);
-					});
-			}
-
-			template<typename PredicateType>
-				requires constraint::template valid_predicate_type<PredicateType>
-			[[nodiscard]] static constexpr std::optional<index_type> find_first_index(PredicateType&& predicate)
-			{
-				return execute_query< typename query_executor::find_first_index >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate<Index>(predicate);
-					});
-			}
-
-			template<typename PredicateType>
-				requires constraint::template valid_predicate_type<PredicateType>
-			[[nodiscard]] static constexpr std::optional<index_type> find_last_index(PredicateType&& predicate)
-			{
-				return execute_query< typename query_executor::find_last_index >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate<Index>(predicate);
-					});
-			}
-
-			template<typename Predicate>
-				requires constraint::template valid_predicate<Predicate>
-			[[nodiscard]] static constexpr auto find_first(Predicate&&)
-			{
-				return execute_query< typename query_executor::template find_first<
-					default_content, predicate_solver<Predicate>
-				> >();
-			}
-
-			template<typename Predicate>
-				requires constraint::template valid_predicate<Predicate>
-			[[nodiscard]] static constexpr auto find_last(Predicate&&)
-			{
-				return execute_query< typename query_executor::template find_last<
-					default_content, predicate_solver<Predicate>
-				> >();
-			}
-
 			template<std::size_t ScalarIndex>
 			[[nodiscard]] static constexpr auto get()
 			{
@@ -180,12 +138,58 @@ namespace logicwise::detail
 				return execute_query< typename query_executor::template at<ScalarIndex> >();
 			}
 
+			//--------------------------------------------------------------------------------
+
+			template<typename PredicateType>
+				requires constraint::elementwise::template valid_instance_predicate<PredicateType>
+			[[nodiscard]] static constexpr std::size_t count(PredicateType&& predicate)
+			{
+				return execute_query< typename query_executor::count >
+					(typename computation_operator::elementwise::instance_predicate_solver{ predicate });
+			}
+
+			template<typename PredicateType>
+				requires constraint::elementwise::template valid_instance_predicate<PredicateType>
+			[[nodiscard]] static constexpr std::optional<index_type> find_first_index(PredicateType&& predicate)
+			{
+				return execute_query< typename query_executor::find_first_index >
+					(typename computation_operator::elementwise::instance_predicate_solver{ predicate });
+			}
+
+			template<typename PredicateType>
+				requires constraint::elementwise::template valid_instance_predicate<PredicateType>
+			[[nodiscard]] static constexpr std::optional<index_type> find_last_index(PredicateType&& predicate)
+			{
+				return execute_query< typename query_executor::find_last_index >
+					(typename computation_operator::elementwise::instance_predicate_solver{ predicate });
+			}
+
+			template<typename Predicate>
+				requires constraint::elementwise::template valid_type_predicate<Predicate>
+			[[nodiscard]] static constexpr auto find_first(Predicate&&)
+			{
+				return execute_query< typename query_executor::template find_first<
+					default_content,
+					typename computation_operator::elementwise::template type_predicate_solver<Predicate>
+				> >();
+			}
+
+			template<typename Predicate>
+				requires constraint::elementwise::template valid_type_predicate<Predicate>
+			[[nodiscard]] static constexpr auto find_last(Predicate&&)
+			{
+				return execute_query< typename query_executor::template find_last<
+					default_content,
+					typename computation_operator::elementwise::template type_predicate_solver<Predicate>
+				> >();
+			}
+
 			//================================================================================
 
 			template<typename PredicateType>
 			static constexpr std::size_t count(PredicateType&&)
 			{
-				error_reporter::template incompatible_predicate<PredicateType>();
+				error_reporter::elementwise::template incompatible_predicate<PredicateType>();
 
 				return 0;
 			}
@@ -193,7 +197,7 @@ namespace logicwise::detail
 			template<typename PredicateType>
 			static constexpr std::optional<index_type> find_first_index(PredicateType&&)
 			{
-				error_reporter::template incompatible_predicate<PredicateType>();
+				error_reporter::elementwise::template incompatible_predicate<PredicateType>();
 
 				return {};
 			}
@@ -201,7 +205,7 @@ namespace logicwise::detail
 			template<typename PredicateType>
 			static constexpr std::optional<index_type> find_last_index(PredicateType&&)
 			{
-				error_reporter::template incompatible_predicate<PredicateType>();
+				error_reporter::elementwise::template incompatible_predicate<PredicateType>();
 
 				return {};
 			}
@@ -209,7 +213,7 @@ namespace logicwise::detail
 			template<typename Predicate>
 			static constexpr auto find_first(Predicate&&)
 			{
-				error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+				error_reporter::elementwise::template incompatible_non_capturing_predicate<Predicate>();
 
 				return null_object;
 			}
@@ -217,15 +221,14 @@ namespace logicwise::detail
 			template<typename Predicate>
 			static constexpr auto find_last(Predicate&&)
 			{
-				error_reporter::template incompatible_non_capturing_predicate<Predicate>();
+				error_reporter::elementwise::template incompatible_non_capturing_predicate<Predicate>();
 
 				return null_object;
 			}
 
 		};
 
-		//需要 constraint 提供对应的 component_with_index 内容
-		struct component_with_index
+		struct elementwise_with_index
 		{
 			template<std::size_t ScalarIndex>
 			[[nodiscard]] static constexpr index_type index_at()
@@ -233,15 +236,13 @@ namespace logicwise::detail
 				return execute_query< typename query_executor::template index_at<ScalarIndex> >();
 			}
 
-			template<auto Index>
-				requires constraint::template index_with_valid_type<Index>
+			template<index_type Index>
 			[[nodiscard]] static constexpr auto lookup()
 			{
 				return execute_query< typename query_executor::template lookup<Index> >();
 			}
 
-			template<auto Index>
-				requires constraint::template index_with_valid_type<Index>
+			template<index_type Index>
 			[[nodiscard]] static constexpr auto try_lookup()
 			{
 				return execute_query< typename query_executor::template try_lookup<Index> >();
@@ -250,6 +251,7 @@ namespace logicwise::detail
 			//================================================================================
 
 			template<auto Index>
+				requires (!constraint::elementwise_with_index::template index_with_valid_type<Index>)
 			static constexpr auto lookup()
 			{
 				error_reporter::template incompatible_index<Index>();
@@ -258,6 +260,7 @@ namespace logicwise::detail
 			}
 
 			template<auto Index>
+				requires (!constraint::elementwise_with_index::template index_with_valid_type<Index>)
 			static constexpr auto try_lookup()
 			{
 				error_reporter::template incompatible_index<Index>();
@@ -266,6 +269,98 @@ namespace logicwise::detail
 			}
 
 		};
+
+		struct rangewise
+		{
+			template<typename PredicateType>
+				requires constraint::rangewise::template valid_instance_predicate<PredicateType>
+			[[nodiscard]] static constexpr std::size_t rangewise_count(PredicateType&& predicate)
+			{
+				return execute_query< typename query_executor::count >
+					(typename computation_operator::rangewise::instance_predicate_solver{ predicate });
+			}
+
+			template<typename PredicateType>
+				requires constraint::rangewise::template valid_instance_predicate<PredicateType>
+			[[nodiscard]] static constexpr std::optional<index_type> rangewise_find_first_index(PredicateType&& predicate)
+			{
+				return execute_query< typename query_executor::find_first_index >
+					(typename computation_operator::rangewise::instance_predicate_solver{ predicate });
+			}
+
+			template<typename PredicateType>
+				requires constraint::rangewise::template valid_instance_predicate<PredicateType>
+			[[nodiscard]] static constexpr std::optional<index_type> rangewise_find_last_index(PredicateType&& predicate)
+			{
+				return execute_query< typename query_executor::find_last_index >
+					(typename computation_operator::rangewise::instance_predicate_solver{ predicate });
+			}
+
+			template<typename Predicate>
+				requires constraint::rangewise::template valid_type_predicate<Predicate>
+			[[nodiscard]] static constexpr auto rangewise_find_first(Predicate&&)
+			{
+				return execute_query< typename query_executor::template find_first<
+					default_content,
+					typename computation_operator::rangewise::template type_predicate_solver<Predicate>
+				> >();
+			}
+
+			template<typename Predicate>
+				requires constraint::rangewise::template valid_type_predicate<Predicate>
+			[[nodiscard]] static constexpr auto rangewise_find_last(Predicate&&)
+			{
+				return execute_query< typename query_executor::template find_last<
+					default_content,
+					typename computation_operator::rangewise::template type_predicate_solver<Predicate>
+				> >();
+			}
+
+			//================================================================================
+
+			template<typename PredicateType>
+			static constexpr std::size_t rangewise_count(PredicateType&&)
+			{
+				error_reporter::rangewise::template incompatible_predicate<PredicateType>();
+
+				return 0;
+			}
+
+			template<typename PredicateType>
+			static constexpr std::optional<index_type> rangewise_find_first_index(PredicateType&&)
+			{
+				error_reporter::rangewise::template incompatible_predicate<PredicateType>();
+
+				return {};
+			}
+
+			template<typename PredicateType>
+			static constexpr std::optional<index_type> rangewise_find_last_index(PredicateType&&)
+			{
+				error_reporter::rangewise::template incompatible_predicate<PredicateType>();
+
+				return {};
+			}
+
+			template<typename Predicate>
+			static constexpr auto rangewise_find_first(Predicate&&)
+			{
+				error_reporter::rangewise::template incompatible_non_capturing_predicate<Predicate>();
+
+				return null_object;
+			}
+
+			template<typename Predicate>
+			static constexpr auto rangewise_find_last(Predicate&&)
+			{
+				error_reporter::rangewise::template incompatible_non_capturing_predicate<Predicate>();
+
+				return null_object;
+			}
+
+		};
+
+		struct rangewise_with_index {};
 
 	};
 

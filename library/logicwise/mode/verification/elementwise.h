@@ -13,8 +13,8 @@
 #include <logicwise/semantics/material/elementwise/type_list/verification_protocol.h>
 #include <logicwise/semantics/material/elementwise/value_list/verification_protocol.h>
 #include <logicwise/semantics/material/elementwise/vector_like_container/verification_protocol.h>
-#include "workshop/concrete_template_verification.h"
-#include "workshop/instance_verification.h"
+#include "workshop/template_verification_workshop.h"
+#include "workshop/instance_verification_workshop.h"
 
 
 #include "executor/verification_loop.h"
@@ -44,7 +44,7 @@ namespace logicwise::detail
         {
             using List = as_type_list<WrapperInstance>;
 
-            return typename concrete_template_verification<
+            return typename template_verification_workshop<
                 type_list_verification_protocol<List>,
                 Quantifier,
                 Arrangement
@@ -56,7 +56,7 @@ namespace logicwise::detail
         {
             using List = as_value_list<WrapperInstance>;
 
-            return typename concrete_template_verification<
+            return typename template_verification_workshop<
                 value_list_verification_protocol<List>,
                 Quantifier,
                 Arrangement
@@ -73,7 +73,7 @@ namespace logicwise::detail
         template<VectorLike ContainerType>
         static constexpr auto in_refactoring(ContainerType&& container)
         {
-            return typename instance_verification<
+            return typename instance_verification_workshop<
                 vector_like_container_verification_protocol<ContainerType>,
                 Quantifier,
                 Arrangement

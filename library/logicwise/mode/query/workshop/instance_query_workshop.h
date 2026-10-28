@@ -13,7 +13,7 @@ namespace logicwise::detail
 	//模式::查询 mode::query================================================================================
 
 	template<typename QueryProtocol, typename Arrangement>
-	struct instance_query : instance_query_workshop_tag
+	struct instance_query_workshop : instance_query_workshop_tag
 	{
 
 

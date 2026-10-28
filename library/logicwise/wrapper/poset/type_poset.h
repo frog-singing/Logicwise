@@ -32,7 +32,7 @@ namespace logicwise::detail::typewise
 	template<typename Range, auto PartialOrder>
 	concept PosetWitness =
 		rangewise<none_of, combination_pair>
-		::template in<Range>()
+		::in<Range>()
 		.satisfies(partial_order_induction<PartialOrder>::dual_partial_order);
 
 	template<typename Range, auto PartialOrder = try_to_trust_existing_relation>

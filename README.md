@@ -398,7 +398,7 @@ First, define a concept for your wrapper:
 template<typename Range>
 concept Set =
 	rangewise<none_of, combination_pair>
-	::template in<Range>()
+	::in<Range>()
 	.satisfies([] <typename T1, typename T2> { return std::same_as<T1, T2>; });
 ```
 
@@ -417,7 +417,7 @@ writing the full `rangewise` syntax directly within the wrapper's definition wor
 template<typename... Type>
 	requires (
 		rangewise<none_of, combination_pair>
-		::template in<type_list<Type...>>()
+		::in<type_list<Type...>>()
 		.satisfies([] <typename T1, typename T2> { return std::same_as<T1, T2>; })
 	)
 struct set {};
@@ -454,7 +454,7 @@ First, take the fundamental relation `std::same_as` as raw material to construct
 template<typename Type, typename Range>
 concept BelongsTo =
 	rangewise<at_least<1>, element>
-	::template in<Range>()
+	::in<Range>()
 	.satisfies([] <typename Element> { return std::same_as<Type, Element>; });
 ```
 
@@ -464,7 +464,7 @@ Then, you can use this `BelongsTo` relation as raw material to construct a `SubR
 template<typename SubRange, typename SuperRange>
 concept SubRangeOf =
 	rangewise<all_of, element>
-	::template in<SubRange>()
+	::in<SubRange>()
 	.satisfies([] <typename Element> { return BelongsTo<Element, SuperRange>; });
 ```
 

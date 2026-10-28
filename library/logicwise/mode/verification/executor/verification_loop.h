@@ -13,8 +13,8 @@ namespace logicwise::detail
 	//模式::验证 mode::verification================================================================================
 
 	template<typename Quantifier, typename Arrangement, typename Arrangement::extent_type Extent,
-		typename AtomicVerificationType>
-	constexpr bool template_satisfies_loop(AtomicVerificationType&& atomic_verification)
+		typename PredicateSolverType>
+	constexpr bool template_satisfies_loop(PredicateSolverType&& predicate_solver)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
@@ -23,16 +23,16 @@ namespace logicwise::detail
 		template_execute_until_loop<Arrangement, IndexTraverserType, Extent>
 			([&] <auto Index> {
 				if (quantifier_solver.solved()) { return true; }
-				quantifier_solver.step(atomic_verification.template operator() < Index > ());
+				quantifier_solver.step(predicate_solver.template operator() < Index > ());
 				return false;
 			});
 
 		return quantifier_solver.result();
 	}
 
-	template<typename Quantifier, typename Arrangement, typename AtomicVerificationType>
+	template<typename Quantifier, typename Arrangement, typename PredicateSolverType>
 	constexpr bool instance_satisfies_loop(typename Arrangement::extent_type extent,
-		AtomicVerificationType&& atomic_verification)
+		PredicateSolverType&& predicate_solver)
 	{
 		using IndexTraverserType = typename Arrangement::fast_index_traverser;
 
@@ -41,7 +41,7 @@ namespace logicwise::detail
 		instance_execute_until_loop<Arrangement, IndexTraverserType>(extent,
 			[&] (auto&& index) {
 				if (quantifier_solver.solved()) { return true; }
-				quantifier_solver.step(std::invoke(atomic_verification, index));
+				quantifier_solver.step(std::invoke(predicate_solver, index));
 				return false;
 			});
 

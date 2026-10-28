@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/semantics/tag.h>
 #include <logicwise/semantics/resolve_core.h>
-#include <logicwise/mode/query/component/template_query_constraint_component.h>
+#include <logicwise/mode/query/component/template_query_constraint.h>
 #include <logicwise/mode/query/component/template_query_component.h>
-#include "type.h"
 #include <utility> //用于 std::forward
 
 
@@ -16,11 +16,9 @@ namespace logicwise::detail
 	//模式::查询 mode::query================================================================================
 
 	template<typename QueryProtocol, typename Arrangement>
-	struct concrete_template_query : concrete_template_query_workshop_tag
+	struct template_query_workshop
 	{
 		//前向声明
-		struct constraint;
-		struct basic_core;
 		struct query;
 
 		//--------------------------------------------------------------------------------
@@ -32,43 +30,36 @@ namespace logicwise::detail
 
 		using extent_trait = typename material_agent::template extent_trait<Arrangement>;
 
-		template<typename Executor>
-		static constexpr auto execute_query()
+		template<typename Executor, typename... Argument>
+		static constexpr auto execute_query(Argument&&... argument)
 		{
-			return Executor::template execute<Arrangement>();
-		}
-
-		template<typename Executor, typename PredicateSolverType>
-		static constexpr auto execute_query(PredicateSolverType&& predicate_solver)
-		{
-			return Executor::template execute<Arrangement>
-				(std::forward<PredicateSolverType>(predicate_solver));
+			return Executor::template execute<Arrangement>(
+				std::forward<Argument>(argument)...
+			);
 		}
 
 		//--------------------------------------------------------------------------------
 
-		using ConstraintComponent = template_query_constraint_component<material_agent, Arrangement>;
-
-		struct constraint
-			: ConstraintComponent::component
-			, ConstraintComponent::component_with_index
-		{};
+		using constraint = typename template_query_constraint<material_agent, Arrangement>::constraint;
 
 		//--------------------------------------------------------------------------------
 
-		using QueryComponent = template_query_component<concrete_template_query>;
-
-		struct basic_core
-			: QueryComponent::component
-			, QueryComponent::component_with_index
-		{};
+		using basic_core = resolve_basic_core<
+			material_agent,
+			template_query_component<template_query_workshop>
+		>;
 
 		//--------------------------------------------------------------------------------
 
 		struct [[nodiscard]] query
-			: resolve_core<QueryProtocol, concrete_template_query>
-			, concrete_template_query_product_tag
-		{};
+			: resolve_core<QueryProtocol, template_query_workshop>
+		{
+			using role_tag				= product_role_tag;
+			using mode_tag				= query_mode_tag;
+			using material_domain_tag	= template_material_domain_tag;
+			using organization_form_tag	= typename material_agent::organization_form_tag;
+			using material_feeding_tag	= typename material_agent::material_feeding_tag;
+		};
 
 	};
 

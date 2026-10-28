@@ -13,7 +13,7 @@ namespace logicwise::detail
 	//模式::遍历 mode::traversal================================================================================
 
 	template<typename TraversalProtocol, typename IndexTraverserSelector, typename Arrangement>
-	struct instance_traversal : instance_traversal_workshop_tag
+	struct instance_traversal_workshop : instance_traversal_workshop_tag
 	{
 
 

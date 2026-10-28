@@ -6,7 +6,7 @@
 #include <logicwise/external_detail/element.h>
 #include <logicwise/index/index_sequencer.h>
 #include "traversal_loop.h"
-#include <utility> //用于 std::forward
+#include <utility> //用于 std::forward, std::move
 
 
 //逻辑维度::细节
@@ -37,21 +37,21 @@ namespace logicwise::detail
 
 		struct execute_until
 		{
-			template<typename Arrangement, typename IndexTraverserType, typename OperationExecutorType>
-			static constexpr void execute(OperationExecutorType&& operation_executor)
+			template<typename Arrangement, typename IndexTraverserType, typename PredicateSolverType>
+			static constexpr void execute(PredicateSolverType&& predicate_solver)
 			{
 				template_execute_until_loop<Arrangement, IndexTraverserType, extent>
-					(std::forward<OperationExecutorType>(operation_executor));
+					(std::forward<PredicateSolverType>(predicate_solver));
 			}
 		};
 
 		struct execute_while
 		{
-			template<typename Arrangement, typename IndexTraverserType, typename OperationExecutorType>
-			static constexpr void execute(OperationExecutorType&& operation_executor)
+			template<typename Arrangement, typename IndexTraverserType, typename PredicateSolverType>
+			static constexpr void execute(PredicateSolverType&& predicate_solver)
 			{
 				template_execute_while_loop<Arrangement, IndexTraverserType, extent>
-					(std::forward<OperationExecutorType>(operation_executor));
+					(std::forward<PredicateSolverType>(predicate_solver));
 			}
 		};
 
@@ -105,9 +105,7 @@ namespace logicwise::detail
 			};
 
 			static constexpr auto fold = [] <index_type... Index> {
-				return decltype(
-					(accumulator_proxy<InitialAccumulator>{} + ... + value_element<Index>{})
-				)::accumulator;
+				return (accumulator_proxy<InitialAccumulator>{} + ... + value_element<Index>{}).accumulator;
 			};
 
 			template<typename Arrangement, typename IndexTraverserType>
@@ -117,6 +115,44 @@ namespace logicwise::detail
 				using index_sequence = typename IndexSequencer::index_sequence;
 				
 				return index_sequence::invoke(fold);
+			}
+		};
+
+		struct fold_into_instance
+		{
+			template<typename AccumulatorType, typename CombinatorFolderType>
+			struct fold
+			{
+				AccumulatorType accumulator;
+				CombinatorFolderType combinator_folder;
+
+				template<typename IndexWrapper>
+				constexpr auto operator+(IndexWrapper)
+				{
+					auto next_accumulator = combinator_folder.template fold<IndexWrapper::value>(std::move(accumulator));
+
+					return fold<decltype(next_accumulator), CombinatorFolderType>{
+						std::move(next_accumulator),
+						combinator_folder
+					};
+				}
+
+				template<index_type... Index>
+				constexpr auto operator()()
+				{
+					return (*this + ... + value_element<Index>{}).accumulator;
+				}
+			};
+
+			template<typename Arrangement, typename IndexTraverserType, typename InitialAccumulatorType, typename CombinatorFolderType>
+			static constexpr auto execute(InitialAccumulatorType&& initial_accumulator, CombinatorFolderType combinator_folder)
+			{
+				using IndexSequencer = index_sequencer<Arrangement, IndexTraverserType, extent>;
+				using index_sequence = typename IndexSequencer::index_sequence;
+
+				return index_sequence::invoke(
+					fold{ std::forward<InitialAccumulatorType>(initial_accumulator), combinator_folder }
+				);
 			}
 		};
 

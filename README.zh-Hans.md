@@ -378,7 +378,7 @@ Logicwise 不光能用来验证，还能用来构造新的 C++ 概念！
 template<typename Range>
 concept Set =
 	rangewise<none_of, combination_pair>
-	::template in<Range>()
+	::in<Range>()
 	.satisfies([] <typename T1, typename T2> { return std::same_as<T1, T2>; });
 ```
 
@@ -396,7 +396,7 @@ struct set {};
 template<typename... Type>
 	requires (
 		rangewise<none_of, combination_pair>
-		::template in<type_list<Type...>>()
+		::in<type_list<Type...>>()
 		.satisfies([] <typename T1, typename T2> { return std::same_as<T1, T2>; })
 	)
 struct set {};
@@ -427,7 +427,7 @@ concept DistinctRawIntegrals =
 template<typename Type, typename Range>
 concept BelongsTo =
 	rangewise<at_least<1>, element>
-	::template in<Range>()
+	::in<Range>()
 	.satisfies([] <typename Element> { return std::same_as<Type, Element>; });
 ```
 
@@ -437,7 +437,7 @@ concept BelongsTo =
 template<typename SubRange, typename SuperRange>
 concept SubRangeOf =
 	rangewise<all_of, element>
-	::template in<SubRange>()
+	::in<SubRange>()
 	.satisfies([] <typename Element> { return BelongsTo<Element, SuperRange>; });
 ```
 

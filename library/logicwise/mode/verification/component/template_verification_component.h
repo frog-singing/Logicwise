@@ -18,15 +18,21 @@ namespace logicwise::detail
 
 		//================================================================================
 
-		struct component
+		struct elementwise
 		{
 			[[nodiscard]] static constexpr bool satisfies(auto&&) noexcept { return default_verification_result; }
 
 		};
 
-		//需要 constraint 提供对应的 component_with_index 内容
-		struct component_with_index
-		{};
+		struct elementwise_with_index {};
+
+		struct rangewise
+		{
+			[[nodiscard]] static constexpr bool rangewise_satisfies(auto&&) noexcept { return default_verification_result; }
+
+		};
+
+		struct rangewise_with_index {};
 
 	};
 
@@ -46,18 +52,20 @@ namespace logicwise::detail
 				(std::forward<PredicateSolverType>(predicate_solver));
 		}
 
+		//--------------------------------------------------------------------------------
+
+		using computation_operator = typename material_agent::computation_operator;
+
 		//================================================================================
 
-		struct component
+		struct elementwise
 		{
 			template<typename VerifierType>
-				requires constraint::template valid_predicate_type<VerifierType>
+				requires constraint::elementwise::template valid_predicate<VerifierType>
 			[[nodiscard]] static constexpr bool satisfies(VerifierType&& verifier)
 			{
 				return execute_verification< typename verification_executor::satisfies >
-					([&] <auto Index> { return
-						material_agent::template solve_predicate<Index>(verifier);
-					});
+					(typename computation_operator::elementwise::instance_predicate_solver{ verifier });
 			}
 
 			//================================================================================
@@ -65,16 +73,38 @@ namespace logicwise::detail
 			template<typename VerifierType>
 			static constexpr bool satisfies(VerifierType&&)
 			{
-				error_reporter::template incompatible_verifier<VerifierType>();
+				error_reporter::elementwise::template incompatible_verifier<VerifierType>();
 
 				return false;
 			}
 
 		};
 
-		//需要 constraint 提供对应的 component_with_index 内容
-		struct component_with_index
-		{};
+		struct elementwise_with_index {};
+
+		struct rangewise
+		{
+			template<typename VerifierType>
+				requires constraint::rangewise::template valid_predicate<VerifierType>
+			[[nodiscard]] static constexpr bool rangewise_satisfies(VerifierType&& verifier)
+			{
+				return execute_verification< typename verification_executor::satisfies >
+					(typename computation_operator::rangewise::instance_predicate_solver{ verifier });
+			}
+
+			//================================================================================
+
+			template<typename VerifierType>
+			static constexpr bool rangewise_satisfies(VerifierType&&)
+			{
+				error_reporter::rangewise::template incompatible_verifier<VerifierType>();
+
+				return false;
+			}
+
+		};
+
+		struct rangewise_with_index {};
 
 	};
 

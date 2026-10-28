@@ -9,7 +9,6 @@
 
 #include <concepts> // std::same_as
 #include <cstddef> // std::size_t
-#include <utility> // std::move
 #include <iostream> // std::cout, std::endl
 
 
@@ -166,13 +165,13 @@ int main()
 
 	static constexpr auto move_requirement = [] <typename Sequence> {
 		return rangewise<all_of, element>
-			::template in<Sequence>()
+			::in<Sequence>()
 			.satisfies([] <typename Move> { return ValidMove<Move>; });
 	};
 
 	static constexpr auto adjacency_requirement = [] <typename Sequence> {
 		return rangewise<none_of, linear_adjacent_pair>
-			::template in<Sequence>()
+			::in<Sequence>()
 			.satisfies([] <typename M1, typename M2> { return std::same_as<M1, M2>; });
 	};
 

@@ -31,7 +31,7 @@ namespace logicwise::detail::valuewise
 	template<typename Range, auto TolerantOf>
 	concept ToleranceClassWitness =
 		rangewise<all_of, combination_pair>
-		::template in<Range>()
+		::in<Range>()
 		.satisfies(TolerantOf);
 
 	template<typename Range, auto TolerantOf = try_to_trust_existing_relation>

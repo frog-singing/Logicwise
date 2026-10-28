@@ -4,10 +4,10 @@
 
 #pragma once
 #include <logicwise/index/sampler.h>
+#include <logicwise/semantics/tag.h>
 #include <logicwise/semantics/resolve_core.h>
-#include <logicwise/mode/view/component/template_view_constraint_component.h>
+#include <logicwise/mode/view/component/template_view_constraint.h>
 #include <logicwise/mode/view/component/template_view_component.h>
-#include "type.h"
 
 
 //逻辑维度::细节
@@ -16,11 +16,9 @@ namespace logicwise::detail
 	//模式::视图 mode::view================================================================================
 
 	template<typename ViewProtocol, auto Data>
-	struct concrete_template_view : concrete_template_view_workshop_tag
+	struct template_view_workshop
 	{
 		//前向声明
-		struct constraint;
-		struct basic_core;
 		struct view;
 
 		//--------------------------------------------------------------------------------
@@ -31,33 +29,31 @@ namespace logicwise::detail
 		using extent_trait = view_extent_trait<Data>;
 
 		template<typename Adaptor>
-		using new_view = typename concrete_template_view< ViewProtocol, Adaptor::template adapt<Data>() >::view;
+		using new_view = typename template_view_workshop< ViewProtocol, Adaptor::template adapt<Data>() >::view;
 
 		//--------------------------------------------------------------------------------
 
-		using ConstraintComponent = template_view_constraint_component<material_agent, Data>;
-
-		struct constraint
-			: ConstraintComponent::component
-			, ConstraintComponent::component_with_index
-		{};
+		using constraint = typename template_view_constraint<material_agent, Data>::constraint;
 
 		//--------------------------------------------------------------------------------
-		 
-		using DependentViewComponent = template_view_component<concrete_template_view>;
 
-		struct basic_core
-			: DependentViewComponent::component
-			, DependentViewComponent::component_with_index
-		{};
+		using basic_core = resolve_basic_core<
+			material_agent,
+			template_view_component<template_view_workshop>
+		>;
 
 		//--------------------------------------------------------------------------------
 
 		struct [[nodiscard]] view
-			: resolve_core<ViewProtocol, concrete_template_view>
+			: resolve_core<ViewProtocol, template_view_workshop>
 			, ViewProtocol::template materializer<Data>
-			, concrete_template_view_product_tag
-		{};
+		{
+			using role_tag				= product_role_tag;
+			using mode_tag				= view_mode_tag;
+			using material_domain_tag	= template_material_domain_tag;
+			using organization_form_tag	= typename material_agent::organization_form_tag;
+			using material_feeding_tag	= typename material_agent::material_feeding_tag;
+		};
 
 	};
 

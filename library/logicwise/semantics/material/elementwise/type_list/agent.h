@@ -7,7 +7,10 @@
 #include <logicwise/index/type.h>
 #include <logicwise/index/sampler.h>
 #include <logicwise/arrangement/type.h>
+#include <logicwise/semantics/tag.h>
 #include <logicwise/semantics/trait_predicate.h>
+#include <logicwise/semantics/computation/template_unary_computation_operator.h>
+#include <logicwise/semantics/computation/template_binary_computation_operator.h>
 #include <type_traits> //用于 std::remove_reference_t
 #include <utility> //用于 std::forward
 
@@ -21,6 +24,13 @@ namespace logicwise::detail
 	template<typename List>
 	struct type_list_agent
 	{
+		using role_tag				= material_agent_role_tag;
+		using material_domain_tag	= template_material_domain_tag;
+		using organization_form_tag	= concrete_organization_form_tag;
+		using material_feeding_tag	= non_packable_material_feeding_tag;
+
+		//--------------------------------------------------------------------------------
+
 		using index_trait = IndexTraitScalar;
 		using index_type = typename index_trait::index_type;
 
@@ -30,388 +40,281 @@ namespace logicwise::detail
 		template<ElementwiseArrangement Arrangement,
 			typename IndexTraverserType = typename Arrangement::light_index_traverser>
 		using extent_trait = arrangement_extent_trait<Arrangement, extent, IndexTraverserType>;
+		
+		//基本计算原语 basic computation primitive================================================================================
 
-		//检索 lookup================================================================================
+		//应用
+		template<template<typename> typename Wrapper, index_type Index>
+		using apply_at = Wrapper<
+			typename List::template element<Index>
+		>;
 
+		//检索
 		template<index_type Index>
 		static constexpr auto lookup()
 		{
-			return type_element< typename List::template element<Index> >{};
+			return apply_at<type_element, Index>{};
 		}
 
-		//谓词 predicate================================================================================
+		//私有计算算子 private computation operator================================================================================
 
-		template<typename Predicate>
-		struct predicate_solver
-		{
-			template<index_type Index>
-			static constexpr bool solvable = requires
-			{
-				bool{ std::remove_reference_t<Predicate>{}.template operator() <
-					typename List::template element<Index>
-				> () };
-			};
-
-			template<index_type Index>
-			static constexpr bool solve()
-			{
-				return std::remove_reference_t<Predicate>{}.template operator() <
-					typename List::template element<Index>
-				> ();
-			}
-		};
-
-		//--------------------------------------------------------------------------------
-
-		template<typename PredicateType, index_type Index>
-		static constexpr bool solvable_predicate_type = requires(PredicateType&& predicate)
-		{
-			bool{ std::forward<PredicateType>(predicate).template operator() <
-				typename List::template element<Index>
-			> () };
-		};
-
-		template<index_type Index, typename PredicateType>
-		static constexpr bool solve_predicate(PredicateType&& predicate)
-		{
-			return std::forward<PredicateType>(predicate).template operator() <
-				typename List::template element<Index>
-			> ();
-		}
-
-		//--------------------------------------------------------------------------------
-
-		//用于 extended core
-
-		template<template<typename> typename Predicate, index_type Index>
-		static constexpr bool solvable_trait_predicate = requires
-		{
-			typename Predicate<
-				typename List::template element<Index>
-			>;
-		};
+		//谓词 predicate--------------------------------------------------------------------------------
 
 		template<template<typename> typename Predicate, index_type ProbeIndex>
 		struct trait_predicate_solver
 		{
-			using TraitCertificate = Predicate<
-				typename List::template element<ProbeIndex>
-			>;
+			static_assert(requires{ typename apply_at<Predicate, ProbeIndex>; },
+				"[logicwise] Trait predicate instantiation failed at probe index.");
+
+			using TraitCertificate = apply_at<Predicate, ProbeIndex>;
 
 			static constexpr auto SolverProxy{ detail::trait_predicate_solver<TraitCertificate> };
 
 			template<index_type Index>
 			static constexpr bool solve()
 			{
-				return SolverProxy.template operator() < Predicate<
-					typename List::template element<Index>
-				> > ();
+				return SolverProxy.template operator() < apply_at<Predicate, Index> > ();
 			}
-		};
-
-		//带索引谓词 predicate with index================================================================================
-
-		template<typename Predicate>
-		struct predicate_with_index_solver
-		{
-			template<index_type Index>
-			static constexpr bool solvable = requires
-			{
-				bool{ std::remove_reference_t<Predicate>{}.template operator() <
-					Index,
-					typename List::template element<Index>
-				> () };
-			};
 
 			template<index_type Index>
-			static constexpr bool solve()
+			constexpr bool operator()()
 			{
-				return std::remove_reference_t<Predicate>{}.template operator() <
-					Index,
-					typename List::template element<Index>
-				> ();
+				return solve<Index>();
 			}
 		};
 
-		//--------------------------------------------------------------------------------
-
-		template<typename PredicateType, index_type Index>
-		static constexpr bool solvable_predicate_with_index_type = requires(PredicateType&& predicate)
-		{
-			bool{ std::forward<PredicateType>(predicate).template operator() <
-				Index,
-				typename List::template element<Index>
-			> () };
-		};
-
-		template<index_type Index, typename PredicateType>
-		static constexpr bool solve_predicate_with_index(PredicateType&& predicate)
-		{
-			return std::forward<PredicateType>(predicate).template operator() <
-				Index,
-				typename List::template element<Index>
-			> ();
-		}
-
-		//同质关系 homogeneous relation================================================================================
-
-		template<typename HomogeneousRelation>
-		struct homogeneous_relation_solver
-		{
-			template<index_type Index1, index_type Index2>
-			static constexpr bool solvable = requires
-			{
-				bool{ std::remove_reference_t<HomogeneousRelation>{}.template operator() <
-					typename List::template element<Index1>,
-					typename List::template element<Index2>
-				> () };
-			};
-
-			template<index_type Index1, index_type Index2>
-			static constexpr bool solve()
-			{
-				return std::remove_reference_t<HomogeneousRelation>{}.template operator() <
-					typename List::template element<Index1>,
-					typename List::template element<Index2>
-				> ();
-			}
-		};
-
-		//--------------------------------------------------------------------------------
-
-		/*
-		template<typename HomogeneousRelationType, index_type Index1, index_type Index2>
-		static constexpr bool solvable_homogeneous_relation_type = requires(HomogeneousRelationType&& homogeneous_relation)
-		{
-			bool{ std::forward<HomogeneousRelationType>(homogeneous_relation).template operator() <
-				typename List::template element<Index1>,
-				typename List::template element<Index2>
-			> () };
-		};
-
-		template<index_type Index1, index_type Index2, typename HomogeneousRelationType>
-		static constexpr bool solve_homogeneous_relation(HomogeneousRelationType&& homogeneous_relation)
-		{
-			return std::forward<HomogeneousRelationType>(homogeneous_relation).template operator() <
-				typename List::template element<Index1>,
-				typename List::template element<Index2>
-			> ();
-		}
-		*/
-
-		//--------------------------------------------------------------------------------
-
-		//用于 extended core
-
-		template<template<typename, typename> typename HomogeneousRelation, index_type Index1, index_type Index2>
-		static constexpr bool solvable_trait_homogeneous_relation = requires
-		{
-			typename HomogeneousRelation<
-				typename List::template element<Index1>,
-				typename List::template element<Index2>
-			>;
-		};
-
-		template<template<typename, typename> typename HomogeneousRelation, index_type ProbeIndex1, index_type ProbeIndex2>
-		struct trait_homogeneous_relation_solver
-		{
-			using TraitCertificate = HomogeneousRelation<
-				typename List::template element<ProbeIndex1>,
-				typename List::template element<ProbeIndex2>
-			>;
-
-			static constexpr auto SolverProxy{ detail::trait_predicate_solver<TraitCertificate> };
-
-			template<index_type Index1, index_type Index2>
-			static constexpr bool solve()
-			{
-				return SolverProxy.template operator() < HomogeneousRelation<
-					typename List::template element<Index1>,
-					typename List::template element<Index2>
-				> > ();
-			}
-		};
-
-		//操作 operation================================================================================
-
-		template<typename OperationType, index_type Index>
-		static constexpr bool executable_operation_type = requires(OperationType && operation)
-		{
-			std::forward<OperationType>(operation).template operator() <
-				typename List::template element<Index>
-			> ();
-		};
-
-		template<index_type Index, typename OperationType>
-		static constexpr void execute_operation(OperationType&& operation)
-		{
-			std::forward<OperationType>(operation).template operator() <
-				typename List::template element<Index>
-			> ();
-		}
-
-		//带索引操作 operation with index================================================================================
-
-		template<typename OperationType, index_type Index>
-		static constexpr bool executable_operation_with_index_type = requires(OperationType && operation)
-		{
-			std::forward<OperationType>(operation).template operator() <
-				Index,
-				typename List::template element<Index>
-			> ();
-		};
-
-		template<index_type Index, typename OperationType>
-		static constexpr void execute_operation_with_index(OperationType&& operation)
-		{
-			std::forward<OperationType>(operation).template operator() <
-				Index,
-				typename List::template element<Index>
-			> ();
-		}
-
-		//组合子 combinator================================================================================
-
-		template<typename Combinator>
-		struct to_type_combinator_folder
-		{
-			template<typename Accumulator, index_type Index>
-			static constexpr bool foldable = requires
-			{
-				typename decltype(std::remove_reference_t<Combinator>{}.template operator() <
-					Accumulator,
-					typename List::template element<Index>
-				> ())::type;
-			};
-
-			template<typename Accumulator, index_type Index>
-			using fold =
-				typename decltype(std::remove_reference_t<Combinator>{}.template operator() <
-					Accumulator,
-					typename List::template element<Index>
-				> ())::type;
-		};
-
-		//--------------------------------------------------------------------------------
-
-		template<typename Combinator>
-		struct to_value_combinator_folder
-		{
-			template<auto Accumulator, index_type Index>
-			static constexpr bool foldable = requires
-			{
-				std::remove_reference_t<Combinator>{}.template operator() <
-					Accumulator,
-					typename List::template element<Index>
-				> ();
-			};
-
-			template<auto Accumulator, index_type Index>
-			static constexpr auto fold()
-			{
-				return std::remove_reference_t<Combinator>{}.template operator() <
-					Accumulator,
-					typename List::template element<Index>
-				> ();
-			}
-		};
-
-		//--------------------------------------------------------------------------------
-
-		//用于 extended core
+		//组合子 combinator--------------------------------------------------------------------------------
 
 		template<template<typename Accumulator, typename Type> typename Combinator>
 		struct alias_to_type_combinator_folder
 		{
 			template<typename Accumulator, index_type Index>
-			static constexpr bool foldable = requires
-			{
-				typename Combinator<
-					Accumulator,
-					typename List::template element<Index>
-				>;
-			};
-
-			template<typename Accumulator, index_type Index>
 			using fold = Combinator<
 				Accumulator,
 				typename List::template element<Index>
 			>;
-		};
 
-		//带索引组合子 combinator with index================================================================================
-
-		template<typename Combinator>
-		struct to_type_combinator_with_index_folder
-		{
 			template<typename Accumulator, index_type Index>
 			static constexpr bool foldable = requires
 			{
-				typename decltype(std::remove_reference_t<Combinator>{}.template operator() <
-					Index,
-					Accumulator,
-					typename List::template element<Index>
-				> ())::type;
+				typename fold<Accumulator, Index>;
 			};
-
-			template<typename Accumulator, index_type Index>
-			using fold =
-				typename decltype(std::remove_reference_t<Combinator>{}.template operator() <
-					Index,
-					Accumulator,
-					typename List::template element<Index>
-				> ())::type;
 		};
 
 		//--------------------------------------------------------------------------------
-
-		template<typename Combinator>
-		struct to_value_combinator_with_index_folder
-		{
-			template<auto Accumulator, index_type Index>
-			static constexpr bool foldable = requires
-			{
-				std::remove_reference_t<Combinator>{}.template operator() <
-					Index,
-					Accumulator,
-					typename List::template element<Index>
-				> ();
-			};
-
-			template<auto Accumulator, index_type Index>
-			static constexpr auto fold()
-			{
-				return std::remove_reference_t<Combinator>{}.template operator() <
-					Index,
-					Accumulator,
-					typename List::template element<Index>
-				> ();
-			}
-		};
-
-		//--------------------------------------------------------------------------------
-
-		//用于 extended core
 
 		template<template<auto Index, typename Accumulator, typename Type> typename Combinator>
 		struct alias_to_type_combinator_with_index_folder
 		{
-			template<typename Accumulator, index_type Index>
-			static constexpr bool foldable = requires
-			{
-				typename Combinator<
-					Index,
-					Accumulator,
-					typename List::template element<Index>
-				>;
-			};
-
 			template<typename Accumulator, index_type Index>
 			using fold = Combinator<
 				Index,
 				Accumulator,
 				typename List::template element<Index>
 			>;
+
+			template<typename Accumulator, index_type Index>
+			static constexpr bool foldable = requires
+			{
+				typename fold<Accumulator, Index>;
+			};
+		};
+
+		//同质关系 homogeneous relation--------------------------------------------------------------------------------
+
+		template<template<typename, typename> typename HomogeneousRelation, index_type ProbeIndex1, index_type ProbeIndex2>
+		struct trait_homogeneous_relation_solver
+		{
+			template<index_type Index1, index_type Index2>
+			using apply_at = HomogeneousRelation<
+				typename List::template element<Index1>,
+				typename List::template element<Index2>
+			>;
+
+			static_assert(requires{ typename apply_at<ProbeIndex1, ProbeIndex2>; },
+				"[logicwise] Trait homogeneous relation instantiation failed at probe index pair.");
+
+			using TraitCertificate = apply_at<ProbeIndex1, ProbeIndex2>;
+
+			static constexpr auto SolverProxy{ detail::trait_predicate_solver<TraitCertificate> };
+
+			template<index_type Index1, index_type Index2>
+			static constexpr bool solve()
+			{
+				return SolverProxy.template operator() < apply_at<Index1, Index2> > ();
+			}
+
+			template<index_type Index1, index_type Index2>
+			constexpr bool operator()()
+			{
+				return solve<Index1, Index2>();
+			}
+		};
+
+
+		//一元计算原语
+		struct unary_computation_primitive
+		{
+			//逐元素
+			struct elementwise
+			{
+				//调用 invoke--------------------------------------------------------------------------------
+
+				template<index_type Index, typename InvocableType>
+				static constexpr decltype(auto) invoke_at_impl(InvocableType&& invocable)
+				{
+					return std::forward<InvocableType>(invocable).template operator() <
+						typename List::template element<Index>
+					> ();
+				}
+
+				template<typename Invocable, index_type Index>
+				static constexpr decltype(auto) invoke_at()
+				{
+					return invoke_at_impl<Index>(std::remove_reference_t<Invocable>{});
+				}
+
+				template<index_type Index, typename InvocableType>
+				static constexpr decltype(auto) invoke_at(InvocableType&& invocable)
+				{
+					return invoke_at_impl<Index>(std::forward<InvocableType>(invocable));
+				}
+
+				//组合 combine--------------------------------------------------------------------------------
+
+				template<typename Combinator, typename Accumulator, index_type Index>
+				using combine_type_at = typename decltype(
+					std::remove_reference_t<Combinator>{}.template operator() <
+						Accumulator,
+						typename List::template element<Index>
+					> ()
+				)::type;
+
+				template<typename Combinator, auto Accumulator, index_type Index>
+				static constexpr decltype(auto) combine_value_at()
+				{
+					return std::remove_reference_t<Combinator>{}.template operator() <
+						Accumulator,
+						typename List::template element<Index>
+					> ();
+				}
+
+				template<index_type Index, typename CombinatorType, typename AccumulatorType>
+				static constexpr decltype(auto) combine_instance_at(
+					CombinatorType&& combinator, AccumulatorType&& accumulator)
+				{
+					return std::forward<CombinatorType>(combinator).template operator() <
+						typename List::template element<Index>
+					> (std::forward<AccumulatorType>(accumulator));
+				}
+
+			};
+
+			//带索引逐元素
+			struct elementwise_with_index
+			{
+				//调用 invoke--------------------------------------------------------------------------------
+
+				template<index_type Index, typename InvocableType>
+				static constexpr decltype(auto) invoke_at_impl(InvocableType&& invocable)
+				{
+					return std::forward<InvocableType>(invocable).template operator() <
+						Index,
+						typename List::template element<Index>
+					> ();
+				}
+
+				template<typename Invocable, index_type Index>
+				static constexpr decltype(auto) invoke_at()
+				{
+					return invoke_at_impl<Index>(std::remove_reference_t<Invocable>{});
+				}
+
+				template<index_type Index, typename InvocableType>
+				static constexpr decltype(auto) invoke_at(InvocableType&& invocable)
+				{
+					return invoke_at_impl<Index>(std::forward<InvocableType>(invocable));
+				}
+
+				//组合 combine--------------------------------------------------------------------------------
+
+				template<typename Combinator, typename Accumulator, index_type Index>
+				using combine_type_at = typename decltype(
+					std::remove_reference_t<Combinator>{}.template operator() <
+						Index,
+						Accumulator,
+						typename List::template element<Index>
+					> ()
+				)::type;
+
+				template<typename Combinator, auto Accumulator, index_type Index>
+				static constexpr decltype(auto) combine_value_at()
+				{
+					return std::remove_reference_t<Combinator>{}.template operator() <
+						Index,
+						Accumulator,
+						typename List::template element<Index>
+					> ();
+				}
+
+				template<index_type Index, typename CombinatorType, typename AccumulatorType>
+				static constexpr decltype(auto) combine_instance_at(
+					CombinatorType&& combinator, AccumulatorType&& accumulator)
+				{
+					return std::forward<CombinatorType>(combinator).template operator() <
+						Index,
+						typename List::template element<Index>
+					> (std::forward<AccumulatorType>(accumulator));
+				}
+
+			};
+
+		};
+
+
+		//二元计算原语
+		struct binary_computation_primitive
+		{
+			//逐元素
+			struct elementwise
+			{
+				//调用 invoke--------------------------------------------------------------------------------
+
+				template<index_type Index1, index_type Index2, typename InvocableType>
+				static constexpr decltype(auto) invoke_at_impl(InvocableType&& invocable)
+				{
+					return std::forward<InvocableType>(invocable).template operator() <
+						typename List::template element<Index1>,
+						typename List::template element<Index2>
+					> ();
+				}
+
+				template<typename Invocable, index_type Index1, index_type Index2>
+				static constexpr decltype(auto) invoke_at()
+				{
+					return invoke_at_impl<Index1, Index2>(std::remove_reference_t<Invocable>{});
+				}
+
+			};
+
+		};
+
+
+		//计算算子
+		struct computation_operator
+		{
+			struct elementwise
+				: template_unary_computation_operator
+					<typename unary_computation_primitive::elementwise>
+				, template_binary_computation_operator
+					<typename binary_computation_primitive::elementwise>
+			{};
+
+			struct elementwise_with_index
+				: template_unary_computation_operator
+					<typename unary_computation_primitive::elementwise_with_index>
+			{};
+
 		};
 
 	};
