@@ -41,21 +41,38 @@ namespace logicwise::detail::typewise
 		(TryToTrustExistingRelation<PartialOrder> && PosetWitness<Range, default_partial_order>) ||
 		(!TryToTrustExistingRelation<PartialOrder> && PosetWitness<Range, PartialOrder>);
 
-	//类型偏序集
-	template<auto PartialOrder, typename... Type>
+	//类型偏序集包装器
+	template<auto PartialOrder = try_to_trust_existing_relation>
 	struct poset
-		: type_list<Type...>
-		, type_poset_tag
-		, partial_order_induction<PartialOrder>
 	{
-		static constexpr auto partial_order{ PartialOrder };
+		template<typename... Type>
+		struct wrapping
+			: type_list<Type...>
+			, type_poset_tag
+			, partial_order_induction<PartialOrder>
+		{
+			static constexpr auto partial_order{ PartialOrder };
+		};
+
+		template<typename... Type>
+			requires PosetWitness<type_list<Type...>, PartialOrder>
+		using of = wrapping<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenPoset<Range, PartialOrder>;
 	};
 
-	template<auto PartialOrder, typename... Type>
-		requires PosetWitness<type_list<Type...>, PartialOrder>
-	struct poset_witness
+	template<>
+	struct poset<try_to_trust_existing_relation>
 	{
-		using type = poset<PartialOrder, Type...>;
+		template<typename... Type>
+		using wrapping = poset<default_partial_order>::wrapping<Type...>;
+
+		template<typename... Type>
+		using of = poset<default_partial_order>::of<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenPoset<Range>;
 	};
 
 }
@@ -66,60 +83,6 @@ namespace logicwise::detail
 {
 	//类型偏序集工厂
 	template<typename... Type>
-	using type_poset = typename typewise::
-		poset_witness<typewise::default_partial_order, Type...>::type;
-
-	template<auto PartialOrder, typename... Type>
-	using custom_type_poset = typename typewise::
-		poset_witness<PartialOrder, Type...>::type;
-
-	//类型偏序集适配器
-	template<auto PartialOrder>
-	struct type_poset_wrapper_selector
-	{
-		template<typename... Type>
-		using wrapper = custom_type_poset<PartialOrder, Type...>;
-	};
-
-	template<>
-	struct type_poset_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<typename... Type>
-		using wrapper = type_poset<Type...>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	struct as_type_poset_impl
-	{
-		template<typename... Type>
-		using wrapper = type_poset_wrapper_selector<PartialOrder>::template wrapper<Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Poset, auto PartialOrder>
-		requires typewise::ProvenPoset<Poset, PartialOrder>
-	struct as_type_poset_impl<Poset, PartialOrder>
-	{
-		using type = Poset;
-	};
-
-	template<typename Range, auto PartialOrder = try_to_trust_existing_relation>
-	using as_type_poset =
-		typename as_type_poset_impl<std::remove_cvref_t<Range>, PartialOrder>::type;
-
-	//类型偏序集转换器
-	template<typename Range, auto PartialOrder>
-	struct cast_into_type_poset_impl
-	{
-		template<typename... Type>
-		using wrapper = typewise::poset<PartialOrder, Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	using cast_into_type_poset =
-		typename cast_into_type_poset_impl<Range, PartialOrder>::type;
+	using type_poset = typewise::poset<>::of<Type...>;
 
 }

@@ -13,27 +13,23 @@
 namespace logicwise::wrapper
 {
 	using detail::type_tolerance_set;
-	using detail::custom_type_tolerance_set;
-	using detail::as_type_tolerance_set;
-	using detail::cast_into_type_tolerance_set;
 
 	using detail::value_tolerance_set;
-	using detail::custom_value_tolerance_set;
-	using detail::as_value_tolerance_set;
-	using detail::cast_into_value_tolerance_set;
 
 }
 
 //逻辑维度::类型维度
 namespace logicwise::typewise
 {
-	using detail::typewise::ToleranceSet;
+	using detail::typewise::tolerance_set; //包装器 wrapper
+	using detail::typewise::ToleranceSet; //概念 concept
 
 }
 
 //逻辑维度::值维度
 namespace logicwise::valuewise
 {
-	using detail::valuewise::ToleranceSet;
+	using detail::valuewise::tolerance_set; //包装器 wrapper
+	using detail::valuewise::ToleranceSet; //概念 concept
 
 }

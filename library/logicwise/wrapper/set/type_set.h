@@ -40,21 +40,38 @@ namespace logicwise::detail::typewise
 		(TryToTrustExistingRelation<SameAs> && SetWitness<Range, default_equivalence_relation>) ||
 		(!TryToTrustExistingRelation<SameAs> && SetWitness<Range, SameAs>);
 
-	//类型集合
-	template<auto EquivalenceRelation, typename... Type>
+	//类型集合包装器
+	template<auto EquivalenceRelation = try_to_trust_existing_relation>
 	struct set
-		: type_list<Type...>
-		, type_set_tag
-		, equivalence_relation_induction<EquivalenceRelation>
 	{
-		static constexpr auto equivalence_relation{ EquivalenceRelation };
+		template<typename... Type>
+		struct wrapping
+			: type_list<Type...>
+			, type_set_tag
+			, equivalence_relation_induction<EquivalenceRelation>
+		{
+			static constexpr auto equivalence_relation{ EquivalenceRelation };
+		};
+
+		template<typename... Type>
+			requires SetWitness<type_list<Type...>, EquivalenceRelation>
+		using of = wrapping<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenSet<Range, EquivalenceRelation>;
 	};
 
-	template<auto EquivalenceRelation, typename... Type>
-		requires SetWitness<type_list<Type...>, EquivalenceRelation>
-	struct set_witness
+	template<>
+	struct set<try_to_trust_existing_relation>
 	{
-		using type = set<EquivalenceRelation, Type...>;
+		template<typename... Type>
+		using wrapping = set<default_equivalence_relation>::wrapping<Type...>;
+
+		template<typename... Type>
+		using of = set<default_equivalence_relation>::of<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenSet<Range>;
 	};
 
 }
@@ -65,60 +82,6 @@ namespace logicwise::detail
 {
 	//类型集合工厂
 	template<typename... Type>
-	using type_set = typename typewise::
-		set_witness<typewise::default_equivalence_relation, Type...>::type;
-
-	template<auto SameAs, typename... Type>
-	using custom_type_set = typename typewise::
-		set_witness<SameAs, Type...>::type;
-
-	//类型集合适配器
-	template<auto SameAs>
-	struct type_set_wrapper_selector
-	{
-		template<typename... Type>
-		using wrapper = custom_type_set<SameAs, Type...>;
-	};
-
-	template<>
-	struct type_set_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<typename... Type>
-		using wrapper = type_set<Type...>;
-	};
-
-	template<typename Range, auto SameAs>
-	struct as_type_set_impl
-	{
-		template<typename... Type>
-		using wrapper = type_set_wrapper_selector<SameAs>::template wrapper<Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Set, auto SameAs>
-		requires typewise::ProvenSet<Set, SameAs>
-	struct as_type_set_impl<Set, SameAs>
-	{
-		using type = Set;
-	};
-
-	template<typename Range, auto SameAs = try_to_trust_existing_relation>
-	using as_type_set =
-		typename as_type_set_impl<std::remove_cvref_t<Range>, SameAs>::type;
-
-	//类型集合转换器
-	template<typename Range, auto SameAs>
-	struct cast_into_type_set_impl
-	{
-		template<typename... Type>
-		using wrapper = typewise::set<SameAs, Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto SameAs>
-	using cast_into_type_set =
-		typename cast_into_type_set_impl<Range, SameAs>::type;
+	using type_set = typewise::set<>::of<Type...>;
 
 }

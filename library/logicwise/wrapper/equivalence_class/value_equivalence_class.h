@@ -40,21 +40,38 @@ namespace logicwise::detail::valuewise
 		(TryToTrustExistingRelation<EqualTo> && EquivalenceClassWitness<Range, default_equivalence_relation>) ||
 		(!TryToTrustExistingRelation<EqualTo> && EquivalenceClassWitness<Range, EqualTo>);
 
-	//值等价类
-	template<auto EquivalenceRelation, auto... Value>
+	//值等价类包装器
+	template<auto EquivalenceRelation = try_to_trust_existing_relation>
 	struct equivalence_class
-		: value_list<Value...>
-		, value_equivalence_class_tag
-		, equivalence_relation_induction<EquivalenceRelation>
 	{
-		static constexpr auto equivalence_relation{ EquivalenceRelation };
+		template<auto... Value>
+		struct wrapping
+			: value_list<Value...>
+			, value_equivalence_class_tag
+			, equivalence_relation_induction<EquivalenceRelation>
+		{
+			static constexpr auto equivalence_relation{ EquivalenceRelation };
+		};
+
+		template<auto... Value>
+			requires EquivalenceClassWitness<value_list<Value...>, EquivalenceRelation>
+		using of = wrapping<Value...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenEquivalenceClass<Range, EquivalenceRelation>;
 	};
 
-	template<auto EquivalenceRelation, auto... Value>
-		requires EquivalenceClassWitness<value_list<Value...>, EquivalenceRelation>
-	struct equivalence_class_witness
+	template<>
+	struct equivalence_class<try_to_trust_existing_relation>
 	{
-		using type = equivalence_class<EquivalenceRelation, Value...>;
+		template<auto... Value>
+		using wrapping = equivalence_class<default_equivalence_relation>::wrapping<Value...>;
+
+		template<auto... Value>
+		using of = equivalence_class<default_equivalence_relation>::of<Value...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenEquivalenceClass<Range>;
 	};
 
 }
@@ -65,60 +82,6 @@ namespace logicwise::detail
 {
 	//值等价类工厂
 	template<auto... Value>
-	using value_equivalence_class = typename valuewise::
-		equivalence_class_witness<valuewise::default_equivalence_relation, Value...>::type;
-
-	template<auto EqualTo, auto... Value>
-	using custom_value_equivalence_class = typename valuewise::
-		equivalence_class_witness<EqualTo, Value...>::type;
-
-	//值等价类适配器
-	template<auto EqualTo>
-	struct value_equivalence_class_wrapper_selector
-	{
-		template<auto... Value>
-		using wrapper = custom_value_equivalence_class<EqualTo, Value...>;
-	};
-
-	template<>
-	struct value_equivalence_class_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<auto... Value>
-		using wrapper = value_equivalence_class<Value...>;
-	};
-
-	template<typename Range, auto EqualTo>
-	struct as_value_equivalence_class_impl
-	{
-		template<auto... Value>
-		using wrapper = value_equivalence_class_wrapper_selector<EqualTo>::template wrapper<Value...>;
-
-		using type = typename as_value_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename EquivalenceClass, auto EqualTo>
-		requires valuewise::ProvenEquivalenceClass<EquivalenceClass, EqualTo>
-	struct as_value_equivalence_class_impl<EquivalenceClass, EqualTo>
-	{
-		using type = EquivalenceClass;
-	};
-
-	template<typename Range, auto EqualTo = try_to_trust_existing_relation>
-	using as_value_equivalence_class =
-		typename as_value_equivalence_class_impl<std::remove_cvref_t<Range>, EqualTo>::type;
-
-	//值等价类转换器
-	template<typename Range, auto EqualTo>
-	struct cast_into_value_equivalence_class_impl
-	{
-		template<auto... Value>
-		using wrapper = valuewise::equivalence_class<EqualTo, Value...>;
-
-		using type = typename as_value_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto EqualTo>
-	using cast_into_value_equivalence_class =
-		typename cast_into_value_equivalence_class_impl<Range, EqualTo>::type;
+	using value_equivalence_class = valuewise::equivalence_class<>::of<Value...>;
 
 }

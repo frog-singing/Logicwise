@@ -13,27 +13,23 @@
 namespace logicwise::wrapper
 {
 	using detail::type_antichain;
-	using detail::custom_type_antichain;
-	using detail::as_type_antichain;
-	using detail::cast_into_type_antichain;
 
 	using detail::value_antichain;
-	using detail::custom_value_antichain;
-	using detail::as_value_antichain;
-	using detail::cast_into_value_antichain;
 
 }
 
 //逻辑维度::类型维度
 namespace logicwise::typewise
 {
-	using detail::typewise::Antichain;
+	using detail::typewise::antichain; //包装器 wrapper
+	using detail::typewise::Antichain; //概念 concept
 
 }
 
 //逻辑维度::值维度
 namespace logicwise::valuewise
 {
-	using detail::valuewise::Antichain;
+	using detail::valuewise::antichain; //包装器 wrapper
+	using detail::valuewise::Antichain; //概念 concept
 
 }

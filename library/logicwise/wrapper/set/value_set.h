@@ -40,21 +40,38 @@ namespace logicwise::detail::valuewise
 		(TryToTrustExistingRelation<EqualTo> && SetWitness<Range, default_equivalence_relation>) ||
 		(!TryToTrustExistingRelation<EqualTo> && SetWitness<Range, EqualTo>);
 
-	//值集合
-	template<auto EquivalenceRelation, auto... Value>
+	//值集合包装器
+	template<auto EquivalenceRelation = try_to_trust_existing_relation>
 	struct set
-		: value_list<Value...>
-		, value_set_tag
-		, equivalence_relation_induction<EquivalenceRelation>
 	{
-		static constexpr auto equivalence_relation{ EquivalenceRelation };
+		template<auto... Value>
+		struct wrapping
+			: value_list<Value...>
+			, value_set_tag
+			, equivalence_relation_induction<EquivalenceRelation>
+		{
+			static constexpr auto equivalence_relation{ EquivalenceRelation };
+		};
+
+		template<auto... Value>
+			requires SetWitness<value_list<Value...>, EquivalenceRelation>
+		using of = wrapping<Value...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenSet<Range, EquivalenceRelation>;
 	};
 
-	template<auto EquivalenceRelation, auto... Value>
-		requires SetWitness<value_list<Value...>, EquivalenceRelation>
-	struct set_witness
+	template<>
+	struct set<try_to_trust_existing_relation>
 	{
-		using type = set<EquivalenceRelation, Value...>;
+		template<auto... Value>
+		using wrapping = set<default_equivalence_relation>::wrapping<Value...>;
+
+		template<auto... Value>
+		using of = set<default_equivalence_relation>::of<Value...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenSet<Range>;
 	};
 
 }
@@ -65,60 +82,6 @@ namespace logicwise::detail
 {
 	//值集合工厂
 	template<auto... Value>
-	using value_set = typename valuewise::
-		set_witness<valuewise::default_equivalence_relation, Value...>::type;
-
-	template<auto EqualTo, auto... Value>
-	using custom_value_set = typename valuewise::
-		set_witness<EqualTo, Value...>::type;
-
-	//值集合适配器
-	template<auto EqualTo>
-	struct value_set_wrapper_selector
-	{
-		template<auto... Value>
-		using wrapper = custom_value_set<EqualTo, Value...>;
-	};
-
-	template<>
-	struct value_set_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<auto... Value>
-		using wrapper = value_set<Value...>;
-	};
-
-	template<typename Range, auto EqualTo>
-	struct as_value_set_impl
-	{
-		template<auto... Value>
-		using wrapper = value_set_wrapper_selector<EqualTo>::template wrapper<Value...>;
-
-		using type = typename as_value_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Set, auto EqualTo>
-		requires valuewise::ProvenSet<Set, EqualTo>
-	struct as_value_set_impl<Set, EqualTo>
-	{
-		using type = Set;
-	};
-
-	template<typename Range, auto EqualTo = try_to_trust_existing_relation>
-	using as_value_set =
-		typename as_value_set_impl<std::remove_cvref_t<Range>, EqualTo>::type;
-
-	//值集合转换器
-	template<typename Range, auto EqualTo>
-	struct cast_into_value_set_impl
-	{
-		template<auto... Value>
-		using wrapper = valuewise::set<EqualTo, Value...>;
-
-		using type = typename as_value_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto EqualTo>
-	using cast_into_value_set =
-		typename cast_into_value_set_impl<Range, EqualTo>::type;
+	using value_set = valuewise::set<>::of<Value...>;
 
 }

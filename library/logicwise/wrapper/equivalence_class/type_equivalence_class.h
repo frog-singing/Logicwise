@@ -40,21 +40,38 @@ namespace logicwise::detail::typewise
 		(TryToTrustExistingRelation<SameAs> && EquivalenceClassWitness<Range, default_equivalence_relation>) ||
 		(!TryToTrustExistingRelation<SameAs> && EquivalenceClassWitness<Range, SameAs>);
 
-	//类型等价类
-	template<auto EquivalenceRelation, typename... Type>
+	//类型等价类包装器
+	template<auto EquivalenceRelation = try_to_trust_existing_relation>
 	struct equivalence_class
-		: type_list<Type...>
-		, type_equivalence_class_tag
-		, equivalence_relation_induction<EquivalenceRelation>
 	{
-		static constexpr auto equivalence_relation{ EquivalenceRelation };
+		template<typename... Type>
+		struct wrapping
+			: type_list<Type...>
+			, type_equivalence_class_tag
+			, equivalence_relation_induction<EquivalenceRelation>
+		{
+			static constexpr auto equivalence_relation{ EquivalenceRelation };
+		};
+
+		template<typename... Type>
+			requires EquivalenceClassWitness<type_list<Type...>, EquivalenceRelation>
+		using of = wrapping<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenEquivalenceClass<Range, EquivalenceRelation>;
 	};
 
-	template<auto EquivalenceRelation, typename... Type>
-		requires EquivalenceClassWitness<type_list<Type...>, EquivalenceRelation>
-	struct equivalence_class_witness
+	template<>
+	struct equivalence_class<try_to_trust_existing_relation>
 	{
-		using type = equivalence_class<EquivalenceRelation, Type...>;
+		template<typename... Type>
+		using wrapping = equivalence_class<default_equivalence_relation>::wrapping<Type...>;
+
+		template<typename... Type>
+		using of = equivalence_class<default_equivalence_relation>::of<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenEquivalenceClass<Range>;
 	};
 
 }
@@ -65,60 +82,6 @@ namespace logicwise::detail
 {
 	//类型等价类工厂
 	template<typename... Type>
-	using type_equivalence_class = typename typewise::
-		equivalence_class_witness<typewise::default_equivalence_relation, Type...>::type;
-
-	template<auto SameAs, typename... Type>
-	using custom_type_equivalence_class = typename typewise::
-		equivalence_class_witness<SameAs, Type...>::type;
-
-	//类型等价类适配器
-	template<auto SameAs>
-	struct type_equivalence_class_wrapper_selector
-	{
-		template<typename... Type>
-		using wrapper = custom_type_equivalence_class<SameAs, Type...>;
-	};
-
-	template<>
-	struct type_equivalence_class_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<typename... Type>
-		using wrapper = type_equivalence_class<Type...>;
-	};
-
-	template<typename Range, auto SameAs>
-	struct as_type_equivalence_class_impl
-	{
-		template<typename... Type>
-		using wrapper = type_equivalence_class_wrapper_selector<SameAs>::template wrapper<Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename EquivalenceClass, auto SameAs>
-		requires typewise::ProvenEquivalenceClass<EquivalenceClass, SameAs>
-	struct as_type_equivalence_class_impl<EquivalenceClass, SameAs>
-	{
-		using type = EquivalenceClass;
-	};
-
-	template<typename Range, auto SameAs = try_to_trust_existing_relation>
-	using as_type_equivalence_class =
-		typename as_type_equivalence_class_impl<std::remove_cvref_t<Range>, SameAs>::type;
-
-	//类型等价类转换器
-	template<typename Range, auto SameAs>
-	struct cast_into_type_equivalence_class_impl
-	{
-		template<typename... Type>
-		using wrapper = typewise::equivalence_class<SameAs, Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto SameAs>
-	using cast_into_type_equivalence_class =
-		typename cast_into_type_equivalence_class_impl<Range, SameAs>::type;
+	using type_equivalence_class = typewise::equivalence_class<>::of<Type...>;
 
 }

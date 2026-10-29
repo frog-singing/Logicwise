@@ -13,27 +13,23 @@
 namespace logicwise::wrapper
 {
 	using detail::type_equivalence_class;
-	using detail::custom_type_equivalence_class;
-	using detail::as_type_equivalence_class;
-	using detail::cast_into_type_equivalence_class;
 
 	using detail::value_equivalence_class;
-	using detail::custom_value_equivalence_class;
-	using detail::as_value_equivalence_class;
-	using detail::cast_into_value_equivalence_class;
 
 }
 
 //逻辑维度::类型维度
 namespace logicwise::typewise
 {
-	using detail::typewise::EquivalenceClass;
+	using detail::typewise::equivalence_class; //包装器 wrapper
+	using detail::typewise::EquivalenceClass; //概念 concept
 
 }
 
 //逻辑维度::值维度
 namespace logicwise::valuewise
 {
-	using detail::valuewise::EquivalenceClass;
+	using detail::valuewise::equivalence_class; //包装器 wrapper
+	using detail::valuewise::EquivalenceClass; //概念 concept
 
 }

@@ -19,3 +19,6 @@
 #include "wrapper/poset.h"
 #include "wrapper/chain.h"
 #include "wrapper/antichain.h"
+
+#include "wrapper/regard_as.h"
+#include "wrapper/cast_into.h"

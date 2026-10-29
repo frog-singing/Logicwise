@@ -13,27 +13,23 @@
 namespace logicwise::wrapper
 {
 	using detail::type_poset;
-	using detail::custom_type_poset;
-	using detail::as_type_poset;
-	using detail::cast_into_type_poset;
 
 	using detail::value_poset;
-	using detail::custom_value_poset;
-	using detail::as_value_poset;
-	using detail::cast_into_value_poset;
 
 }
 
 //逻辑维度::类型维度
 namespace logicwise::typewise
 {
-	using detail::typewise::Poset;
+	using detail::typewise::poset; //包装器 wrapper
+	using detail::typewise::Poset; //概念 concept
 
 }
 
 //逻辑维度::值维度
 namespace logicwise::valuewise
 {
-	using detail::valuewise::Poset;
+	using detail::valuewise::poset; //包装器 wrapper
+	using detail::valuewise::Poset; //概念 concept
 
 }

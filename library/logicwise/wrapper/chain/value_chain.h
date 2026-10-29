@@ -41,21 +41,38 @@ namespace logicwise::detail::valuewise
 		(TryToTrustExistingRelation<PartialOrder> && ChainWitness<Range, default_partial_order>) ||
 		(!TryToTrustExistingRelation<PartialOrder> && ChainWitness<Range, PartialOrder>);
 
-	//值链
-	template<auto PartialOrder, auto... Value>
+	//值链包装器
+	template<auto PartialOrder = try_to_trust_existing_relation>
 	struct chain
-		: value_list<Value...>
-		, value_chain_tag
-		, partial_order_induction<PartialOrder>
 	{
-		static constexpr auto partial_order{ PartialOrder };
+		template<auto... Value>
+		struct wrapping
+			: value_list<Value...>
+			, value_chain_tag
+			, partial_order_induction<PartialOrder>
+		{
+			static constexpr auto partial_order{ PartialOrder };
+		};
+
+		template<auto... Value>
+			requires ChainWitness<value_list<Value...>, PartialOrder>
+		using of = wrapping<Value...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenChain<Range, PartialOrder>;
 	};
 
-	template<auto PartialOrder, auto... Value>
-		requires ChainWitness<value_list<Value...>, PartialOrder>
-	struct chain_witness
+	template<>
+	struct chain<try_to_trust_existing_relation>
 	{
-		using type = chain<PartialOrder, Value...>;
+		template<auto... Value>
+		using wrapping = chain<default_partial_order>::wrapping<Value...>;
+
+		template<auto... Value>
+		using of = chain<default_partial_order>::of<Value...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenChain<Range>;
 	};
 
 }
@@ -66,60 +83,6 @@ namespace logicwise::detail
 {
 	//值链工厂
 	template<auto... Value>
-	using value_chain = typename valuewise::
-		chain_witness<valuewise::default_partial_order, Value...>::type;
-
-	template<auto PartialOrder, auto... Value>
-	using custom_value_chain = typename valuewise::
-		chain_witness<PartialOrder, Value...>::type;
-
-	//值链适配器
-	template<auto PartialOrder>
-	struct value_chain_wrapper_selector
-	{
-		template<auto... Value>
-		using wrapper = custom_value_chain<PartialOrder, Value...>;
-	};
-
-	template<>
-	struct value_chain_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<auto... Value>
-		using wrapper = value_chain<Value...>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	struct as_value_chain_impl
-	{
-		template<auto... Value>
-		using wrapper = value_chain_wrapper_selector<PartialOrder>::template wrapper<Value...>;
-
-		using type = typename as_value_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Chain, auto PartialOrder>
-		requires valuewise::ProvenChain<Chain, PartialOrder>
-	struct as_value_chain_impl<Chain, PartialOrder>
-	{
-		using type = Chain;
-	};
-
-	template<typename Range, auto PartialOrder = try_to_trust_existing_relation>
-	using as_value_chain =
-		typename as_value_chain_impl<std::remove_cvref_t<Range>, PartialOrder>::type;
-
-	//值链转换器
-	template<typename Range, auto PartialOrder>
-	struct cast_into_value_chain_impl
-	{
-		template<auto... Value>
-		using wrapper = valuewise::chain<PartialOrder, Value...>;
-
-		using type = typename as_value_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	using cast_into_value_chain =
-		typename cast_into_value_chain_impl<Range, PartialOrder>::type;
+	using value_chain = valuewise::chain<>::of<Value...>;
 
 }

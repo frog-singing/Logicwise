@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: MIT
 
 #pragma once
+#include <logicwise/external_detail/exosuit.h>
 #include <logicwise/mode/type.h>
-#include <logicwise/arrangement/type.h>
 #include <logicwise/mode/rangewise_verification.h>
 #include <logicwise/mode/rangewise_traversal.h>
 #include <logicwise/mode/rangewise_querying.h>
 #include <logicwise/mode/rangewise_viewing.h>
-#include <logicwise/external_detail/exosuit.h>
+#include <logicwise/arrangement/type.h>
 #include <concepts> //用于 std::same_as，C++20标准
 
 

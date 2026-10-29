@@ -41,21 +41,38 @@ namespace logicwise::detail::typewise
 		(TryToTrustExistingRelation<PartialOrder> && ChainWitness<Range, default_partial_order>) ||
 		(!TryToTrustExistingRelation<PartialOrder> && ChainWitness<Range, PartialOrder>);
 
-	//类型链
-	template<auto PartialOrder, typename... Type>
+	//类型链包装器
+	template<auto PartialOrder = try_to_trust_existing_relation>
 	struct chain
-		: type_list<Type...>
-		, type_chain_tag
-		, partial_order_induction<PartialOrder>
 	{
-		static constexpr auto partial_order{ PartialOrder };
+		template<typename... Type>
+		struct wrapping
+			: type_list<Type...>
+			, type_chain_tag
+			, partial_order_induction<PartialOrder>
+		{
+			static constexpr auto partial_order{ PartialOrder };
+		};
+
+		template<typename... Type>
+			requires ChainWitness<type_list<Type...>, PartialOrder>
+		using of = wrapping<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenChain<Range, PartialOrder>;
 	};
 
-	template<auto PartialOrder, typename... Type>
-		requires ChainWitness<type_list<Type...>, PartialOrder>
-	struct chain_witness
+	template<>
+	struct chain<try_to_trust_existing_relation>
 	{
-		using type = chain<PartialOrder, Type...>;
+		template<typename... Type>
+		using wrapping = chain<default_partial_order>::wrapping<Type...>;
+
+		template<typename... Type>
+		using of = chain<default_partial_order>::of<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenChain<Range>;
 	};
 
 }
@@ -66,60 +83,6 @@ namespace logicwise::detail
 {
 	//类型链工厂
 	template<typename... Type>
-	using type_chain = typename typewise::
-		chain_witness<typewise::default_partial_order, Type...>::type;
-
-	template<auto PartialOrder, typename... Type>
-	using custom_type_chain = typename typewise::
-		chain_witness<PartialOrder, Type...>::type;
-
-	//类型链适配器
-	template<auto PartialOrder>
-	struct type_chain_wrapper_selector
-	{
-		template<typename... Type>
-		using wrapper = custom_type_chain<PartialOrder, Type...>;
-	};
-
-	template<>
-	struct type_chain_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<typename... Type>
-		using wrapper = type_chain<Type...>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	struct as_type_chain_impl
-	{
-		template<typename... Type>
-		using wrapper = type_chain_wrapper_selector<PartialOrder>::template wrapper<Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Chain, auto PartialOrder>
-		requires typewise::ProvenChain<Chain, PartialOrder>
-	struct as_type_chain_impl<Chain, PartialOrder>
-	{
-		using type = Chain;
-	};
-
-	template<typename Range, auto PartialOrder = try_to_trust_existing_relation>
-	using as_type_chain =
-		typename as_type_chain_impl<std::remove_cvref_t<Range>, PartialOrder>::type;
-
-	//类型链转换器
-	template<typename Range, auto PartialOrder>
-	struct cast_into_type_chain_impl
-	{
-		template<typename... Type>
-		using wrapper = typewise::chain<PartialOrder, Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	using cast_into_type_chain =
-		typename cast_into_type_chain_impl<Range, PartialOrder>::type;
+	using type_chain = typewise::chain<>::of<Type...>;
 
 }

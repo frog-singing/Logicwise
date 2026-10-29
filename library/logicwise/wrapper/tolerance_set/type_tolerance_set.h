@@ -40,20 +40,37 @@ namespace logicwise::detail::typewise
 		(TryToTrustExistingRelation<TolerantOf> && ToleranceSetWitness<Range, default_tolerance_relation>) ||
 		(!TryToTrustExistingRelation<TolerantOf> && ToleranceSetWitness<Range, TolerantOf>);
 
-	//类型相容集
-	template<auto ToleranceRelation, typename... Type>
+	//类型相容集包装器
+	template<auto ToleranceRelation = try_to_trust_existing_relation>
 	struct tolerance_set
-		: type_list<Type...>
-		, type_tolerance_set_tag
 	{
-		static constexpr auto tolerance_relation{ ToleranceRelation };
+		template<typename... Type>
+		struct wrapping
+			: type_list<Type...>
+			, type_tolerance_set_tag
+		{
+			static constexpr auto tolerance_relation{ ToleranceRelation };
+		};
+
+		template<typename... Type>
+			requires ToleranceSetWitness<type_list<Type...>, ToleranceRelation>
+		using of = wrapping<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenToleranceSet<Range, ToleranceRelation>;
 	};
 
-	template<auto ToleranceRelation, typename... Type>
-		requires ToleranceSetWitness<type_list<Type...>, ToleranceRelation>
-	struct tolerance_set_witness
+	template<>
+	struct tolerance_set<try_to_trust_existing_relation>
 	{
-		using type = tolerance_set<ToleranceRelation, Type...>;
+		template<typename... Type>
+		using wrapping = tolerance_set<default_tolerance_relation>::wrapping<Type...>;
+
+		template<typename... Type>
+		using of = tolerance_set<default_tolerance_relation>::of<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenToleranceSet<Range>;
 	};
 
 }
@@ -64,60 +81,6 @@ namespace logicwise::detail
 {
 	//类型相容集工厂
 	template<typename... Type>
-	using type_tolerance_set = typename typewise::
-		tolerance_set_witness<typewise::default_tolerance_relation, Type...>::type;
-
-	template<auto TolerantOf, typename... Type>
-	using custom_type_tolerance_set = typename typewise::
-		tolerance_set_witness<TolerantOf, Type...>::type;
-
-	//类型相容集适配器
-	template<auto TolerantOf>
-	struct type_tolerance_set_wrapper_selector
-	{
-		template<typename... Type>
-		using wrapper = custom_type_tolerance_set<TolerantOf, Type...>;
-	};
-
-	template<>
-	struct type_tolerance_set_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<typename... Type>
-		using wrapper = type_tolerance_set<Type...>;
-	};
-
-	template<typename Range, auto TolerantOf>
-	struct as_type_tolerance_set_impl
-	{
-		template<typename... Type>
-		using wrapper = type_tolerance_set_wrapper_selector<TolerantOf>::template wrapper<Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename ToleranceSet, auto TolerantOf>
-		requires typewise::ProvenToleranceSet<ToleranceSet, TolerantOf>
-	struct as_type_tolerance_set_impl<ToleranceSet, TolerantOf>
-	{
-		using type = ToleranceSet;
-	};
-
-	template<typename Range, auto TolerantOf = try_to_trust_existing_relation>
-	using as_type_tolerance_set =
-		typename as_type_tolerance_set_impl<std::remove_cvref_t<Range>, TolerantOf>::type;
-
-	//类型相容集转换器
-	template<typename Range, auto TolerantOf>
-	struct cast_into_type_tolerance_set_impl
-	{
-		template<typename... Type>
-		using wrapper = typewise::tolerance_set<TolerantOf, Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto TolerantOf>
-	using cast_into_type_tolerance_set =
-		typename cast_into_type_tolerance_set_impl<Range, TolerantOf>::type;
+	using type_tolerance_set = typewise::tolerance_set<>::of<Type...>;
 
 }

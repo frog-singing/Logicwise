@@ -40,21 +40,38 @@ namespace logicwise::detail::typewise
 		(TryToTrustExistingRelation<PartialOrder> && AntichainWitness<Range, default_partial_order>) ||
 		(!TryToTrustExistingRelation<PartialOrder> && AntichainWitness<Range, PartialOrder>);
 
-	//类型反链
-	template<auto PartialOrder, typename... Type>
+	//类型反链包装器
+	template<auto PartialOrder = try_to_trust_existing_relation>
 	struct antichain
-		: type_list<Type...>
-		, type_antichain_tag
-		, partial_order_induction<PartialOrder>
 	{
-		static constexpr auto partial_order{ PartialOrder };
+		template<typename... Type>
+		struct wrapping
+			: type_list<Type...>
+			, type_antichain_tag
+			, partial_order_induction<PartialOrder>
+		{
+			static constexpr auto partial_order{ PartialOrder };
+		};
+
+		template<typename... Type>
+			requires AntichainWitness<type_list<Type...>, PartialOrder>
+		using of = wrapping<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenAntichain<Range, PartialOrder>;
 	};
 
-	template<auto PartialOrder, typename... Type>
-		requires AntichainWitness<type_list<Type...>, PartialOrder>
-	struct antichain_witness
+	template<>
+	struct antichain<try_to_trust_existing_relation>
 	{
-		using type = antichain<PartialOrder, Type...>;
+		template<typename... Type>
+		using wrapping = antichain<default_partial_order>::wrapping<Type...>;
+
+		template<typename... Type>
+		using of = antichain<default_partial_order>::of<Type...>;
+
+		template<typename Range>
+		static constexpr bool proven = ProvenAntichain<Range>;
 	};
 
 }
@@ -65,60 +82,6 @@ namespace logicwise::detail
 {
 	//类型反链工厂
 	template<typename... Type>
-	using type_antichain = typename typewise::
-		antichain_witness<typewise::default_partial_order, Type...>::type;
-
-	template<auto PartialOrder, typename... Type>
-	using custom_type_antichain = typename typewise::
-		antichain_witness<PartialOrder, Type...>::type;
-
-	//类型反链适配器
-	template<auto PartialOrder>
-	struct type_antichain_wrapper_selector
-	{
-		template<typename... Type>
-		using wrapper = custom_type_antichain<PartialOrder, Type...>;
-	};
-
-	template<>
-	struct type_antichain_wrapper_selector<try_to_trust_existing_relation>
-	{
-		template<typename... Type>
-		using wrapper = type_antichain<Type...>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	struct as_type_antichain_impl
-	{
-		template<typename... Type>
-		using wrapper = type_antichain_wrapper_selector<PartialOrder>::template wrapper<Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Antichain, auto PartialOrder>
-		requires typewise::ProvenAntichain<Antichain, PartialOrder>
-	struct as_type_antichain_impl<Antichain, PartialOrder>
-	{
-		using type = Antichain;
-	};
-
-	template<typename Range, auto PartialOrder = try_to_trust_existing_relation>
-	using as_type_antichain =
-		typename as_type_antichain_impl<std::remove_cvref_t<Range>, PartialOrder>::type;
-
-	//类型反链转换器
-	template<typename Range, auto PartialOrder>
-	struct cast_into_type_antichain_impl
-	{
-		template<typename... Type>
-		using wrapper = typewise::antichain<PartialOrder, Type...>;
-
-		using type = typename as_type_list<Range>::template apply<wrapper>;
-	};
-
-	template<typename Range, auto PartialOrder>
-	using cast_into_type_antichain =
-		typename cast_into_type_antichain_impl<Range, PartialOrder>::type;
+	using type_antichain = typewise::antichain<>::of<Type...>;
 
 }

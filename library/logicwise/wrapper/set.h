@@ -13,27 +13,23 @@
 namespace logicwise::wrapper
 {
 	using detail::type_set;
-	using detail::custom_type_set;
-	using detail::as_type_set;
-	using detail::cast_into_type_set;
 
 	using detail::value_set;
-	using detail::custom_value_set;
-	using detail::as_value_set;
-	using detail::cast_into_value_set;
 
 }
 
 //逻辑维度::类型维度
 namespace logicwise::typewise
 {
-	using detail::typewise::Set;
+	using detail::typewise::set; //包装器 wrapper
+	using detail::typewise::Set; //概念 concept
 
 }
 
 //逻辑维度::值维度
 namespace logicwise::valuewise
 {
-	using detail::valuewise::Set;
+	using detail::valuewise::set; //包装器 wrapper
+	using detail::valuewise::Set; //概念 concept
 
 }

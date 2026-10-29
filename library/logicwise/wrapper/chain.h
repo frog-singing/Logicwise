@@ -13,27 +13,23 @@
 namespace logicwise::wrapper
 {
 	using detail::type_chain;
-	using detail::custom_type_chain;
-	using detail::as_type_chain;
-	using detail::cast_into_type_chain;
 
 	using detail::value_chain;
-	using detail::custom_value_chain;
-	using detail::as_value_chain;
-	using detail::cast_into_value_chain;
 
 }
 
 //逻辑维度::类型维度
 namespace logicwise::typewise
 {
-	using detail::typewise::Chain;
+	using detail::typewise::chain; //包装器 wrapper
+	using detail::typewise::Chain; //概念 concept
 
 }
 
 //逻辑维度::值维度
 namespace logicwise::valuewise
 {
-	using detail::valuewise::Chain;
+	using detail::valuewise::chain; //包装器 wrapper
+	using detail::valuewise::Chain; //概念 concept
 
 }
